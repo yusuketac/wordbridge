@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>コトバデスク — 翻訳 & ビジネス文書コーチ</title>
+<style>
+  :root{
+    --bg:#f4f6f9; --card:#ffffff; --ink:#1e2430; --sub:#6b7484;
+    --accent:#2563eb; --accent2:#0ea5a4; --line:#e3e8ef;
+    --ok:#16a34a; --ng:#dc2626; --warn:#d97706;
+    --radius:10px; --shadow:0 1px 3px rgba(20,30,50,.08);
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:"Segoe UI","Hiragino Sans","Meiryo",sans-serif;
+    background:var(--bg); color:var(--ink); font-size:14px; line-height:1.65;
+  }
+  .wrap{max-width:860px; margin:0 auto; padding:14px 16px 40px;}
+
+  /* header */
+  header{display:flex; align-items:center; gap:10px; margin-bottom:12px;}
+  .logo{
+    width:34px; height:34px; border-radius:9px; flex:none;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-weight:700; font-size:16px;
+  }
+  h1{font-size:17px; font-weight:700;}
+  .tagline{font-size:11.5px; color:var(--sub);}
+
+  /* tabs */
+  nav{display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap;}
+  nav button{
+    border:1px solid var(--line); background:var(--card); color:var(--sub);
+    padding:7px 16px; border-radius:999px; cursor:pointer; font-size:13.5px;
+    transition:all .12s;
+  }
+  nav button:hover{border-color:var(--accent); color:var(--accent);}
+  nav button.active{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600;}
+  nav button.active.t-learn{background:var(--accent2); border-color:var(--accent2);}
+
+  .panel{display:none;}
+  .panel.show{display:block;}
+
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px; margin-bottom:12px;}
+
+  textarea{
+    width:100%; border:1px solid var(--line); border-radius:8px; padding:10px 12px;
+    font-family:inherit; font-size:14.5px; resize:vertical; background:#fbfcfe; color:var(--ink);
+  }
+  textarea:focus{outline:2px solid var(--accent); outline-offset:-1px; background:#fff;}
+  .hint{font-size:11.5px; color:var(--sub); margin-top:5px;}
+  kbd{background:#eef1f6; border:1px solid var(--line); border-radius:4px; padding:0 5px; font-size:11px; font-family:inherit;}
+
+  .btn{
+    background:var(--accent); color:#fff; border:none; border-radius:8px;
+    padding:8px 18px; font-size:13.5px; font-weight:600; cursor:pointer;
+  }
+  .btn:hover{filter:brightness(1.08);}
+  .btn:disabled{opacity:.5; cursor:default;}
+  .btn.sub{background:#eef1f6; color:var(--ink); font-weight:500;}
+  .btn.tiny{padding:3px 10px; font-size:11.5px; border-radius:6px;}
+
+  .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  .spacer{flex:1;}
+
+  /* tone selector */
+  .tones{display:flex; gap:6px;}
+  .tones button{
+    border:1px solid var(--line); background:#fbfcfe; border-radius:8px;
+    padding:6px 14px; cursor:pointer; font-size:13px; color:var(--sub);
+  }
+  .tones button.on{background:#eaf1ff; border-color:var(--accent); color:var(--accent); font-weight:600;}
+
+  /* results */
+  .result-box{
+    background:#f2f7ff; border:1px solid #cfe0fb; border-radius:8px;
+    padding:12px; font-size:14.5px; white-space:pre-wrap; position:relative;
+  }
+  .result-box.teal{background:#effaf9; border-color:#bfe7e5;}
+
+  .sec-title{font-size:12px; font-weight:700; color:var(--sub); letter-spacing:.05em; margin:14px 0 6px;}
+  .sec-title:first-child{margin-top:0;}
+
+  .point{
+    border-left:3px solid var(--accent2); background:#fafcfc;
+    padding:8px 12px; border-radius:0 8px 8px 0; margin-bottom:8px; font-size:13.5px;
+  }
+  .point .ba{margin-bottom:3px;}
+  .point .before{color:var(--ng); text-decoration:line-through; text-decoration-color:rgba(220,38,38,.5);}
+  .point .after{color:var(--ok); font-weight:600;}
+  .point .why{color:var(--sub); font-size:12.5px;}
+
+  /* PREP */
+  .prep-chips{display:flex; gap:6px; margin-bottom:8px;}
+  .chip{
+    flex:1; text-align:center; border-radius:8px; padding:6px 4px;
+    font-size:12px; font-weight:700; border:1px solid var(--line);
+    background:#f5f6f8; color:#9aa3b2;
+  }
+  .chip.hit{background:#e8f7ee; border-color:#b7e4c7; color:var(--ok);}
+  .chip small{display:block; font-weight:500; font-size:10.5px;}
+  .prep-comment{font-size:13px; color:var(--ink); background:#fffbeb; border:1px solid #fde9b8; border-radius:8px; padding:8px 12px;}
+
+  .tipbox{
+    background:linear-gradient(135deg,#f0f7ff,#effaf9); border:1px solid #cfe0fb;
+    border-radius:8px; padding:10px 12px; font-size:13.5px;
+  }
+  .tipbox b{color:var(--accent);}
+
+  /* notes */
+  .note-item{border-bottom:1px solid var(--line); padding:10px 2px; display:flex; gap:10px; align-items:flex-start;}
+  .note-item:last-child{border-bottom:none;}
+  .note-date{font-size:11px; color:var(--sub); flex:none; margin-top:2px; width:74px;}
+  .note-text{flex:1; font-size:13.5px;}
+  .note-del{background:none; border:none; color:#c2c9d4; cursor:pointer; font-size:14px; flex:none;}
+  .note-del:hover{color:var(--ng);}
+  .note-tag{flex:none; font-size:10.5px; background:#effaf9; color:var(--accent2); border:1px solid #bfe7e5; border-radius:5px; padding:1px 7px; margin-top:2px; white-space:nowrap;}
+
+  /* toolbar (search / sort / export) */
+  .toolbar{display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:10px;}
+  .toolbar input[type=text]{flex:1; min-width:130px; width:auto; border:1px solid var(--line); border-radius:8px; padding:5px 10px; font-size:12.5px; font-family:inherit; background:#fbfcfe;}
+  .toolbar select{width:auto; border:1px solid var(--line); border-radius:8px; padding:5px 8px; font-size:12.5px; font-family:inherit; background:#fbfcfe;}
+
+  /* tag chips (frequency) */
+  .tagbar{display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px;}
+  .tag{border:1px solid var(--line); background:#f5f6f8; color:var(--sub); border-radius:999px; padding:2px 11px; font-size:11.5px; cursor:pointer;}
+  .tag:hover{border-color:var(--accent2); color:var(--accent2);}
+  .tag.on{background:#effaf9; border-color:var(--accent2); color:var(--accent2); font-weight:600;}
+
+  /* phrases */
+  .ph-item{border-bottom:1px solid var(--line); padding:9px 2px; display:flex; gap:10px; align-items:center;}
+  .ph-item:last-child{border-bottom:none;}
+  .ph-main{flex:1; min-width:0;}
+  .ph-label{font-size:11px; color:var(--accent); font-weight:600;}
+  .ph-text{font-size:13.5px; white-space:pre-wrap; word-break:break-word;}
+  .ph-n{flex:none; font-size:11px; color:#9aa3b2; width:38px; text-align:right;}
+
+  /* result-box buttons */
+  .boxbtns{position:absolute; top:8px; right:8px; display:flex; gap:5px;}
+
+  /* term notes */
+  .term{font-size:13px; color:var(--sub); padding:2px 0;}
+  .term b{color:var(--ink);}
+
+  /* settings */
+  label{font-size:12.5px; font-weight:600; color:var(--sub); display:block; margin:12px 0 4px;}
+  label:first-child{margin-top:0;}
+  input[type=text],input[type=password],select{
+    width:100%; border:1px solid var(--line); border-radius:8px; padding:8px 12px;
+    font-size:13.5px; font-family:inherit; background:#fbfcfe;
+  }
+  input:focus,select:focus{outline:2px solid var(--accent); outline-offset:-1px;}
+  .guide{background:#fffbeb; border:1px solid #fde9b8; border-radius:8px; padding:12px 14px; font-size:13px; margin-bottom:12px;}
+  .guide ol{margin:6px 0 0 20px;}
+  .guide a{color:var(--accent);}
+
+  .status{font-size:12.5px; color:var(--sub); min-height:18px;}
+  .status.err{color:var(--ng);}
+  .loading{display:inline-block; width:14px; height:14px; border:2px solid #cdd6e4; border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; vertical-align:-2px; margin-right:6px;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  footer{margin-top:24px; font-size:11px; color:#9aa3b2; text-align:center;}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">語</div>
+    <div>
+      <h1>コトバデスク</h1>
+      <div class="tagline">翻訳 & ビジネス文書コーチ — 使いながら文章力が上がる</div>
+    </div>
+  </header>
+
+  <nav>
+    <button data-tab="tr" class="active">翻訳</button>
+    <button data-tab="pr">文書校正</button>
+    <button data-tab="ph">フレーズ集 <span id="phCount"></span></button>
+    <button data-tab="nt" class="t-learn">学びノート <span id="noteCount"></span></button>
+    <button data-tab="st">設定</button>
+  </nav>
+
+  <!-- ============ 翻訳 ============ -->
+  <div class="panel show" id="panel-tr">
+    <div class="card">
+      <textarea id="trInput" rows="4" placeholder="日本語 → 英語 / 英語 → 日本語(自動判定)&#10;Enterで即翻訳"></textarea>
+      <div class="row" style="margin-top:8px;">
+        <div class="hint"><kbd>Enter</kbd> 翻訳 / <kbd>Shift+Enter</kbd> 改行</div>
+        <div class="spacer"></div>
+        <span class="status" id="trStatus"></span>
+        <button class="btn" id="trBtn">翻訳</button>
+      </div>
+    </div>
+    <div class="card hidden" id="trResultCard">
+      <div class="sec-title" id="trDirection">翻訳結果</div>
+      <div class="result-box" id="trResult"><div class="boxbtns"><button class="btn sub tiny" onclick="saveAsPhrase('trResult',this)">☆ フレーズ登録</button><button class="btn sub tiny" onclick="copyText('trResult',this)">コピー</button></div><span id="trResultText"></span></div>
+      <div id="trNotesWrap" class="hidden">
+        <div class="sec-title">訳語メモ</div>
+        <div id="trNotes"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ 校正 ============ -->
+  <div class="panel" id="panel-pr">
+    <div class="card">
+      <div class="row" style="margin-bottom:8px;">
+        <span class="hint" style="margin:0;">宛先:</span>
+        <div class="tones" id="tones">
+          <button data-tone="casual">カジュアル<br><small style="font-weight:400;">同僚・チャット</small></button>
+          <button data-tone="boss" class="on">上司・社内<br><small style="font-weight:400;">報告・依頼</small></button>
+          <button data-tone="external">社外<br><small style="font-weight:400;">クライアント</small></button>
+        </div>
+        <div class="spacer"></div>
+        <label style="margin:0; display:flex; align-items:center; gap:5px; cursor:pointer; font-weight:500;">
+          <input type="checkbox" id="prepToggle" checked style="width:auto;"> PREP分析
+        </label>
+      </div>
+      <textarea id="prInput" rows="6" placeholder="校正したい文章を貼り付け(チャット・メール・報告など)&#10;Ctrl+Enterで実行"></textarea>
+      <div class="row" style="margin-top:8px;">
+        <div class="hint"><kbd>Ctrl+Enter</kbd> 校正実行</div>
+        <div class="spacer"></div>
+        <span class="status" id="prStatus"></span>
+        <button class="btn" id="prBtn">校正する</button>
+      </div>
+    </div>
+
+    <div class="card hidden" id="prResultCard">
+      <div class="sec-title">✦ 修正案(<span id="prToneLabel"></span>向け)</div>
+      <div class="result-box teal" id="prResult"><div class="boxbtns"><button class="btn sub tiny" onclick="saveAsPhrase('prResult',this)">☆ フレーズ登録</button><button class="btn sub tiny" onclick="copyText('prResult',this)">コピー</button></div><span id="prResultText"></span></div>
+
+      <div class="sec-title">✦ 添削ポイント</div>
+      <div id="prPoints"></div>
+
+      <div id="prPrepWrap">
+        <div class="sec-title">✦ PREP構造チェック</div>
+        <div class="prep-chips" id="prepChips"></div>
+        <div class="prep-comment" id="prepComment"></div>
+      </div>
+
+      <div class="sec-title">✦ 今日の学び(ノートに自動保存)</div>
+      <div class="tipbox" id="prTip"></div>
+    </div>
+  </div>
+
+  <!-- ============ フレーズ集 ============ -->
+  <div class="panel" id="panel-ph">
+    <div class="card">
+      <textarea id="phInput" rows="2" placeholder="よく使う文を登録(定型の挨拶・依頼・報告の書き出しなど)"></textarea>
+      <div class="row" style="margin-top:8px;">
+        <input type="text" id="phLabel" placeholder="ラベル(任意)" style="width:200px;">
+        <div class="spacer"></div>
+        <span class="status" id="phStatus"></span>
+        <button class="btn sub hidden" id="phCancel">キャンセル</button>
+        <button class="btn" id="phAdd">登録</button>
+      </div>
+      <div class="hint">翻訳・校正の結果からも「☆ フレーズ登録」で追加できます。コピーするたびに使用回数がカウントされます。</div>
+    </div>
+    <div class="card">
+      <div class="toolbar">
+        <input type="text" id="phSearch" placeholder="検索…">
+        <select id="phSort">
+          <option value="use">よく使う順</option>
+          <option value="new">新しい順</option>
+        </select>
+      </div>
+      <div id="phList"></div>
+    </div>
+  </div>
+
+  <!-- ============ 学びノート ============ -->
+  <div class="panel" id="panel-nt">
+    <div class="card">
+      <div class="toolbar">
+        <input type="text" id="ntSearch" placeholder="検索…">
+        <select id="ntSort">
+          <option value="new">新しい順</option>
+          <option value="freq">よく指摘される順</option>
+        </select>
+        <button class="btn sub tiny" id="ntCsv">CSV出力</button>
+        <button class="btn sub tiny" id="ntCopyAll">全コピー</button>
+        <button class="btn sub tiny" id="ntClear">全削除</button>
+      </div>
+      <div class="tagbar" id="ntTags"></div>
+      <div id="ntList"><div class="hint">まだ記録がありません。文書校正を使うと「今日の学び」がここに貯まっていきます。</div></div>
+    </div>
+  </div>
+
+  <!-- ============ 設定 ============ -->
+  <div class="panel" id="panel-st">
+    <div class="guide" id="setupGuide">
+      <b>初回セットアップ(無料・約2分)</b>
+      <ol>
+        <li><a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a> を開き、Googleアカウントでログイン</li>
+        <li>「Create API key」を押してキーをコピー</li>
+        <li>下の欄に貼り付けて「保存」</li>
+      </ol>
+      <div style="margin-top:6px; color:var(--sub); font-size:12px;">無料枠(Flash系: 約10回/分・1,500回/日)で十分動きます。クレジットカード登録は不要です。</div>
+    </div>
+    <div class="card">
+      <label>Gemini APIキー</label>
+      <div class="row">
+        <input type="password" id="stKey" placeholder="AIza..." style="flex:1;">
+        <button class="btn sub tiny" id="stKeyShow">表示</button>
+      </div>
+
+      <label>モデル</label>
+      <div class="row">
+        <select id="stModel" style="flex:1;">
+          <option value="gemini-flash-latest">gemini-flash-latest(推奨・常に最新)</option>
+          <option value="gemini-3.5-flash">gemini-3.5-flash</option>
+          <option value="gemini-2.5-flash">gemini-2.5-flash</option>
+          <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite(最速・軽量)</option>
+        </select>
+        <button class="btn sub tiny" id="stModelFetch">利用可能な一覧を取得</button>
+      </div>
+
+      <label>ペルソナ(翻訳・校正の前提として毎回AIに渡されます)</label>
+      <textarea id="stPersona" rows="6"></textarea>
+
+      <div class="row" style="margin-top:12px;">
+        <button class="btn" id="stSave">保存</button>
+        <span class="status" id="stStatus"></span>
+      </div>
+    </div>
+
+    <div class="card">
+      <label>バックアップ / 復元(別PCへの引っ越し・同期)</label>
+      <div class="row">
+        <button class="btn sub" id="bkExport">書き出し</button>
+        <button class="btn sub" id="bkImport">読み込み</button>
+        <label style="margin:0; display:flex; align-items:center; gap:5px; cursor:pointer; font-weight:500;">
+          <input type="checkbox" id="bkKey" style="width:auto;"> APIキーも含める
+        </label>
+        <input type="file" id="bkFile" accept=".json,application/json" class="hidden">
+      </div>
+      <div class="status" id="bkStatus" style="margin-top:6px;"></div>
+      <div class="hint">学びノート・フレーズ集・設定をJSONファイル1つに保存します。読み込み時は既存データに統合されるため、いま貯まっているものが消えることはありません。OneDrive内に書き出しておけば、別PCから同じファイルを読み込むだけで引っ越し完了です。</div>
+    </div>
+  </div>
+
+  <footer>⚠ 未発表車の情報など機密情報は入力しないでください(社内ルール)。設定はこのPCのブラウザ内にのみ保存されます。</footer>
+</div>
+
+<script>
+"use strict";
+
+/* ---------- storage ---------- */
+const LS = {
+  get k(){ return localStorage.getItem("kd_apikey") || ""; },
+  set k(v){ localStorage.setItem("kd_apikey", v); },
+  get model(){ return localStorage.getItem("kd_model") || "gemini-flash-latest"; },
+  set model(v){ localStorage.setItem("kd_model", v); },
+  get persona(){ return localStorage.getItem("kd_persona") || DEFAULT_PERSONA; },
+  set persona(v){ localStorage.setItem("kd_persona", v); },
+  get tone(){ return localStorage.getItem("kd_tone") || "boss"; },
+  set tone(v){ localStorage.setItem("kd_tone", v); },
+  get notes(){ try{ return JSON.parse(localStorage.getItem("kd_notes")||"[]"); }catch(e){ return []; } },
+  set notes(v){ localStorage.setItem("kd_notes", JSON.stringify(v)); },
+  get phrases(){ try{ return JSON.parse(localStorage.getItem("kd_phrases")||"[]"); }catch(e){ return []; } },
+  set phrases(v){ localStorage.setItem("kd_phrases", JSON.stringify(v)); }
+};
+
+const DEFAULT_PERSONA =
+`広告会社の制作局勤務。自動車のデジタルツイン(CG)制作が主業務。
+使用ツール: Maya, V-Ray, Deltagen, Substance, Houdini, Chaos Vantage, USD, Photoshop, Excel, SharePoint, Alienbrain。
+チームは5人の少人数。社内チャット(Teams)文化。新人トレーナーも担当。
+翻訳ではCG・自動車業界の専門用語(シェーダー、テセレーション、グレード、コンフィギュレーター等)を業界慣行に合わせて訳すこと。
+文章は「結論から話す」PREP法を意識して練習中。`;
+
+const TONES = {
+  casual:   { label:"カジュアル", desc:"同僚への社内チャット(Teams)。ですます調は保ちつつ、堅苦しさのない親しみやすい文体。絵文字は使わない。" },
+  boss:     { label:"上司・社内", desc:"上司や社内の目上の人への報告・依頼・相談。失礼がなく、かつ過剰にへりくだらない簡潔なビジネス文体。結論から書く。" },
+  external: { label:"社外", desc:"クライアント(自動車メーカー)や外部協力会社へのメール。丁寧なビジネス敬語。ただし冗長な定型句の重複は避ける。" }
+};
+
+/* ---------- tabs ---------- */
+const $ = id => document.getElementById(id);
+document.querySelectorAll("nav button").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    document.querySelectorAll("nav button").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));
+    b.classList.add("active");
+    $("panel-"+b.dataset.tab).classList.add("show");
+    if(b.dataset.tab==="tr") $("trInput").focus();
+    if(b.dataset.tab==="pr") $("prInput").focus();
+    if(b.dataset.tab==="ph") $("phSearch").focus();
+  });
+});
+
+/* ---------- gemini call ---------- */
+async function callGemini(systemText, userText){
+  const key = LS.k;
+  if(!key){ throw new Error("NOKEY"); }
+  const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
+              encodeURIComponent(LS.model) + ":generateContent?key=" + encodeURIComponent(key);
+  const body = {
+    system_instruction: { parts: [{ text: systemText }] },
+    contents: [{ role:"user", parts: [{ text: userText }] }],
+    generationConfig: { temperature: 0.35, response_mime_type: "application/json" }
+  };
+  const res = await fetch(url, {
+    method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body)
+  });
+  if(!res.ok){
+    let msg = "API エラー (" + res.status + ")";
+    if(res.status===429) msg = "無料枠の上限に達しました。1分ほど待って再実行してください。";
+    if(res.status===400||res.status===403) msg = "APIキーが無効のようです。設定を確認してください。";
+    if(res.status===404) msg = "モデルが見つかりません。設定でモデルを変更してください。";
+    try{ const j = await res.json(); if(j.error && j.error.message) msg += " — " + j.error.message.slice(0,120); }catch(e){}
+    throw new Error(msg);
+  }
+  const data = await res.json();
+  let text = "";
+  try{ text = data.candidates[0].content.parts.map(p=>p.text||"").join(""); }
+  catch(e){ throw new Error("応答の解析に失敗しました。"); }
+  return parseJSON(text);
+}
+
+function parseJSON(text){
+  try{ return JSON.parse(text); }catch(e){}
+  const m = text.match(/\{[\s\S]*\}/);
+  if(m){ try{ return JSON.parse(m[0]); }catch(e){} }
+  throw new Error("AIの応答形式が不正でした。もう一度お試しください。");
+}
+
+function esc(s){
+  return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function copyText(boxId, btn){
+  const t = $(boxId + "Text").textContent;
+  navigator.clipboard.writeText(t).then(()=>{
+    const old = btn.textContent; btn.textContent = "✓ コピー済";
+    setTimeout(()=>btn.textContent = old, 1200);
+  });
+}
+
+function setStatus(id, msg, isErr, loading){
+  const el = $(id);
+  el.className = "status" + (isErr ? " err" : "");
+  el.innerHTML = (loading ? '<span class="loading"></span>' : "") + esc(msg);
+}
+
+function needKeyGuide(statusId){
+  setStatus(statusId, "APIキー未設定です。「設定」タブからセットアップしてください(無料・2分)。", true, false);
+  document.querySelector('nav button[data-tab="st"]').style.outline = "2px solid var(--warn)";
+  setTimeout(()=>{ document.querySelector('nav button[data-tab="st"]').style.outline = ""; }, 3000);
+}
+
+/* ---------- 翻訳 ---------- */
+async function runTranslate(){
+  const text = $("trInput").value.trim();
+  if(!text) return;
+  if(!LS.k){ needKeyGuide("trStatus"); return; }
+  $("trBtn").disabled = true;
+  setStatus("trStatus", "翻訳中…", false, true);
+  const sys =
+`あなたは自動車・CG業界に精通したプロの翻訳者です。
+【依頼者プロフィール】
+${LS.persona}
+
+【指示】
+- 入力テキストの言語を自動判定し、日本語なら自然な英語に、英語なら自然な日本語に翻訳する。
+- 依頼者の業界(自動車CG制作・広告)の文脈を前提に、専門用語は業界で実際に使われる訳語を選ぶ。
+- ビジネスで使える自然な文体にする(直訳調を避ける)。
+- 必ず次のJSONのみで回答する:
+{"direction":"ja→en または en→ja","translation":"翻訳結果","notes":[{"term":"原語","note":"訳語の選択理由や補足(業界用語・言い回しなど、価値のあるもののみ最大3件。なければ空配列)"}]}`;
+  try{
+    const r = await callGemini(sys, text);
+    $("trResultCard").classList.remove("hidden");
+    $("trDirection").textContent = "翻訳結果(" + (r.direction||"") + ")";
+    $("trResultText").textContent = r.translation || "";
+    const notes = Array.isArray(r.notes) ? r.notes.filter(n=>n && n.term) : [];
+    if(notes.length){
+      $("trNotesWrap").classList.remove("hidden");
+      $("trNotes").innerHTML = notes.map(n=>'<div class="term"><b>'+esc(n.term)+'</b> — '+esc(n.note)+'</div>').join("");
+    }else{
+      $("trNotesWrap").classList.add("hidden");
+    }
+    setStatus("trStatus","",false,false);
+  }catch(e){
+    if(e.message==="NOKEY"){ needKeyGuide("trStatus"); }
+    else setStatus("trStatus", e.message, true, false);
+  }finally{
+    $("trBtn").disabled = false;
+  }
+}
+$("trBtn").addEventListener("click", runTranslate);
+$("trInput").addEventListener("keydown", e=>{
+  if(e.key==="Enter" && !e.shiftKey && !e.isComposing){ e.preventDefault(); runTranslate(); }
+});
+
+/* ---------- 校正 ---------- */
+document.querySelectorAll("#tones button").forEach(b=>{
+  b.addEventListener("click", ()=>{
+    document.querySelectorAll("#tones button").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");
+    LS.tone = b.dataset.tone;
+  });
+});
+
+async function runProof(){
+  const text = $("prInput").value.trim();
+  if(!text) return;
+  if(!LS.k){ needKeyGuide("prStatus"); return; }
+  const tone = TONES[LS.tone] || TONES.boss;
+  const usePrep = $("prepToggle").checked;
+  $("prBtn").disabled = true;
+  setStatus("prStatus", "添削中…", false, true);
+  const sys =
+`あなたは経験豊富なビジネス文書コーチです。添削を通じて依頼者の文章力を育てることが目的です。
+【依頼者プロフィール】
+${LS.persona}
+
+【今回の宛先・場面】${tone.label}: ${tone.desc}
+
+【指示】
+- 原文の意図を保ったまま、宛先・場面に合った文章に書き直す。
+- 変更した箇所ごとに「なぜそうしたか」を、依頼者が次から自分で書けるようになる形で説明する(最大5件、重要な順)。
+- 問題のない箇所は褒めてよい。否定的・威圧的な言い方はしない。
+${usePrep ? `- PREP法(Point結論→Reason理由→Example具体例→Point再結論)の観点で構造を分析する。報告・説明系の文章でない場合(挨拶や短い連絡など)は adapted=false とし、コメントで「この文章はPREP適用外」と伝える。` : ""}
+- 「今日の学び」として、この添削から得られる汎用的な教訓を1文で書く。
+- 「今日の学び」に、内容を最もよく表すタグを1つ付ける。次から選ぶ: 結論先行 / 構成 / 簡潔さ / 敬語・配慮 / 語彙・言い回し / 表記 / その他
+- 必ず次のJSONのみで回答する:
+{"revised":"修正後の全文",
+"points":[{"before":"原文の該当箇所(短く)","after":"修正後(短く)","reason":"理由の説明"}],
+${usePrep ? `"prep":{"adapted":true,"P":true,"R":false,"E":false,"P2":true,"comment":"構造への講評と、足りない要素をどう足すかの具体的な提案"},` : ""}
+"tip":"今日の学び(1文)","tipTag":"タグ"}`;
+  try{
+    const r = await callGemini(sys, text);
+    $("prResultCard").classList.remove("hidden");
+    $("prToneLabel").textContent = tone.label;
+    $("prResultText").textContent = r.revised || "";
+
+    const pts = Array.isArray(r.points) ? r.points : [];
+    $("prPoints").innerHTML = pts.length
+      ? pts.map(p=>'<div class="point"><div class="ba"><span class="before">'+esc(p.before)+'</span> → <span class="after">'+esc(p.after)+'</span></div><div class="why">'+esc(p.reason)+'</div></div>').join("")
+      : '<div class="hint">大きな修正点はありませんでした。</div>';
+
+    if(usePrep && r.prep){
+      $("prPrepWrap").classList.remove("hidden");
+      const pr = r.prep;
+      if(pr.adapted === false){
+        $("prepChips").innerHTML = "";
+        $("prepComment").textContent = pr.comment || "この文章はPREP法の適用外です(短い連絡・挨拶など)。";
+      }else{
+        const defs = [["P","結論","P"],["R","理由","R"],["E","具体例","E"],["P","再結論","P2"]];
+        $("prepChips").innerHTML = defs.map(d=>'<div class="chip'+(pr[d[2]] ? " hit":"")+'">'+d[0]+(pr[d[2]] ? " ✓":" −")+'<small>'+d[1]+'</small></div>').join("");
+        $("prepComment").textContent = pr.comment || "";
+      }
+    }else{
+      $("prPrepWrap").classList.add("hidden");
+    }
+
+    $("prTip").innerHTML = "<b>💡 </b>" + esc(r.tip || "") + (r.tipTag ? ' <span class="note-tag">' + esc(r.tipTag) + '</span>' : "");
+    if(r.tip){ addNote(r.tip, r.tipTag); }
+    setStatus("prStatus","",false,false);
+  }catch(e){
+    if(e.message==="NOKEY"){ needKeyGuide("prStatus"); }
+    else setStatus("prStatus", e.message, true, false);
+  }finally{
+    $("prBtn").disabled = false;
+  }
+}
+$("prBtn").addEventListener("click", runProof);
+$("prInput").addEventListener("keydown", e=>{
+  if(e.key==="Enter" && (e.ctrlKey||e.metaKey)){ e.preventDefault(); runProof(); }
+});
+
+/* ---------- 学びノート ---------- */
+let ntFilterTag = "";
+
+function addNote(tip, tag){
+  const notes = LS.notes;
+  if(notes.length && notes[0].tip === tip) return;
+  notes.unshift({ d: new Date().toISOString().slice(0,10), tip: tip, tag: String(tag||"その他").slice(0,12) });
+  LS.notes = notes.slice(0,200);
+  renderNotes();
+}
+
+function renderNotes(){
+  const notes = LS.notes;
+  $("noteCount").textContent = notes.length ? "(" + notes.length + ")" : "";
+
+  // タグ頻度(=よく指摘されるポイント)
+  const counts = {};
+  notes.forEach(n=>{ const t = n.tag || "その他"; counts[t] = (counts[t]||0) + 1; });
+  const tags = Object.keys(counts).sort((a,b)=>counts[b]-counts[a]);
+  if(ntFilterTag && !counts[ntFilterTag]) ntFilterTag = "";
+  $("ntTags").innerHTML = tags.map((t,i)=>
+    '<button class="tag'+(t===ntFilterTag?" on":"")+'" data-i="'+i+'">'+esc(t)+' ×'+counts[t]+'</button>'
+  ).join("");
+  document.querySelectorAll("#ntTags .tag").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const t = tags[Number(b.dataset.i)];
+      ntFilterTag = (ntFilterTag===t) ? "" : t;
+      renderNotes();
+    });
+  });
+
+  const q = $("ntSearch").value.trim().toLowerCase();
+  let list = notes.map((n,i)=>({ ...n, i }))
+    .filter(n=>!ntFilterTag || (n.tag||"その他")===ntFilterTag)
+    .filter(n=>!q || n.tip.toLowerCase().includes(q) || (n.tag||"").toLowerCase().includes(q));
+  if($("ntSort").value==="freq"){
+    list.sort((a,b)=>(counts[b.tag||"その他"]-counts[a.tag||"その他"]) || (a.i-b.i));
+  }
+
+  if(!notes.length){
+    $("ntList").innerHTML = '<div class="hint">まだ記録がありません。文書校正を使うと「今日の学び」がここに貯まっていきます。</div>';
+    return;
+  }
+  if(!list.length){
+    $("ntList").innerHTML = '<div class="hint">条件に合う記録がありません。</div>';
+    return;
+  }
+  $("ntList").innerHTML = list.map(n=>
+    '<div class="note-item"><span class="note-date">'+esc(n.d)+'</span>'+
+    (n.tag ? '<span class="note-tag">'+esc(n.tag)+'</span>' : '')+
+    '<span class="note-text">'+esc(n.tip)+'</span><button class="note-del" data-i="'+n.i+'" title="削除">×</button></div>'
+  ).join("");
+  document.querySelectorAll("#ntList .note-del").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const notes2 = LS.notes; notes2.splice(Number(b.dataset.i),1); LS.notes = notes2; renderNotes();
+    });
+  });
+}
+$("ntSearch").addEventListener("input", renderNotes);
+$("ntSort").addEventListener("change", renderNotes);
+$("ntClear").addEventListener("click", ()=>{
+  if(confirm("学びノートを全削除しますか?")){ LS.notes = []; ntFilterTag=""; renderNotes(); }
+});
+$("ntCsv").addEventListener("click", ()=>{
+  const notes = LS.notes;
+  if(!notes.length) return;
+  const rows = [["日付","タグ","学び"]].concat(notes.map(n=>[n.d, n.tag||"", n.tip]));
+  const csv = "\uFEFF" + rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\r\n");
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
+  a.download = "コトバデスク_学びノート_" + new Date().toISOString().slice(0,10) + ".csv";
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+});
+$("ntCopyAll").addEventListener("click", function(){
+  const notes = LS.notes;
+  if(!notes.length) return;
+  const text = notes.map(n=>n.d + (n.tag ? "【"+n.tag+"】" : " ") + n.tip).join("\n");
+  const btn = this;
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent = "✓ コピー済"; setTimeout(()=>btn.textContent = "全コピー", 1200);
+  });
+});
+
+/* ---------- フレーズ集 ---------- */
+let phEditIndex = -1;
+
+function renderPhrases(){
+  const phrases = LS.phrases;
+  $("phCount").textContent = phrases.length ? "(" + phrases.length + ")" : "";
+  const q = $("phSearch").value.trim().toLowerCase();
+  let list = phrases.map((p,i)=>({ ...p, i }))
+    .filter(p=>!q || p.t.toLowerCase().includes(q) || (p.l||"").toLowerCase().includes(q));
+  if($("phSort").value==="use"){
+    list.sort((a,b)=>((b.n||0)-(a.n||0)) || (a.i-b.i));
+  }
+  if(!phrases.length){
+    $("phList").innerHTML = '<div class="hint">まだフレーズがありません。上のフォームか、翻訳・校正結果の「☆ フレーズ登録」から追加できます。</div>';
+    return;
+  }
+  if(!list.length){
+    $("phList").innerHTML = '<div class="hint">条件に合うフレーズがありません。</div>';
+    return;
+  }
+  $("phList").innerHTML = list.map(p=>
+    '<div class="ph-item"><div class="ph-main">'+
+    (p.l ? '<div class="ph-label">'+esc(p.l)+'</div>' : '')+
+    '<div class="ph-text">'+esc(p.t)+'</div></div>'+
+    '<span class="ph-n" title="使用回数">×'+(p.n||0)+'</span>'+
+    '<button class="btn sub tiny ph-copy" data-i="'+p.i+'">コピー</button>'+
+    '<button class="note-del ph-edit" data-i="'+p.i+'" title="編集">✎</button>'+
+    '<button class="note-del ph-del" data-i="'+p.i+'" title="削除">×</button></div>'
+  ).join("");
+  document.querySelectorAll("#phList .ph-copy").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const phrases2 = LS.phrases;
+      const p = phrases2[Number(b.dataset.i)];
+      if(!p) return;
+      navigator.clipboard.writeText(p.t).then(()=>{
+        p.n = (p.n||0) + 1;
+        LS.phrases = phrases2;
+        b.textContent = "✓";
+        b.previousElementSibling.textContent = "×" + p.n;
+        setTimeout(()=>{ b.textContent = "コピー"; }, 1200);
+      });
+    });
+  });
+  document.querySelectorAll("#phList .ph-edit").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const p = LS.phrases[Number(b.dataset.i)];
+      if(!p) return;
+      phEditIndex = Number(b.dataset.i);
+      $("phInput").value = p.t;
+      $("phLabel").value = p.l || "";
+      $("phAdd").textContent = "更新";
+      $("phCancel").classList.remove("hidden");
+      $("phInput").focus();
+    });
+  });
+  document.querySelectorAll("#phList .ph-del").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      const phrases2 = LS.phrases; phrases2.splice(Number(b.dataset.i),1); LS.phrases = phrases2;
+      if(phEditIndex===Number(b.dataset.i)) phCancelEdit();
+      renderPhrases();
+    });
+  });
+}
+
+function phCancelEdit(){
+  phEditIndex = -1;
+  $("phInput").value = ""; $("phLabel").value = "";
+  $("phAdd").textContent = "登録";
+  $("phCancel").classList.add("hidden");
+}
+
+$("phAdd").addEventListener("click", ()=>{
+  const t = $("phInput").value.trim();
+  if(!t){ setStatus("phStatus","フレーズを入力してください。", true, false); return; }
+  const l = $("phLabel").value.trim();
+  const phrases = LS.phrases;
+  if(phEditIndex >= 0 && phrases[phEditIndex]){
+    phrases[phEditIndex].t = t; phrases[phEditIndex].l = l;
+  }else{
+    if(phrases.some(p=>p.t===t)){ setStatus("phStatus","同じフレーズが登録済みです。", true, false); return; }
+    phrases.unshift({ t: t, l: l, n: 0, d: new Date().toISOString().slice(0,10) });
+  }
+  LS.phrases = phrases;
+  phCancelEdit();
+  setStatus("phStatus","保存しました ✓", false, false);
+  setTimeout(()=>setStatus("phStatus","",false,false), 1500);
+  renderPhrases();
+});
+$("phCancel").addEventListener("click", phCancelEdit);
+$("phSearch").addEventListener("input", renderPhrases);
+$("phSort").addEventListener("change", renderPhrases);
+
+function saveAsPhrase(boxId, btn){
+  const t = $(boxId + "Text").textContent.trim();
+  if(!t) return;
+  const phrases = LS.phrases;
+  if(phrases.some(p=>p.t===t)){
+    btn.textContent = "登録済"; setTimeout(()=>btn.textContent = "☆ フレーズ登録", 1200);
+    return;
+  }
+  phrases.unshift({ t: t, l: "", n: 0, d: new Date().toISOString().slice(0,10) });
+  LS.phrases = phrases;
+  renderPhrases();
+  btn.textContent = "✓ 登録しました"; setTimeout(()=>btn.textContent = "☆ フレーズ登録", 1200);
+}
+
+/* ---------- 設定 ---------- */
+function loadSettings(){
+  $("stKey").value = LS.k;
+  $("stPersona").value = LS.persona;
+  const sel = $("stModel");
+  if(![...sel.options].some(o=>o.value===LS.model)){
+    const o = document.createElement("option"); o.value = LS.model; o.textContent = LS.model; sel.appendChild(o);
+  }
+  sel.value = LS.model;
+  $("setupGuide").style.display = LS.k ? "none" : "block";
+  document.querySelectorAll("#tones button").forEach(b=>b.classList.toggle("on", b.dataset.tone===LS.tone));
+}
+$("stSave").addEventListener("click", ()=>{
+  LS.k = $("stKey").value.trim();
+  LS.model = $("stModel").value;
+  LS.persona = $("stPersona").value.trim() || DEFAULT_PERSONA;
+  $("setupGuide").style.display = LS.k ? "none" : "block";
+  setStatus("stStatus", "保存しました ✓", false, false);
+  setTimeout(()=>setStatus("stStatus","",false,false), 2000);
+});
+$("stKeyShow").addEventListener("click", ()=>{
+  const f = $("stKey");
+  f.type = f.type==="password" ? "text" : "password";
+  $("stKeyShow").textContent = f.type==="password" ? "表示" : "隠す";
+});
+$("stModelFetch").addEventListener("click", async ()=>{
+  const key = $("stKey").value.trim() || LS.k;
+  if(!key){ setStatus("stStatus","先にAPIキーを入力してください。", true, false); return; }
+  setStatus("stStatus","取得中…", false, true);
+  try{
+    const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models?key="+encodeURIComponent(key)+"&pageSize=100");
+    if(!res.ok) throw new Error("取得失敗 ("+res.status+") — キーを確認してください。");
+    const data = await res.json();
+    const models = (data.models||[])
+      .filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent"))
+      .map(m=>m.name.replace("models/",""))
+      .filter(n=>/flash/i.test(n) && !/(image|tts|audio|live|embed)/i.test(n));
+    if(!models.length) throw new Error("Flash系モデルが見つかりませんでした。");
+    const sel = $("stModel"); const cur = sel.value;
+    sel.innerHTML = "";
+    models.forEach(n=>{ const o=document.createElement("option"); o.value=n; o.textContent=n; sel.appendChild(o); });
+    if(models.includes(cur)) sel.value = cur;
+    setStatus("stStatus", models.length + "件のモデルを取得しました ✓", false, false);
+  }catch(e){
+    setStatus("stStatus", e.message, true, false);
+  }
+});
+
+/* ---------- バックアップ / 復元 ---------- */
+$("bkExport").addEventListener("click", ()=>{
+  const withKey = $("bkKey").checked;
+  const data = {
+    app: "kotoba-desk", ver: 1, exported: new Date().toISOString().slice(0,10),
+    model: LS.model, persona: LS.persona, tone: LS.tone,
+    notes: LS.notes, phrases: LS.phrases
+  };
+  if(withKey) data.apikey = LS.k;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 1)], {type:"application/json"}));
+  a.download = "コトバデスク_バックアップ_" + data.exported + ".json";
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  setStatus("bkStatus", "書き出しました ✓" + (withKey ? " APIキー入りのため、ファイルの共有には注意してください。" : ""), false, false);
+  setTimeout(()=>setStatus("bkStatus","",false,false), 4000);
+});
+
+$("bkImport").addEventListener("click", ()=>$("bkFile").click());
+$("bkFile").addEventListener("change", ()=>{
+  const f = $("bkFile").files[0];
+  if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+      if(!data || data.app !== "kotoba-desk") throw new Error("コトバデスクのバックアップファイルではないようです。");
+
+      // 学びノート: 日付+本文が一致するものは重複として除外し、統合
+      const notes = LS.notes;
+      const seen = new Set(notes.map(n=>n.d + "|" + n.tip));
+      let addN = 0;
+      (Array.isArray(data.notes) ? data.notes : []).forEach(n=>{
+        if(!n || !n.tip) return;
+        const key = (n.d||"") + "|" + n.tip;
+        if(seen.has(key)) return;
+        seen.add(key);
+        const item = { d: String(n.d||""), tip: String(n.tip) };
+        if(n.tag) item.tag = String(n.tag).slice(0,12);
+        notes.push(item); addN++;
+      });
+      notes.sort((a,b)=> a.d<b.d ? 1 : a.d>b.d ? -1 : 0);
+      LS.notes = notes.slice(0,200);
+
+      // フレーズ: 本文が同じものは統合(使用回数は多い方を採用)
+      const phrases = LS.phrases;
+      let addP = 0;
+      (Array.isArray(data.phrases) ? data.phrases : []).forEach(p=>{
+        if(!p || !p.t) return;
+        const hit = phrases.find(x=>x.t===p.t);
+        if(hit){
+          hit.n = Math.max(hit.n||0, p.n||0);
+          if(!hit.l && p.l) hit.l = String(p.l);
+        }else{
+          phrases.push({ t: String(p.t), l: p.l ? String(p.l) : "", n: Number(p.n)||0, d: String(p.d||"") });
+          addP++;
+        }
+      });
+      LS.phrases = phrases;
+
+      // 設定(ファイルに入っている項目のみ反映)
+      if(data.model) LS.model = String(data.model);
+      if(data.persona) LS.persona = String(data.persona);
+      if(data.tone && TONES[data.tone]) LS.tone = data.tone;
+      if(data.apikey) LS.k = String(data.apikey);
+
+      loadSettings(); renderNotes(); renderPhrases();
+      setStatus("bkStatus", "読み込みました ✓ 学びノート +" + addN + "件 / フレーズ +" + addP + "件(重複は自動で除外)", false, false);
+    }catch(e){
+      setStatus("bkStatus", e.message || "読み込みに失敗しました。", true, false);
+    }
+    $("bkFile").value = "";
+  };
+  reader.readAsText(f);
+});
+
+/* ---------- init ---------- */
+loadSettings();
+renderNotes();
+renderPhrases();
+if(!LS.k){
+  document.querySelector('nav button[data-tab="st"]').click();
+}else{
+  $("trInput").focus();
+}
+</script>
+</body>
+</html>
