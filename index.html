@@ -69,6 +69,22 @@
 
   .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
   .spacer{flex:1;}
+  .row-actions{display:flex; align-items:center; gap:8px; margin-left:auto;}
+  .prep-opt{display:flex; align-items:center; gap:5px; margin:0; font-size:11.5px; font-weight:500; color:var(--sub); cursor:pointer;}
+  .draft-toggle{display:inline-flex; align-items:center; gap:6px; margin:0 0 8px; padding:0; border:0; background:none; color:var(--sub); font-size:12px; font-weight:600; cursor:pointer;}
+  .draft-toggle:hover{color:var(--accent);}
+  .draft-badge{font-weight:500; color:var(--sub);}
+  .draft-box{margin-bottom:12px; padding:11px; border:1px dashed var(--line); border-radius:9px;}
+  .followup{display:flex; gap:7px; align-items:center; margin-top:9px;}
+  .followup input{flex:1; min-width:0;}
+  .follow-note{margin-top:6px; font-size:11.5px; color:var(--sub);}
+  .mask-hint{margin-top:6px; font-size:11.5px; color:var(--accent2);}
+  .mask-row{display:flex; gap:7px; align-items:center; padding:6px 0; border-bottom:1px solid var(--line); font-size:12.5px;}
+  .mask-row:last-child{border-bottom:0;}
+  .mask-real{flex:1; min-width:0; overflow-wrap:anywhere;}
+  .mask-to{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--accent2);}
+  .mask-kind{font-size:10.5px; color:var(--sub);}
+  .prep-opt input{width:auto;}
 
   /* tone selector */
   .tones{display:flex; gap:6px;}
@@ -169,6 +185,22 @@
   footer{margin-top:24px; font-size:11px; color:#9aa3b2; text-align:center;}
   .hidden{display:none !important;}
 
+  /* 控えめ表示 */
+  .target-block{display:contents;}
+  .target-block.collapsed{display:none;}
+  .target-summary{display:none; align-items:center; gap:6px; margin-bottom:10px; padding:0; border:0; background:none; color:var(--sub); font-size:11.5px; cursor:pointer;}
+  .target-summary .ts-caret{font-size:9px; line-height:1;}
+  .target-summary:hover{color:var(--accent);}
+  body.discreet .target-summary{display:inline-flex;}
+  body.discreet .nav-label,
+  body.discreet .tagline,
+  body.discreet .sidebar header h1,
+  body.discreet .page-desc{display:none;}
+  body.discreet .logo{filter:grayscale(1); opacity:.45;}
+  body.discreet #kjBasics{display:none;}
+  body.discreet .quick-grid{grid-template-columns:1fr;}
+  #screenVeil{position:fixed; inset:0; z-index:9999; background:var(--bg);}
+
   /* v2 desktop workspace */
   :root{
     --bg:#0b1018; --card:#131b27; --ink:#f2f6fa; --sub:#91a0b4;
@@ -197,10 +229,8 @@
   .nav-label{font-size:13px; white-space:nowrap;}
   .sidebar-foot{margin-top:auto; padding:14px 8px 0; border-top:1px solid var(--line); font-size:10.5px; color:#65758a; line-height:1.5;}
   .workspace{width:100%; max-width:1160px; margin:0 auto; padding:28px 34px 48px;}
-  .page-head{display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin:0 2px 12px;}
-  .page-kicker{font-size:9px; letter-spacing:.14em; color:#60758c; font-weight:600;}
-  .page-title{font-size:18px; line-height:1.3; margin-top:2px; color:#c8d2de; font-weight:600;}
-  .page-desc{font-size:12px; color:var(--sub); margin-top:3px;}
+  .page-head{display:flex; justify-content:space-between; align-items:flex-end; gap:16px; margin:0 2px 14px;}
+  .page-desc{font-size:12px; color:var(--sub);}
   .card{background:rgba(19,27,39,.96); border-color:var(--line); box-shadow:var(--shadow); padding:18px; margin-bottom:14px;}
   textarea,input[type=text],input[type=password],select,.toolbar input[type=text],.toolbar select{background:var(--surface-2); border-color:var(--line); color:var(--ink);}
   textarea{min-height:112px; padding:13px 14px; line-height:1.7;}
@@ -212,10 +242,19 @@
   .btn:active{transform:translateY(1px);}
   .btn.sub{background:var(--surface-3); border:1px solid var(--line); color:var(--ink);}
   .btn.tiny{min-height:30px; padding:4px 10px;}
-  .tones{flex-wrap:wrap;}
-  .tones button{min-width:112px; background:var(--surface-2); border-color:var(--line); color:var(--sub);}
-  .tones button:hover{border-color:#4b6078; color:var(--ink);}
-  .tones button.on{background:#173044; border-color:#3c91be; color:#d9f2ff;}
+  .pick-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:9px;}
+  .pick-label{flex:none; font-size:11px; font-weight:500; color:#66748a;}
+  .tones{flex-wrap:wrap; gap:6px;}
+  .tones button,.intent-row button{
+    min-width:0; border:1px solid var(--line); background:transparent; color:#7b8899;
+    border-radius:999px; padding:5px 12px; font-size:12px; font-weight:400; cursor:pointer;
+    transition:border-color .12s,color .12s,box-shadow .12s;
+  }
+  .tones button:hover,.intent-row button:hover{border-color:#4b6078; color:#9dabbd;}
+  .tones button.on,.intent-row button.on{
+    background:transparent; border-color:#3f7fa6; color:#9fb2c4; font-weight:400;
+    box-shadow:0 0 0 1px rgba(63,127,166,.30);
+  }
   .result-box,.result-box.teal{min-height:94px; padding:52px 14px 14px; background:#101d29; border-color:#2c5570; color:var(--ink);}
   .result-box.teal{background:#10251f; border-color:#2c624f;}
   .sec-title{color:#a9b6c7; letter-spacing:.09em;}
@@ -229,9 +268,7 @@
   .guide a{color:#7dd3fc;}
   .quick-grid{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(250px,.65fr); gap:14px; align-items:start;}
   .field-label{display:block; margin:0 0 7px; color:#b8c4d3; font-size:12px; font-weight:600;}
-  .intent-row{display:flex; gap:6px; flex-wrap:wrap; margin-bottom:12px;}
-  .intent-row button{border:1px solid var(--line); background:var(--surface-2); color:var(--sub); border-radius:999px; padding:5px 12px; font-size:12px; cursor:pointer;}
-  .intent-row button.on{background:#173044; border-color:#3c91be; color:#d9f2ff; font-weight:600;}
+  .intent-row{display:flex; gap:6px; flex-wrap:wrap;}
   .learning-list{display:grid; gap:9px;}
   .learning-item{padding:11px 12px; border:1px solid var(--line); background:#101720; border-radius:9px;}
   .learning-item b{display:block; font-size:12px; margin-bottom:3px; color:#d9e3ed;}
@@ -294,16 +331,15 @@
     nav{flex-direction:row; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin;}
     nav button{display:flex; flex:none; width:auto; min-height:38px; padding:6px 11px;}
     .nav-code{display:none;}
+    body.discreet .nav-code{display:block; font-size:11px; letter-spacing:.09em;}
     .sidebar-foot{display:none;}
     .workspace{padding:18px 14px 34px;}
-    .page-title{font-size:18px;}
     .page-head{align-items:flex-start;}
     .form-grid,.manner-grid,.coach-grid{grid-template-columns:1fr;}
     .coach-summary{grid-template-columns:1fr 1fr 1fr;}
     .manner-tools{flex-wrap:wrap;}
     .manner-tools select{width:100%;}
     .form-grid .full{grid-column:auto;}
-    .tones button{min-width:0; flex:1; padding-inline:8px;}
     .boxbtns{position:static; margin-bottom:10px; justify-content:flex-end;}
     .result-box,.result-box.teal{padding-top:13px;}
   }
@@ -322,9 +358,8 @@
     </header>
 
     <nav aria-label="メインナビゲーション">
-      <button data-tab="kj" class="active"><span class="nav-code">QUICK</span><span class="nav-label">敬語変換</span></button>
+      <button data-tab="kj" class="active"><span class="nav-code">REVIEW</span><span class="nav-label">文書校正</span></button>
       <button data-tab="cm"><span class="nav-code">CREATE</span><span class="nav-label">文書作成</span></button>
-      <button data-tab="pr"><span class="nav-code">REVIEW</span><span class="nav-label">文書校正</span></button>
       <button data-tab="tr"><span class="nav-code">TRANS</span><span class="nav-label">翻訳</span></button>
       <button data-tab="ph"><span class="nav-code">PHRASE</span><span class="nav-label">フレーズ <span id="phCount"></span></span></button>
       <button data-tab="mn" class="t-learn"><span class="nav-code">MANNER</span><span class="nav-label">マナーガイド</span></button>
@@ -336,35 +371,86 @@
   </aside>
   <main class="workspace">
 
-  <!-- ============ 敬語変換 ============ -->
+  <!-- ============ 文章を整える / 添削 ============ -->
   <div class="panel show" id="panel-kj">
-    <div class="page-head"><div><div class="page-kicker">QUICK POLISH</div><h2 class="page-title">敬語変換</h2><div class="page-desc">普段の言葉を貼り付けるだけ。意味を変えず、相手に合う自然な表現へ整えます。</div></div></div>
+    <div class="page-head"><div class="page-desc">書いた文章を、相手に合う表現へ。直した理由まで知りたいときは「添削」を選びます。</div></div>
     <div class="quick-grid">
       <div>
         <div class="card">
-          <span class="field-label">相手</span>
+          <button type="button" class="target-summary" id="kjTargetSummary"><span class="ts-caret">▾</span><span id="kjTargetText"></span></button>
+          <div class="target-block" id="kjTargetBlock">
+          <div class="pick-row"><span class="pick-label">相手</span>
           <div class="tones" id="kjTones">
             <button data-tone="casual">同僚・チャット</button>
             <button data-tone="boss" class="on">上司・社内</button>
             <button data-tone="external">社外・取引先</button>
-          </div>
-          <span class="field-label" style="margin-top:14px;">用件</span>
+          </div></div>
+          <div class="pick-row"><span class="pick-label">用件</span>
           <div class="intent-row" id="kjIntents">
             <button data-intent="依頼" class="on">依頼</button><button data-intent="報告">報告</button><button data-intent="確認">確認</button><button data-intent="催促">催促</button><button data-intent="お詫び">お詫び</button><button data-intent="お礼">お礼</button>
+          </div></div>
           </div>
           <label for="kjContext" class="field-label">前提条件（任意）</label>
           <input type="text" id="kjContext" placeholder="例：データアップについて、外注先へ送るTeamsメッセージ">
-          <label for="kjInput" class="field-label" style="margin-top:12px;">変更したい文章</label>
-          <textarea id="kjInput" rows="7" placeholder="例: 今日中にデータを確認して返事してください&#10;Enterですぐ変換 / Shift+Enterで改行"></textarea>
-          <div class="row" style="margin-top:10px;"><div class="hint"><kbd>Enter</kbd> 変換 / <kbd>Shift+Enter</kbd> 改行</div><div class="spacer"></div><span class="status" id="kjStatus"></span><button class="btn" id="kjBtn">変換</button></div>
+          <button type="button" class="draft-toggle" id="kjDraftToggle" style="margin-top:14px;"><span class="ts-caret" id="kjDraftCaret">▸</span>下書き<span class="draft-badge" id="kjDraftBadge"></span></button>
+          <div class="draft-box hidden" id="kjDraftBox">
+            <textarea id="kjDraft" rows="6" placeholder="ここで文章を組み立てます。Enterは改行です。&#10;書けたら「本文へ送る」を押してください。"></textarea>
+            <div class="row" style="margin-top:8px;">
+              <span class="hint" id="kjDraftStatus" style="margin:0;">入力すると自動保存されます</span>
+              <div class="spacer"></div>
+              <button class="btn sub tiny" id="kjDraftClear">下書きを消す</button>
+              <button class="btn sub tiny" id="kjDraftSend">本文へ送る</button>
+            </div>
+          </div>
+          <label for="kjInput" class="field-label">整えたい文章</label>
+          <textarea id="kjInput" rows="7" placeholder="例: 今日中にデータを確認して返事してください&#10;Enterで整える / Ctrl+Enterで添削 / Shift+Enterで改行"></textarea>
+          <div class="mask-hint hidden" id="kjMaskHint"></div>
+          <div class="row" style="margin-top:10px;">
+            <div class="hint"><kbd>Enter</kbd> 整える / <kbd>Ctrl+Enter</kbd> 添削 / <kbd>Shift+Enter</kbd> 改行</div>
+            <label class="prep-opt"><input type="checkbox" id="prepToggle" checked> 添削でPREP分析</label>
+            <div class="spacer"></div>
+            <span class="row-actions"><span class="status" id="kjStatus"></span><button class="btn sub" id="kjClear" title="入力と結果を消す（Esc）">クリア</button><button class="btn sub" id="prBtn" title="直した理由・PREP構造まで見る（Ctrl+Enter）">添削</button><button class="btn" id="kjBtn">整える</button></span>
+          </div>
         </div>
         <div class="card hidden" id="kjResultCard">
           <div class="sec-title">整えた文章</div>
           <div class="result-box" id="kjResult"><div class="boxbtns"><button class="btn sub tiny" onclick="saveAsPhrase('kjResult',this)">フレーズ登録</button><button class="btn sub tiny" onclick="copyText('kjResult',this)">コピー</button></div><span id="kjResultText"></span></div>
+          <div class="sec-title">追加の指示</div>
+          <div class="followup">
+            <input type="text" id="kjFollow" placeholder="例: もっと短く / やっぱり丁寧に / 期限を強調">
+            <button class="btn sub tiny" id="kjUndo" disabled>戻す</button>
+            <button class="btn sub" id="kjFollowBtn">直す</button>
+          </div>
+          <div class="follow-note hidden" id="kjFollowNote"></div>
           <div class="sec-title">今回のポイント</div><div id="kjTips" class="learning-list"></div>
         </div>
+        <div class="card hidden" id="prResultCard">
+          <div class="sec-title">修正案（<span id="prToneLabel"></span>向け）</div>
+          <div class="result-box teal" id="prResult"><div class="boxbtns"><button class="btn sub tiny" onclick="saveAsPhrase('prResult',this)">フレーズ登録</button><button class="btn sub tiny" onclick="copyText('prResult',this)">コピー</button></div><span id="prResultText"></span></div>
+          <div class="sec-title">追加の指示</div>
+          <div class="followup">
+            <input type="text" id="prFollow" placeholder="例: もっと短く / やっぱり丁寧に / 依頼の理由を足す">
+            <button class="btn sub tiny" id="prUndo" disabled>戻す</button>
+            <button class="btn sub" id="prFollowBtn">直す</button>
+          </div>
+          <div class="follow-note hidden" id="prFollowNote"></div>
+
+          <div class="sec-title">添削ポイント</div>
+          <div id="prPoints"></div>
+
+          <div id="prPrepWrap">
+            <div class="sec-title">PREP構造チェック</div>
+            <div class="prep-chips" id="prepChips"></div>
+            <div class="prep-comment" id="prepComment"></div>
+          </div>
+
+          <div class="sec-title">今日の学び（ノートに自動保存）</div>
+          <div class="tipbox" id="prTip"></div>
+          <div class="sec-title">コーチの記録</div>
+          <div class="tipbox" id="prCoachLog"></div>
+        </div>
       </div>
-      <aside class="card">
+      <aside class="card" id="kjBasics">
         <div class="sec-title">迷ったときの基本</div>
         <div class="learning-list">
           <div class="learning-item"><b>結論を先に</b><span>「何をしてほしいか」を冒頭に置くと、相手が判断しやすくなります。</span></div>
@@ -377,37 +463,49 @@
 
   <!-- ============ 文書作成 ============ -->
   <div class="panel" id="panel-cm">
-    <div class="page-head"><div><div class="page-kicker">CREATE</div><h2 class="page-title">要点から文書を作る</h2><div class="page-desc">宛先・用途・伝えたいことを選び、メールやチャットの下書きを短時間で作成します。</div></div></div>
+    <div class="page-head"><div class="page-desc">宛先・用途・伝えたいことを選び、メールやチャットの下書きを短時間で作成します。</div></div>
     <div class="card">
       <div class="form-grid">
+        <button type="button" class="target-summary full" id="cmTargetSummary"><span class="ts-caret">▾</span><span id="cmTargetText"></span></button>
+        <div class="target-block" id="cmTargetBlock">
         <div><label for="cmTone">相手</label><select id="cmTone"><option value="casual">同僚・チャット</option><option value="boss" selected>上司・社内</option><option value="external">社外・取引先</option></select></div>
         <div><label for="cmPurpose">用途</label><select id="cmPurpose"><option>依頼</option><option>報告</option><option>確認</option><option>催促</option><option>お詫び</option><option>お礼</option><option>相談</option><option>日程調整</option></select></div>
+        </div>
         <div class="full"><label for="cmSubject">件名・話題（任意）</label><input type="text" id="cmSubject" placeholder="例: 提出データ確認のお願い"></div>
         <div class="full"><label for="cmContext">前提条件（任意）</label><input type="text" id="cmContext" placeholder="例：データアップについて、外注先へ送るTeamsメッセージ"></div>
+        <div class="full" id="cmMaskHintWrap"><div class="mask-hint hidden" id="cmMaskHint"></div></div>
         <div class="full"><label for="cmInput">伝えたい要点</label><textarea id="cmInput" rows="7" placeholder="箇条書きで大丈夫です。&#10;・最新データをアップした&#10;・今日17時までに形状を確認してほしい&#10;・問題があればTeamsで連絡してほしい"></textarea></div>
       </div>
-      <div class="row"><div class="hint"><kbd>Enter</kbd> 作成 / <kbd>Shift+Enter</kbd> 改行</div><div class="spacer"></div><span class="status" id="cmStatus"></span><button class="btn" id="cmBtn">作成</button></div>
+      <div class="row"><div class="hint"><kbd>Enter</kbd> 作成 / <kbd>Shift+Enter</kbd> 改行</div><div class="spacer"></div><span class="row-actions"><span class="status" id="cmStatus"></span><button class="btn sub" id="cmClear" title="入力と結果を消す（Esc）">クリア</button><button class="btn" id="cmBtn">作成</button></span></div>
     </div>
     <div class="card hidden" id="cmResultCard">
       <div class="sec-title">作成した文書</div>
       <div class="result-box teal" id="cmResult"><div class="boxbtns"><button class="btn sub tiny" onclick="saveAsPhrase('cmResult',this)">フレーズ登録</button><button class="btn sub tiny" onclick="copyText('cmResult',this)">コピー</button></div><span id="cmResultText"></span></div>
+      <div class="sec-title">追加の指示</div>
+      <div class="followup">
+        <input type="text" id="cmFollow" placeholder="例: もっと短く / やっぱり挨拶は省く / 期限を強調">
+        <button class="btn sub tiny" id="cmUndo" disabled>戻す</button>
+        <button class="btn sub" id="cmFollowBtn">直す</button>
+      </div>
+      <div class="follow-note hidden" id="cmFollowNote"></div>
       <div class="sec-title">構成メモ</div><div id="cmNote" class="tipbox"></div>
     </div>
   </div>
 
   <!-- ============ 翻訳 ============ -->
   <div class="panel" id="panel-tr">
-    <div class="page-head"><div><div class="page-kicker">TRANSLATE</div><h2 class="page-title">翻訳</h2><div class="page-desc">仕事の文脈を踏まえ、日本語と英語を自然に変換します。</div></div></div>
+    <div class="page-head"><div class="page-desc">仕事の文脈を踏まえ、日本語と英語を自然に変換します。</div></div>
     <div class="card">
       <label for="trContext" class="field-label">前提条件（任意）</label>
       <input type="text" id="trContext" placeholder="例：海外の協力会社へ送る、作業指示のチャットメッセージ">
       <label for="trInput" class="field-label" style="margin-top:12px;">翻訳したい文章</label>
       <textarea id="trInput" rows="4" placeholder="日本語 → 英語 / 英語 → 日本語（自動判定）&#10;Enterですぐ翻訳 / Shift+Enterで改行"></textarea>
+      <div class="mask-hint hidden" id="trMaskHint"></div>
       <div class="row" style="margin-top:8px;">
         <div class="hint"><kbd>Enter</kbd> 翻訳 / <kbd>Shift+Enter</kbd> 改行</div>
         <div class="spacer"></div>
-        <span class="status" id="trStatus"></span>
-        <button class="btn" id="trBtn">翻訳</button>
+        <span class="row-actions"><span class="status" id="trStatus"></span>
+        <button class="btn sub" id="trClear" title="入力と結果を消す（Esc）">クリア</button><button class="btn" id="trBtn">翻訳</button></span>
       </div>
     </div>
     <div class="card hidden" id="trResultCard">
@@ -420,57 +518,9 @@
     </div>
   </div>
 
-  <!-- ============ 校正 ============ -->
-  <div class="panel" id="panel-pr">
-    <div class="page-head"><div><div class="page-kicker">REVIEW</div><h2 class="page-title">文書校正</h2><div class="page-desc">文章の意図を保ったまま読みやすく整え、次に活かせる理由も確認できます。</div></div></div>
-    <div class="card">
-      <div class="row" style="margin-bottom:8px;">
-        <span class="hint" style="margin:0;">宛先:</span>
-        <div class="tones" id="tones">
-          <button data-tone="casual">カジュアル<br><small style="font-weight:400;">同僚・チャット</small></button>
-          <button data-tone="boss" class="on">上司・社内<br><small style="font-weight:400;">報告・依頼</small></button>
-          <button data-tone="external">社外<br><small style="font-weight:400;">クライアント</small></button>
-        </div>
-        <div class="spacer"></div>
-        <label style="margin:0; display:flex; align-items:center; gap:5px; cursor:pointer; font-weight:500;">
-          <input type="checkbox" id="prepToggle" checked style="width:auto;"> PREP分析
-        </label>
-      </div>
-      <label for="prContext" class="field-label">前提条件（任意）</label>
-      <input type="text" id="prContext" placeholder="例：データアップについて、外注先へ送るTeamsメッセージ">
-      <label for="prInput" class="field-label" style="margin-top:12px;">校正したい文章</label>
-      <textarea id="prInput" rows="6" placeholder="校正したい文章を貼り付け（チャット・メール・報告など）&#10;Enterですぐ校正 / Shift+Enterで改行"></textarea>
-      <div class="row" style="margin-top:8px;">
-        <div class="hint"><kbd>Enter</kbd> 校正 / <kbd>Shift+Enter</kbd> 改行</div>
-        <div class="spacer"></div>
-        <span class="status" id="prStatus"></span>
-        <button class="btn" id="prBtn">校正</button>
-      </div>
-    </div>
-
-    <div class="card hidden" id="prResultCard">
-      <div class="sec-title">修正案（<span id="prToneLabel"></span>向け）</div>
-      <div class="result-box teal" id="prResult"><div class="boxbtns"><button class="btn sub tiny" onclick="saveAsPhrase('prResult',this)">フレーズ登録</button><button class="btn sub tiny" onclick="copyText('prResult',this)">コピー</button></div><span id="prResultText"></span></div>
-
-      <div class="sec-title">添削ポイント</div>
-      <div id="prPoints"></div>
-
-      <div id="prPrepWrap">
-        <div class="sec-title">PREP構造チェック</div>
-        <div class="prep-chips" id="prepChips"></div>
-        <div class="prep-comment" id="prepComment"></div>
-      </div>
-
-      <div class="sec-title">今日の学び（ノートに自動保存）</div>
-      <div class="tipbox" id="prTip"></div>
-      <div class="sec-title">コーチの記録</div>
-      <div class="tipbox" id="prCoachLog"></div>
-    </div>
-  </div>
-
   <!-- ============ フレーズ集 ============ -->
   <div class="panel" id="panel-ph">
-    <div class="page-head"><div><div class="page-kicker">PHRASES</div><h2 class="page-title">フレーズ集</h2><div class="page-desc">よく使う依頼、報告、挨拶を蓄積し、必要なときにすぐコピーできます。</div></div></div>
+    <div class="page-head"><div class="page-desc">よく使う依頼、報告、挨拶を蓄積し、必要なときにすぐコピーできます。</div></div>
     <div class="card">
       <textarea id="phInput" rows="2" placeholder="よく使う文を登録(定型の挨拶・依頼・報告の書き出しなど)"></textarea>
       <div class="row" style="margin-top:8px;">
@@ -480,7 +530,7 @@
         <button class="btn sub hidden" id="phCancel">キャンセル</button>
         <button class="btn" id="phAdd">登録</button>
       </div>
-      <div class="hint">変換・作成・翻訳・校正の結果からも「フレーズ登録」で追加できます。コピーするたびに使用回数がカウントされます。</div>
+      <div class="hint">整える・添削・作成・翻訳の結果からも「フレーズ登録」で追加できます。コピーするたびに使用回数がカウントされます。</div>
     </div>
     <div class="card">
       <div class="toolbar">
@@ -496,14 +546,14 @@
 
   <!-- ============ マナーガイド ============ -->
   <div class="panel" id="panel-mn">
-    <div class="page-head"><div><div class="page-kicker">BUSINESS MANNER</div><h2 class="page-title">場面別マナーガイド</h2><div class="page-desc">文章を送る前に迷いやすいポイントを、短い原則とそのまま使える例で確認できます。</div></div></div>
+    <div class="page-head"><div class="page-desc">文章を送る前に迷いやすいポイントを、短い原則とそのまま使える例で確認できます。</div></div>
     <div class="manner-tools"><input type="text" id="mnSearch" placeholder="場面や言葉で検索（例: 催促、CC、謝罪）"><select id="mnCategory" aria-label="カテゴリー"><option value="">すべて</option><option>メール</option><option>チャット</option><option>会議</option><option>依頼</option><option>報告</option><option>社外</option></select></div>
     <div class="manner-grid" id="mnList"></div>
   </div>
 
   <!-- ============ コーチ ============ -->
   <div class="panel" id="panel-co">
-    <div class="page-head"><div><div class="page-kicker">COACH</div><h2 class="page-title">コーチ</h2><div class="page-desc">校正で見つかった傾向を振り返り、仕事の伝え方や言葉づかいを相談できます。</div></div></div>
+    <div class="page-head"><div class="page-desc">添削で見つかった傾向を振り返り、仕事の伝え方や言葉づかいを相談できます。</div></div>
     <div class="coach-summary" aria-label="コーチングの記録">
       <div class="coach-stat watch"><span>要チェック</span><b id="coWatchCount">0</b></div>
       <div class="coach-stat"><span>観察中</span><b id="coObserveCount">0</b></div>
@@ -523,7 +573,7 @@
       <aside class="card" style="margin:0;">
         <div class="sec-title">この機能の使い方</div>
         <div class="learning-list">
-          <div class="learning-item"><b>1. 校正で傾向を記録</b><span>原文に実際に見られた改善点だけを、1日につき1回まで記録します。</span></div>
+          <div class="learning-item"><b>1. 添削で傾向を記録</b><span>原文に実際に見られた改善点だけを、1日につき1回まで記録します。</span></div>
           <div class="learning-item"><b>2. 2日以上続くと要チェック</b><span>一度の指摘で決めつけず、繰り返し見られた傾向だけを要チェックにします。</span></div>
           <div class="learning-item"><b>3. できたら卒業</b><span>改善できた項目は自分で「できるようになった」へ移せます。</span></div>
         </div>
@@ -552,7 +602,7 @@
 
   <!-- ============ 学びノート ============ -->
   <div class="panel" id="panel-nt">
-    <div class="page-head"><div><div class="page-kicker">LEARNING LOG</div><h2 class="page-title">学びノート</h2><div class="page-desc">校正で得た気づきを蓄積し、自分がつまずきやすいポイントを見える化します。</div></div></div>
+    <div class="page-head"><div class="page-desc">添削で得た気づきを蓄積し、自分がつまずきやすいポイントを見える化します。</div></div>
     <div class="card">
       <div class="toolbar">
         <input type="text" id="ntSearch" placeholder="検索…">
@@ -565,13 +615,13 @@
         <button class="btn sub tiny" id="ntClear">全削除</button>
       </div>
       <div class="tagbar" id="ntTags"></div>
-      <div id="ntList"><div class="hint">まだ記録がありません。文書校正を使うと「今日の学び」がここに貯まっていきます。</div></div>
+      <div id="ntList"><div class="hint">まだ記録がありません。「添削」を使うと「今日の学び」がここに貯まっていきます。</div></div>
     </div>
   </div>
 
   <!-- ============ 設定 ============ -->
   <div class="panel" id="panel-st">
-    <div class="page-head"><div><div class="page-kicker">SETUP</div><h2 class="page-title">設定</h2><div class="page-desc">AI接続、文脈、データのバックアップを管理します。</div></div></div>
+    <div class="page-head"><div class="page-desc">AI接続、文脈、データのバックアップを管理します。</div></div>
     <div class="guide" id="setupGuide">
       <b>初回セットアップ(無料・約2分)</b>
       <ol>
@@ -601,7 +651,7 @@
       </div>
       <div class="hint">通常は最速のFlash-Liteを使用します。品質を優先したい場合だけFlashへ切り替えてください。</div>
 
-      <label>ペルソナ(敬語変換・文書作成・翻訳・校正の前提としてAIへ渡されます)</label>
+      <label>ペルソナ(文章を整える・添削・文書作成・翻訳の前提としてAIへ渡されます)</label>
       <div class="hint" style="margin-bottom:6px;">職種・業界・使用ツール・チーム構成・よく使う専門用語を書き足すと、変換や翻訳の精度が上がります。ここに書いた内容はこのブラウザ内に保存され、AIへの依頼時にだけ送信されます。</div>
       <textarea id="stPersona" rows="6"></textarea>
       <div class="row" style="margin-top:8px;">
@@ -616,6 +666,30 @@
     </div>
 
     <div class="card">
+      <label>表示</label>
+      <label style="margin:0; display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:500;">
+        <input type="checkbox" id="stDiscreet" style="width:auto;"> 控えめ表示にする
+      </label>
+      <div class="hint">アプリ名・見出し・メニューの日本語ラベルを隠し、相手や宛先の選択を1行に畳みます。ブラウザのタブ名とアイコンも目立たないものへ変わります。この設定はこの端末だけに保存され、バックアップには含まれません。</div>
+      <div class="hint" style="margin-top:6px;"><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>H</kbd> でいつでも画面を伏せられます。戻すのは同じキーか <kbd>Esc</kbd>、または画面のダブルクリックです。</div>
+    </div>
+
+    <div class="card">
+      <label>伏せ字（AIへ送る前に置き換える言葉）</label>
+      <label style="margin:0 0 8px; display:flex; align-items:center; gap:6px; cursor:pointer; font-weight:500;">
+        <input type="checkbox" id="mkOn" style="width:auto;"> 伏せ字を使う
+      </label>
+      <div class="hint" style="margin-bottom:8px;">実名のまま書いて構いません。AIへ送る直前に下の言葉へ置き換え、返ってきた文章では実名に戻します。この一覧はこのブラウザにだけ保存され、AIへは送られません。<br>「デザイン」のような普通の単語は登録しないでください。関係のない箇所まで置き換わります。</div>
+      <div class="row">
+        <input type="text" id="mkReal" placeholder="置き換えたい言葉（実名）" style="flex:1;">
+        <select id="mkKind" style="width:150px; flex:none;"></select>
+        <button class="btn sub" id="mkAdd">追加</button>
+      </div>
+      <div class="hint" id="mkAddStatus" style="margin-bottom:6px;"></div>
+      <div id="mkList"></div>
+    </div>
+
+    <div class="card">
       <label>バックアップ / 復元(別PCへの引っ越し・同期)</label>
       <div class="row">
         <button class="btn sub" id="bkExport">書き出し</button>
@@ -626,14 +700,15 @@
         <input type="file" id="bkFile" accept=".json,application/json" class="hidden">
       </div>
       <div class="status" id="bkStatus" style="margin-top:6px;"></div>
-      <div class="hint">学びノート・フレーズ集・設定をJSONファイル1つに保存します。読み込み時は既存データに統合されるため、いま貯まっているものが消えることはありません。OneDrive内に書き出しておけば、別PCから同じファイルを読み込むだけで引っ越し完了です。</div>
+      <div class="hint">学びノート・フレーズ集・伏せ字リスト・設定をJSONファイル1つに保存します。ノートやフレーズには実名がそのまま入るため、ファイルの置き場所には注意してください。読み込み時は既存データに統合されるため、いま貯まっているものが消えることはありません。OneDrive内に書き出しておけば、別PCから同じファイルを読み込むだけで引っ越し完了です。</div>
     </div>
   </div>
 
-  <footer>注意: 未発表車の情報など機密情報は入力しないでください（社内ルール）。設定はこのPCのブラウザ内にのみ保存されます。</footer>
+  <footer>注意: 未公開情報などの機密情報は入力しないでください。設定はこのPCのブラウザ内にのみ保存されます。</footer>
   </main>
 </div>
 </div>
+<div id="screenVeil" class="hidden"></div>
 
 <script>
 "use strict";
@@ -646,7 +721,11 @@ const STORAGE_KEYS = {
   tone: "wordbridge_tone",
   notes: "wordbridge_notes",
   phrases: "wordbridge_phrases",
-  coach: "wordbridge_coach"
+  coach: "wordbridge_coach",
+  discreet: "wordbridge_discreet",
+  draft: "wordbridge_draft",
+  masks: "wordbridge_masks",
+  maskOn: "wordbridge_maskon"
 };
 
 const LEGACY_STORAGE_KEYS = {
@@ -663,6 +742,7 @@ function migrateLegacyStorage(){
   Object.keys(STORAGE_KEYS).forEach(name=>{
     const currentKey = STORAGE_KEYS[name];
     const legacyKey = LEGACY_STORAGE_KEYS[name];
+    if(!legacyKey) return;
     if(localStorage.getItem(currentKey) === null && localStorage.getItem(legacyKey) !== null){
       localStorage.setItem(currentKey, localStorage.getItem(legacyKey));
     }
@@ -685,7 +765,15 @@ const LS = {
   get phrases(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEYS.phrases)||"[]"); }catch(e){ return []; } },
   set phrases(v){ localStorage.setItem(STORAGE_KEYS.phrases, JSON.stringify(v)); },
   get coach(){ try{ const v=JSON.parse(localStorage.getItem(STORAGE_KEYS.coach)||"[]"); return Array.isArray(v) ? v : []; }catch(e){ return []; } },
-  set coach(v){ localStorage.setItem(STORAGE_KEYS.coach, JSON.stringify(v)); }
+  set coach(v){ localStorage.setItem(STORAGE_KEYS.coach, JSON.stringify(v)); },
+  get discreet(){ return localStorage.getItem(STORAGE_KEYS.discreet) === "1"; },
+  set discreet(v){ localStorage.setItem(STORAGE_KEYS.discreet, v ? "1" : "0"); },
+  get draft(){ return localStorage.getItem(STORAGE_KEYS.draft) || ""; },
+  set draft(v){ localStorage.setItem(STORAGE_KEYS.draft, v); },
+  get masks(){ try{ const v=JSON.parse(localStorage.getItem(STORAGE_KEYS.masks)||"[]"); return Array.isArray(v) ? v : []; }catch(e){ return []; } },
+  set masks(v){ localStorage.setItem(STORAGE_KEYS.masks, JSON.stringify(v)); },
+  get maskOn(){ return localStorage.getItem(STORAGE_KEYS.maskOn) !== "0"; },
+  set maskOn(v){ localStorage.setItem(STORAGE_KEYS.maskOn, v ? "1" : "0"); }
 };
 
 const DEFAULT_PERSONA =
@@ -755,10 +843,10 @@ document.querySelectorAll("nav button").forEach(b=>{
     document.querySelectorAll(".panel").forEach(x=>x.classList.remove("show"));
     b.classList.add("active");
     $("panel-"+b.dataset.tab).classList.add("show");
+    if(typeof collapseTargets === "function") collapseTargets();
     if(b.dataset.tab==="kj") $("kjInput").focus();
     if(b.dataset.tab==="cm") $("cmInput").focus();
     if(b.dataset.tab==="tr") $("trInput").focus();
-    if(b.dataset.tab==="pr") $("prInput").focus();
     if(b.dataset.tab==="co") $("coInput").focus();
     if(b.dataset.tab==="ph") $("phSearch").focus();
     if(b.dataset.tab==="mn") $("mnSearch").focus();
@@ -854,14 +942,63 @@ function writingProfile(){
   return (relevant || full).slice(0, 650);
 }
 
+/* ---------- 伏せ字 ----------
+   AIへ渡す直前に実名を置き換え、返ってきた文字列を実名へ戻す。
+   置き換えは必ず callGemini の中で行うので、機能を追加しても漏れない。 */
+const MASK_TYPES = [
+  { k:"name",    label:"人名",         prefix:"name" },
+  { k:"maker",   label:"会社・メーカー", prefix:"maker" },
+  { k:"vendor",  label:"外注先",        prefix:"vendor" },
+  { k:"project", label:"案件・業務",     prefix:"project" },
+  { k:"team",    label:"部署・チーム",   prefix:"team" },
+  { k:"other",   label:"その他",        prefix:"word" }
+];
+
+function activeMasks(){
+  if(!LS.maskOn) return [];
+  return LS.masks.filter(m=>m && m.r && m.m);
+}
+
+/* 長い語から先に置き換える。「A社」と「A社大阪支店」が両方あっても壊れない */
+function replaceAll(text, pairs){
+  let out = String(text == null ? "" : text);
+  pairs.forEach(pair=>{ out = out.split(pair[0]).join(pair[1]); });
+  return out;
+}
+
+function maskText(text){
+  const pairs = activeMasks().map(m=>[m.r, m.m]).sort((a,b)=>b[0].length - a[0].length);
+  return pairs.length ? replaceAll(text, pairs) : String(text == null ? "" : text);
+}
+
+function unmaskText(text){
+  const pairs = activeMasks().map(m=>[m.m, m.r]).sort((a,b)=>b[0].length - a[0].length);
+  return pairs.length ? replaceAll(text, pairs) : String(text == null ? "" : text);
+}
+
+/* 応答JSONの文字列を、入れ子の奥まで実名へ戻す */
+function unmaskDeep(value){
+  if(typeof value === "string") return unmaskText(value);
+  if(Array.isArray(value)) return value.map(unmaskDeep);
+  if(value && typeof value === "object"){
+    const out = {};
+    Object.keys(value).forEach(k=>{ out[k] = unmaskDeep(value[k]); });
+    return out;
+  }
+  return value;
+}
+
 async function callGemini(systemText, userText, onRetry, options={}){
   const key = LS.k;
   if(!key){ throw new Error("NOKEY"); }
+  /* AIへ渡す文字列は、ここを通る時点で必ず伏せ字へ置き換える */
+  systemText = maskText(systemText);
+  userText = maskText(userText);
   const startedAt = performance.now();
   const model = LS.model;
   const cacheKey = responseCacheKey(model, systemText, userText);
   if(RESPONSE_CACHE.has(cacheKey)){
-    return attachResponseMeta(structuredClone(RESPONSE_CACHE.get(cacheKey)), { cached:true, elapsedMs:0 });
+    return attachResponseMeta(unmaskDeep(structuredClone(RESPONSE_CACHE.get(cacheKey))), { cached:true, elapsedMs:0 });
   }
   const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
               encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(key);
@@ -909,7 +1046,7 @@ async function callGemini(systemText, userText, onRetry, options={}){
   const parsed = parseJSON(text);
   RESPONSE_CACHE.set(cacheKey, parsed);
   if(RESPONSE_CACHE.size > 10) RESPONSE_CACHE.delete(RESPONSE_CACHE.keys().next().value);
-  return attachResponseMeta(parsed, { cached:false, elapsedMs:performance.now() - startedAt });
+  return attachResponseMeta(unmaskDeep(parsed), { cached:false, elapsedMs:performance.now() - startedAt });
 }
 
 function parseJSON(text){
@@ -957,14 +1094,16 @@ let kjIntent = "依頼";
 
 function selectTone(tone){
   LS.tone = tone;
-  document.querySelectorAll("#tones button,#kjTones button").forEach(b=>b.classList.toggle("on", b.dataset.tone===tone));
+  document.querySelectorAll("#kjTones button").forEach(b=>b.classList.toggle("on", b.dataset.tone===tone));
   if($("cmTone")) $("cmTone").value = tone;
+  if(typeof updateTargetSummary === "function") updateTargetSummary();
 }
 
-document.querySelectorAll("#tones button,#kjTones button").forEach(b=>b.addEventListener("click", ()=>selectTone(b.dataset.tone)));
+document.querySelectorAll("#kjTones button").forEach(b=>b.addEventListener("click", ()=>selectTone(b.dataset.tone)));
 document.querySelectorAll("#kjIntents button").forEach(b=>b.addEventListener("click", ()=>{
   kjIntent = b.dataset.intent;
   document.querySelectorAll("#kjIntents button").forEach(x=>x.classList.toggle("on", x===b));
+  updateTargetSummary();
 }));
 
 async function runKeigo(){
@@ -973,8 +1112,10 @@ async function runKeigo(){
   if(!LS.k){ needKeyGuide("kjStatus"); return; }
   const tone = TONES[LS.tone] || TONES.boss;
   const context = $("kjContext").value.trim();
+  $("prResultCard").classList.add("hidden");
   $("kjBtn").disabled = true;
-  setStatus("kjStatus", "変換中…", false, true);
+  $("prBtn").disabled = true;
+  setStatus("kjStatus", "整えています…", false, true);
   const sys =
 `あなたは日本語の敬語とビジネスコミュニケーションに精通した文章コーチです。
 【依頼者プロフィール】
@@ -998,6 +1139,7 @@ ${writingProfile()}
     });
     $("kjResultCard").classList.remove("hidden");
     $("kjResultText").textContent = r.revised || "";
+    resetFollow("kj");
     const tips = Array.isArray(r.tips) ? r.tips.slice(0,1) : [];
     $("kjTips").innerHTML = tips.length ? tips.map(t=>'<div class="learning-item"><b>'+esc(t.title||"ポイント")+'</b><span>'+esc(t.body||"")+'</span></div>').join("") : '<div class="hint">大きな修正点はありませんでした。</div>';
     if(r.tip) addNote(r.tip, "敬語・配慮");
@@ -1005,7 +1147,7 @@ ${writingProfile()}
   }catch(e){
     if(e.message==="NOKEY") needKeyGuide("kjStatus");
     else setStatus("kjStatus", e.message, true, false);
-  }finally{ $("kjBtn").disabled = false; }
+  }finally{ $("kjBtn").disabled = false; $("prBtn").disabled = false; }
 }
 $("kjBtn").addEventListener("click", runKeigo);
 
@@ -1044,6 +1186,7 @@ ${writingProfile()}
     });
     $("cmResultCard").classList.remove("hidden");
     $("cmResultText").textContent = r.draft || "";
+    resetFollow("cm");
     $("cmNote").textContent = r.structure || "";
     if(r.tip) addNote(r.tip, r.tipTag || "構成");
     showCompletionTime("cmStatus", r);
@@ -1100,23 +1243,26 @@ ${LS.persona}
 }
 $("trBtn").addEventListener("click", runTranslate);
 
-/* ---------- 校正 ---------- */
+/* ---------- 添削（深く見る） ---------- */
 
 async function runProof(){
-  const text = $("prInput").value.trim();
+  const text = $("kjInput").value.trim();
   if(!text) return;
-  if(!LS.k){ needKeyGuide("prStatus"); return; }
+  if(!LS.k){ needKeyGuide("kjStatus"); return; }
   const tone = TONES[LS.tone] || TONES.boss;
   const usePrep = $("prepToggle").checked;
-  const context = $("prContext").value.trim();
+  const context = $("kjContext").value.trim();
+  $("kjResultCard").classList.add("hidden");
   $("prBtn").disabled = true;
-  setStatus("prStatus", "添削中…", false, true);
+  $("kjBtn").disabled = true;
+  setStatus("kjStatus", "添削中…", false, true);
   const sys =
 `あなたは経験豊富なビジネス文書コーチです。添削を通じて依頼者の文章力を育てることが目的です。
 【依頼者プロフィール】
 ${writingProfile()}
 
 【今回の宛先・場面】${tone.label}: ${tone.desc}
+【用件】${kjIntent}
 【今回の前提条件】${context || "指定なし"}
 
 【指示】
@@ -1136,12 +1282,13 @@ ${usePrep ? `- PREP法(Point結論→Reason理由→Example具体例→Point再�
 ${usePrep ? `"prep":{"adapted":true,"P":true,"R":false,"E":false,"P2":true,"comment":"構造への講評と、足りない要素をどう足すかの具体的な提案"},` : ""}
 "tip":"今日の学び(1文)","tipTag":"タグ","coachIssues":[{"key":"分類キー","title":"改善傾向の名前","observation":"今回見られた傾向","advice":"次回の具体的な行動"}]}`;
   try{
-    const r = await callGemini(sys, text, msg=>setStatus("prStatus", msg, false, true), {
+    const r = await callGemini(sys, text, msg=>setStatus("kjStatus", msg, false, true), {
       maxOutputTokens: outputTokenLimit(text.length, 850, 2200)
     });
     $("prResultCard").classList.remove("hidden");
     $("prToneLabel").textContent = tone.label;
     $("prResultText").textContent = r.revised || "";
+    resetFollow("pr");
 
     const pts = Array.isArray(r.points) ? r.points : [];
     $("prPoints").innerHTML = pts.length
@@ -1169,29 +1316,356 @@ ${usePrep ? `"prep":{"adapted":true,"P":true,"R":false,"E":false,"P2":true,"comm
     $("prCoachLog").textContent = coachLogged.length
       ? "今回の添削から「" + coachLogged.map(x=>x.title).join("・") + "」を記録しました。繰り返し見られるとコーチの要チェックへ移ります。"
       : "今回の文章では、継続して記録する改善傾向は見つかりませんでした。";
-    showCompletionTime("prStatus", r);
+    showCompletionTime("kjStatus", r);
   }catch(e){
-    if(e.message==="NOKEY"){ needKeyGuide("prStatus"); }
-    else setStatus("prStatus", e.message, true, false);
+    if(e.message==="NOKEY"){ needKeyGuide("kjStatus"); }
+    else setStatus("kjStatus", e.message, true, false);
   }finally{
     $("prBtn").disabled = false;
+    $("kjBtn").disabled = false;
   }
 }
 $("prBtn").addEventListener("click", runProof);
 
-function bindEnterRun(ids, action){
+function bindEnterRun(ids, action, ctrlAction){
   ids.forEach(id=>$(id).addEventListener("keydown", e=>{
-    if(e.key==="Enter" && !e.shiftKey && !e.isComposing){
+    if(e.key!=="Enter" || e.shiftKey || e.isComposing) return;
+    if(e.ctrlKey || e.metaKey){
+      if(!ctrlAction) return;
       e.preventDefault();
-      action();
+      ctrlAction();
+      return;
     }
+    e.preventDefault();
+    action();
   }));
 }
 
-bindEnterRun(["kjContext", "kjInput"], runKeigo);
+bindEnterRun(["kjContext", "kjInput"], runKeigo, runProof);
 bindEnterRun(["cmSubject", "cmContext", "cmInput"], runCompose);
 bindEnterRun(["trContext", "trInput"], runTranslate);
-bindEnterRun(["prContext", "prInput"], runProof);
+
+/* ---------- クリア（続けて次の文章を書くため） ---------- */
+function clearWork(inputId, cardIds, statusId, extraIds){
+  $(inputId).value = "";
+  (extraIds||[]).forEach(id=>{ const el = $(id); if(el) el.value = ""; });
+  [].concat(cardIds).forEach(id=>{ const card = $(id); if(card) card.classList.add("hidden"); });
+  setStatus(statusId, "", false, false);
+  $(inputId).focus();
+}
+function bindClear(btnId, inputId, cardIds, statusId, extraIds){
+  $(btnId).addEventListener("click", ()=>clearWork(inputId, cardIds, statusId, extraIds));
+  $(inputId).addEventListener("keydown", e=>{
+    if(e.key === "Escape" && !e.isComposing){
+      e.preventDefault();
+      clearWork(inputId, cardIds, statusId, extraIds);
+    }
+  });
+}
+bindClear("kjClear", "kjInput", ["kjResultCard", "prResultCard"], "kjStatus");
+bindClear("cmClear", "cmInput", "cmResultCard", "cmStatus", ["cmSubject"]);
+bindClear("trClear", "trInput", "trResultCard", "trStatus");
+
+/* ---------- 下書きメモ ---------- */
+let draftSaveTimer = null;
+
+function updateDraftBadge(){
+  const n = $("kjDraft").value.trim().length;
+  $("kjDraftBadge").textContent = n ? "（" + n + "字）" : "";
+}
+
+function openDraft(open){
+  $("kjDraftBox").classList.toggle("hidden", !open);
+  $("kjDraftCaret").textContent = open ? "▾" : "▸";
+  if(open) $("kjDraft").focus();
+}
+
+$("kjDraftToggle").addEventListener("click", ()=>{
+  openDraft($("kjDraftBox").classList.contains("hidden"));
+});
+
+$("kjDraft").addEventListener("input", ()=>{
+  updateDraftBadge();
+  clearTimeout(draftSaveTimer);
+  draftSaveTimer = setTimeout(()=>{
+    LS.draft = $("kjDraft").value;
+    $("kjDraftStatus").textContent = "保存しました";
+    setTimeout(()=>{ $("kjDraftStatus").textContent = "入力すると自動保存されます"; }, 1500);
+  }, 400);
+});
+
+$("kjDraftSend").addEventListener("click", ()=>{
+  const t = $("kjDraft").value.trim();
+  if(!t){ $("kjDraftStatus").textContent = "下書きが空です"; return; }
+  $("kjInput").value = t;
+  updateMaskHints();
+  $("kjInput").focus();
+  $("kjDraftStatus").textContent = "本文へ送りました（下書きは残ります）";
+  setTimeout(()=>{ $("kjDraftStatus").textContent = "入力すると自動保存されます"; }, 2000);
+});
+
+$("kjDraftClear").addEventListener("click", ()=>{
+  if($("kjDraft").value.trim() && !confirm("下書きを消しますか?")) return;
+  $("kjDraft").value = "";
+  LS.draft = "";
+  updateDraftBadge();
+  $("kjDraft").focus();
+});
+
+function loadDraft(){
+  $("kjDraft").value = LS.draft;
+  updateDraftBadge();
+  if(LS.draft.trim()) openDraft(true);
+}
+
+/* ---------- 伏せ字の設定画面 ---------- */
+function maskLetter(index){
+  let n = index + 1, out = "";
+  while(n > 0){
+    const r = (n - 1) % 26;
+    out = String.fromCharCode(65 + r) + out;
+    n = Math.floor((n - 1) / 26);
+  }
+  return out;
+}
+
+function nextMaskName(prefix){
+  const used = new Set(LS.masks.map(m=>m && m.m));
+  for(let i=0; i<500; i++){
+    const cand = prefix + maskLetter(i);
+    if(!used.has(cand)) return cand;
+  }
+  return prefix + Date.now();
+}
+
+function renderMasks(){
+  const list = LS.masks;
+  $("mkList").innerHTML = list.length
+    ? list.map((m,i)=>'<div class="mask-row"><span class="mask-real">' + esc(m.r) + '</span><span>→</span><span class="mask-to">' + esc(m.m) +
+      '</span><span class="mask-kind">' + esc(maskKindLabel(m.t)) + '</span><button class="btn sub tiny mk-edit" data-i="' + i +
+      '">変更</button><button class="btn sub tiny mk-del" data-i="' + i + '">削除</button></div>').join("")
+    : '<div class="hint">まだ登録がありません。置き換えたい言葉を追加してください。</div>';
+  $("mkList").querySelectorAll(".mk-del").forEach(b=>b.addEventListener("click", ()=>{
+    const arr = LS.masks;
+    const target = arr[Number(b.dataset.i)];
+    if(!target) return;
+    if(!confirm("「" + target.r + " → " + target.m + "」を削除しますか?\n過去の結果を実名へ戻せなくなります。")) return;
+    arr.splice(Number(b.dataset.i), 1);
+    LS.masks = arr;
+    renderMasks();
+    updateMaskHints();
+  }));
+  $("mkList").querySelectorAll(".mk-edit").forEach(b=>b.addEventListener("click", ()=>{
+    const arr = LS.masks;
+    const target = arr[Number(b.dataset.i)];
+    if(!target) return;
+    const next = (prompt("置き換え先の名前", target.m) || "").trim();
+    if(!next || next === target.m) return;
+    if(arr.some((x,ix)=>ix !== Number(b.dataset.i) && x.m === next)){ alert("同じ置き換え先が既にあります。"); return; }
+    target.m = next;
+    LS.masks = arr;
+    renderMasks();
+    updateMaskHints();
+  }));
+}
+
+function maskKindLabel(k){
+  const t = MASK_TYPES.find(x=>x.k === k);
+  return t ? t.label : "その他";
+}
+
+function addMask(){
+  const real = $("mkReal").value.trim();
+  if(!real){ $("mkAddStatus").textContent = "置き換えたい言葉を入力してください。"; return; }
+  const arr = LS.masks;
+  if(arr.some(m=>m.r === real)){ $("mkAddStatus").textContent = "その言葉はすでに登録されています。"; return; }
+  const kind = $("mkKind").value;
+  const type = MASK_TYPES.find(x=>x.k === kind) || MASK_TYPES[MASK_TYPES.length-1];
+  const name = nextMaskName(type.prefix);
+  arr.push({ r: real, m: name, t: type.k });
+  LS.masks = arr;
+  $("mkReal").value = "";
+  $("mkAddStatus").textContent = "「" + real + "」を " + name + " として送ります。";
+  renderMasks();
+  updateMaskHints();
+}
+
+$("mkAdd").addEventListener("click", addMask);
+$("mkReal").addEventListener("keydown", e=>{
+  if(e.key === "Enter" && !e.isComposing){ e.preventDefault(); addMask(); }
+});
+$("mkOn").addEventListener("change", ()=>{
+  LS.maskOn = $("mkOn").checked;
+  updateMaskHints();
+});
+
+/* いまの入力に効く伏せ字を、実行前に見えるようにする */
+const MASK_HINTS = [
+  { hint:"kjMaskHint", src:["kjInput", "kjContext"] },
+  { hint:"cmMaskHint", src:["cmInput", "cmContext", "cmSubject"] },
+  { hint:"trMaskHint", src:["trInput", "trContext"] }
+];
+
+function updateMaskHints(){
+  const masks = activeMasks();
+  MASK_HINTS.forEach(h=>{
+    const el = $(h.hint);
+    if(!el) return;
+    const text = h.src.map(id=>{ const e = $(id); return e ? e.value : ""; }).join("\n");
+    const hits = masks.filter(m=>text.indexOf(m.r) >= 0);
+    el.textContent = hits.length ? "伏せ字: " + hits.map(m=>m.r + " → " + m.m).join("、") + " に置き換えて送ります" : "";
+    el.classList.toggle("hidden", hits.length === 0);
+  });
+}
+
+MASK_HINTS.forEach(h=>h.src.forEach(id=>{
+  const el = $(id);
+  if(el) el.addEventListener("input", updateMaskHints);
+}));
+
+/* ---------- 修正案へのやりとり ---------- */
+const FOLLOW_TARGETS = {
+  kj: { box:"kjResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>$("kjContext").value.trim(), purpose:()=>kjIntent },
+  pr: { box:"prResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>$("kjContext").value.trim(), purpose:()=>kjIntent },
+  cm: { box:"cmResult", status:"cmStatus", tone:()=>TONES[$("cmTone").value] || TONES.boss, context:()=>$("cmContext").value.trim(), purpose:()=>$("cmPurpose").value }
+};
+const followHistory = { kj: [], pr: [], cm: [] };
+
+function refreshUndo(key){
+  $(key + "Undo").disabled = followHistory[key].length === 0;
+}
+
+async function runFollowUp(key){
+  const cfg = FOLLOW_TARGETS[key];
+  const order = $(key + "Follow").value.trim();
+  const current = $(cfg.box + "Text").textContent.trim();
+  if(!order || !current) return;
+  if(!LS.k){ needKeyGuide(cfg.status); return; }
+  const tone = cfg.tone();
+  $(key + "FollowBtn").disabled = true;
+  setStatus(cfg.status, "直しています…", false, true);
+  const sys =
+`あなたは日本語のビジネス文書コーチです。すでにある文章を、依頼者の要望どおりに直します。
+【依頼者プロフィール】
+${writingProfile()}
+
+【相手】${tone.label}: ${tone.desc}
+【用件】${cfg.purpose()}
+【今回の前提条件】${cfg.context() || "指定なし"}
+
+【指示】
+- 「現在の文章」を、依頼者の「要望」だけに沿って直す。
+- 要望に関係のない部分は変えない。事実、固有名詞、期限、数値を勝手に足したり変えたりしない。
+- 要望が曖昧なときは、最も自然で無難な直し方を1つ選ぶ。追加の質問はしない。
+- 何をどう変えたかを1文で説明する。
+- 必ず次のJSONのみで回答する:
+{"revised":"直した文章の全文","change":"何をどう変えたかの説明1文"}`;
+  const userText = "【現在の文章】\n" + current + "\n\n【要望】\n" + order;
+  try{
+    const r = await callGemini(sys, userText, msg=>setStatus(cfg.status, msg, false, true), {
+      maxOutputTokens: outputTokenLimit(current.length, 420, 1600)
+    });
+    if(r.revised){
+      followHistory[key].push(current);
+      if(followHistory[key].length > 20) followHistory[key].shift();
+      $(cfg.box + "Text").textContent = r.revised;
+      refreshUndo(key);
+    }
+    const note = $(key + "FollowNote");
+    note.textContent = r.change || "";
+    note.classList.toggle("hidden", !r.change);
+    $(key + "Follow").value = "";
+    showCompletionTime(cfg.status, r);
+  }catch(e){
+    if(e.message === "NOKEY") needKeyGuide(cfg.status);
+    else setStatus(cfg.status, e.message, true, false);
+  }finally{
+    $(key + "FollowBtn").disabled = false;
+  }
+}
+
+Object.keys(FOLLOW_TARGETS).forEach(key=>{
+  $(key + "FollowBtn").addEventListener("click", ()=>runFollowUp(key));
+  $(key + "Follow").addEventListener("keydown", e=>{
+    if(e.key === "Enter" && !e.shiftKey && !e.isComposing){ e.preventDefault(); runFollowUp(key); }
+  });
+  $(key + "Undo").addEventListener("click", ()=>{
+    const prev = followHistory[key].pop();
+    if(prev === undefined) return;
+    $(FOLLOW_TARGETS[key].box + "Text").textContent = prev;
+    $(key + "FollowNote").classList.add("hidden");
+    refreshUndo(key);
+  });
+});
+
+function resetFollow(key){
+  followHistory[key] = [];
+  $(key + "Follow").value = "";
+  $(key + "FollowNote").classList.add("hidden");
+  refreshUndo(key);
+}
+
+/* ---------- 控えめ表示 ---------- */
+const TONE_SHORT = { casual:"同僚", boss:"上司", external:"社外" };
+const REAL_TITLE = document.title;
+const ICON_LINK = document.querySelector('link[rel="icon"]');
+const REAL_ICON = ICON_LINK.getAttribute("href");
+const QUIET_TITLE = "Notes";
+const QUIET_ICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%231b232e'/%3E%3Crect x='19' y='13' width='26' height='38' rx='3' fill='%238a94a3'/%3E%3Cpath d='M26 25h12M26 32h12M26 39h7' stroke='%231b232e' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E";
+
+const TARGET_BLOCKS = [
+  { block:"kjTargetBlock", summary:"kjTargetSummary", text:"kjTargetText", label:()=>TONE_SHORT[LS.tone] + " / " + kjIntent },
+  { block:"cmTargetBlock", summary:"cmTargetSummary", text:"cmTargetText", label:()=>TONE_SHORT[$("cmTone").value] + " / " + $("cmPurpose").value }
+];
+
+function updateTargetSummary(){
+  TARGET_BLOCKS.forEach(t=>{
+    const el = $(t.text);
+    if(el) el.textContent = t.label() || "";
+  });
+}
+
+function collapseTargets(){
+  if(!LS.discreet) return;
+  TARGET_BLOCKS.forEach(t=>$(t.block).classList.add("collapsed"));
+}
+
+function applyDiscreet(on){
+  document.body.classList.toggle("discreet", on);
+  document.title = on ? QUIET_TITLE : REAL_TITLE;
+  ICON_LINK.setAttribute("href", on ? QUIET_ICON : REAL_ICON);
+  TARGET_BLOCKS.forEach(t=>$(t.block).classList.toggle("collapsed", on));
+  updateTargetSummary();
+}
+
+TARGET_BLOCKS.forEach(t=>{
+  $(t.summary).addEventListener("click", ()=>{
+    $(t.block).classList.toggle("collapsed");
+  });
+});
+$("cmPurpose").addEventListener("change", updateTargetSummary);
+
+/* ---------- 画面を伏せる（Ctrl+Shift+H） ---------- */
+let veiled = false;
+function setVeil(on){
+  veiled = on;
+  $("screenVeil").classList.toggle("hidden", !on);
+  if(on && document.activeElement && document.activeElement.blur) document.activeElement.blur();
+}
+document.addEventListener("keydown", e=>{
+  if(e.ctrlKey && e.shiftKey && (e.key === "H" || e.key === "h")){
+    e.preventDefault();
+    e.stopPropagation();
+    setVeil(!veiled);
+    return;
+  }
+  if(veiled && e.key === "Escape"){
+    e.preventDefault();
+    e.stopPropagation();
+    setVeil(false);
+  }
+}, true);
+$("screenVeil").addEventListener("dblclick", ()=>setVeil(false));
 
 /* ---------- コーチ ---------- */
 function cleanCoachIssue(raw){
@@ -1245,7 +1719,7 @@ function recordCoachIssues(rawIssues){
 function coachIssueCard(issue, watch){
   const type = COACH_ISSUE_TYPES[issue.key] || {};
   const title = issue.title || type.title || "改善ポイント";
-  const observation = issue.observation || "校正で同じ傾向が見つかりました。";
+  const observation = issue.observation || "添削で同じ傾向が見つかりました。";
   const advice = issue.advice || type.advice || "次の文章で意識してみてください。";
   return '<article class="coach-issue'+(watch?' watch':'')+'">'+
     '<div class="coach-issue-head"><h3>'+esc(title)+'</h3><span class="coach-count">'+(issue.count||1)+'日</span></div>'+
@@ -1279,16 +1753,16 @@ function renderCoach(){
   $("coachCount").textContent = watch.length ? "("+watch.length+")" : "";
   $("coWatchList").innerHTML = watch.length
     ? watch.map(x=>coachIssueCard(x,true)).join("")
-    : '<div class="empty-state">まだ要チェック項目はありません。<br>同じ傾向が別の日の校正で2回見つかると表示されます。</div>';
+    : '<div class="empty-state">まだ要チェック項目はありません。<br>同じ傾向が別の日の添削で2回見つかると表示されます。</div>';
   $("coObserveList").innerHTML = observing.length
     ? observing.map(x=>coachIssueCard(x,false)).join("")
-    : '<div class="empty-state">観察中の項目はありません。校正を使うと、原文に見られた改善傾向だけがここへ記録されます。</div>';
+    : '<div class="empty-state">観察中の項目はありません。添削を使うと、原文に見られた改善傾向だけがここへ記録されます。</div>';
   bindCoachResolveButtons();
 }
 
 function coachFocusContext(){
   const focus = activeCoachIssues().filter(x=>(Number(x.count)||1)>=2).sort((a,b)=>(b.count||0)-(a.count||0)).slice(0,3);
-  if(!focus.length) return "校正から繰り返し確認できた傾向はまだありません。本人の弱点を推測・断定せず、一般的な説明と次回の確認方法を案内する。";
+  if(!focus.length) return "添削から繰り返し確認できた傾向はまだありません。本人の弱点を推測・断定せず、一般的な説明と次回の確認方法を案内する。";
   return focus.map(x=>"- "+(x.title||COACH_ISSUE_TYPES[x.key].title)+"（"+(x.count||1)+"日確認）: "+(x.advice||COACH_ISSUE_TYPES[x.key].advice)).join("\n");
 }
 
@@ -1303,14 +1777,14 @@ async function runCoach(){
 【依頼者プロフィール】
 ${writingProfile()}
 
-【校正から確認できた要チェック傾向】
+【添削から確認できた要チェック傾向】
 ${coachFocusContext()}
 
 【指示】
 - 質問にまず結論から答え、実務で試せる短い説明にする。
 - 要チェック傾向がある場合だけ、質問に関係する範囲で「今回意識するとよい点」として触れる。記録がない傾向を本人の癖として断定しない。
 - 【依頼者の前提】に沿った仕事の文脈で例を作る。ただし未入力の事実・固有名詞・期限は作らない。
-- 否定的・威圧的にしない。分からないことは、次の校正で確認できる観点として案内する。
+- 否定的・威圧的にしない。分からないことは、次の添削で確認できる観点として案内する。
 - 必ず次のJSONのみで回答する:
 {"answer":"回答本文","examples":[{"title":"場面","before":"避けたい例","after":"おすすめの例"}],"practice":"次の文章で試す短い練習"}`;
   try{
@@ -1378,7 +1852,7 @@ function renderNotes(){
   }
 
   if(!notes.length){
-    $("ntList").innerHTML = '<div class="hint">まだ記録がありません。文書校正を使うと「今日の学び」がここに貯まっていきます。</div>';
+    $("ntList").innerHTML = '<div class="hint">まだ記録がありません。「添削」を使うと「今日の学び」がここに貯まっていきます。</div>';
     return;
   }
   if(!list.length){
@@ -1439,7 +1913,7 @@ function renderPhrases(){
     list.sort((a,b)=>((b.n||0)-(a.n||0)) || (a.i-b.i));
   }
   if(!phrases.length){
-    $("phList").innerHTML = '<div class="hint">まだフレーズがありません。上のフォームか、変換・作成・翻訳・校正結果の「フレーズ登録」から追加できます。</div>';
+    $("phList").innerHTML = '<div class="hint">まだフレーズがありません。上のフォームか、整える・添削・作成・翻訳の結果の「フレーズ登録」から追加できます。</div>';
     return;
   }
   if(!list.length){
@@ -1554,6 +2028,12 @@ function loadSettings(){
   }
   sel.value = LS.model;
   $("setupGuide").style.display = LS.k ? "none" : "block";
+  $("stDiscreet").checked = LS.discreet;
+  $("mkOn").checked = LS.maskOn;
+  if(!$("mkKind").options.length){
+    $("mkKind").innerHTML = MASK_TYPES.map(t=>'<option value="' + t.k + '">' + esc(t.label) + '</option>').join("");
+  }
+  renderMasks();
   selectTone(LS.tone);
 }
 $("cmTone").addEventListener("change", ()=>selectTone($("cmTone").value));
@@ -1633,7 +2113,7 @@ $("bkExport").addEventListener("click", ()=>{
   const data = {
     app: "wordbridge", ver: 3, exported: new Date().toISOString().slice(0,10),
     model: LS.model, persona: LS.persona, tone: LS.tone,
-    notes: LS.notes, phrases: LS.phrases, coach: LS.coach
+    notes: LS.notes, phrases: LS.phrases, coach: LS.coach, masks: LS.masks
   };
   if(withKey) data.apikey = LS.k;
   const a = document.createElement("a");
@@ -1689,14 +2169,31 @@ $("bkFile").addEventListener("change", ()=>{
 
       const addC = mergeImportedCoachIssues(data.coach);
 
+      // 伏せ字: 実名が同じものは既存を優先。置き換え先がぶつかったら新しい名前を振り直す
+      const masks = LS.masks;
+      let addM = 0;
+      (Array.isArray(data.masks) ? data.masks : []).forEach(m=>{
+        if(!m || !m.r || !m.m) return;
+        if(masks.some(x=>x.r === m.r)) return;
+        const type = MASK_TYPES.find(x=>x.k === m.t) || MASK_TYPES[MASK_TYPES.length-1];
+        let name = String(m.m);
+        if(masks.some(x=>x.m === name)){
+          LS.masks = masks;
+          name = nextMaskName(type.prefix);
+        }
+        masks.push({ r: String(m.r), m: name, t: type.k });
+        addM++;
+      });
+      LS.masks = masks;
+
       // 設定(ファイルに入っている項目のみ反映)
       if(data.model) LS.model = String(data.model);
       if(data.persona) LS.persona = String(data.persona);
       if(data.tone && TONES[data.tone]) LS.tone = data.tone;
       if(data.apikey) LS.k = String(data.apikey);
 
-      loadSettings(); renderNotes(); renderPhrases(); renderCoach();
-      setStatus("bkStatus", "読み込みました ✓ 学びノート +" + addN + "件 / フレーズ +" + addP + "件 / コーチ記録 +" + addC + "件(重複は自動で除外)", false, false);
+      loadSettings(); renderNotes(); renderPhrases(); renderCoach(); updateMaskHints();
+      setStatus("bkStatus", "読み込みました ✓ 学びノート +" + addN + "件 / フレーズ +" + addP + "件 / コーチ記録 +" + addC + "件 / 伏せ字 +" + addM + "件(重複は自動で除外)", false, false);
     }catch(e){
       setStatus("bkStatus", e.message || "読み込みに失敗しました。", true, false);
     }
@@ -1705,11 +2202,19 @@ $("bkFile").addEventListener("change", ()=>{
   reader.readAsText(f);
 });
 
+$("stDiscreet").addEventListener("change", ()=>{
+  LS.discreet = $("stDiscreet").checked;
+  applyDiscreet(LS.discreet);
+});
+
 /* ---------- init ---------- */
 migrateLegacyStorage();
 migrateDefaultModel();
 migrateDefaultPersona();
 loadSettings();
+loadDraft();
+updateMaskHints();
+applyDiscreet(LS.discreet);
 renderNotes();
 renderPhrases();
 renderManners();
