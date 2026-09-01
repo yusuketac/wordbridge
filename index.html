@@ -715,6 +715,13 @@ const TONES = {
   external: { label:"社外", desc:"社外のクライアントや協力会社へのメール。丁寧なビジネス敬語。ただし冗長な定型句の重複は避ける。" }
 };
 
+/* 保存件数の上限。localStorageは1サイト約5MBで、学びノート1件は約200バイト。
+   2000件でも約400KBのため余裕がある。表示は NOTE_RENDER_LIMIT 件までに抑えて描画を軽く保つ。 */
+const NOTE_LIMIT = 2000;
+const NOTE_RENDER_LIMIT = 300;
+const COACH_LIMIT = 100;
+const COACH_DAYS_LIMIT = 60;
+
 const COACH_ISSUE_TYPES = {
   conclusion: { title:"結論が後ろになりやすい", advice:"最初の一文で、完了・依頼・確認したいことを先に置きます。" },
   connectives: { title:"接続詞を使いすぎやすい", advice:"接続詞を足す前に、文を分けるか、主語と動作の順だけでつながるか確認します。" },
@@ -1221,7 +1228,7 @@ function recordCoachIssues(rawIssues){
     }else{
       const days = Array.isArray(item.days) ? item.days.map(String) : [];
       if(!days.includes(today)) days.unshift(today);
-      item.days = [...new Set(days)].slice(0,30);
+      item.days = [...new Set(days)].slice(0,COACH_DAYS_LIMIT);
       item.count = item.days.length;
       item.lastSeen = today;
       item.title = issue.title;
@@ -1230,7 +1237,7 @@ function recordCoachIssues(rawIssues){
     }
     recorded.push(item);
   });
-  LS.coach = stored.slice(0,30);
+  LS.coach = stored.slice(0,COACH_LIMIT);
   renderCoach();
   return recorded;
 }
@@ -1338,7 +1345,7 @@ function addNote(tip, tag){
   const notes = LS.notes;
   if(notes.length && notes[0].tip === tip) return;
   notes.unshift({ d: new Date().toISOString().slice(0,10), tip: tip, tag: String(tag||"その他").slice(0,12) });
-  LS.notes = notes.slice(0,200);
+  LS.notes = notes.slice(0,NOTE_LIMIT);
   renderNotes();
 }
 
@@ -1378,11 +1385,15 @@ function renderNotes(){
     $("ntList").innerHTML = '<div class="hint">条件に合う記録がありません。</div>';
     return;
   }
-  $("ntList").innerHTML = list.map(n=>
-    '<div class="note-item"><span class="note-date">'+esc(n.d)+'</span>'+
-    (n.tag ? '<span class="note-tag">'+esc(n.tag)+'</span>' : '')+
-    '<span class="note-text">'+esc(n.tip)+'</span><button class="note-del" data-i="'+n.i+'" title="削除">削除</button></div>'
-  ).join("");
+  const shown = list.slice(0, NOTE_RENDER_LIMIT);
+  const more = list.length - shown.length;
+  $("ntList").innerHTML =
+    (more > 0 ? '<div class="hint">'+list.length+'件中、新しい'+shown.length+'件を表示しています。残り'+more+'件は検索やタグで絞り込むと表示されます。</div>' : '')+
+    shown.map(n=>
+      '<div class="note-item"><span class="note-date">'+esc(n.d)+'</span>'+
+      (n.tag ? '<span class="note-tag">'+esc(n.tag)+'</span>' : '')+
+      '<span class="note-text">'+esc(n.tip)+'</span><button class="note-del" data-i="'+n.i+'" title="削除">削除</button></div>'
+    ).join("");
   document.querySelectorAll("#ntList .note-del").forEach(b=>{
     b.addEventListener("click", ()=>{
       const notes2 = LS.notes; notes2.splice(Number(b.dataset.i),1); LS.notes = notes2; renderNotes();
@@ -1604,7 +1615,7 @@ function mergeImportedCoachIssues(imported){
       if(resolvedAt) item.resolvedAt = resolvedAt;
       current.push(item); added++;
     }else{
-      const days = [...new Set([...(Array.isArray(item.days)?item.days:[]), ...importedDays])].filter(Boolean).slice(0,30);
+      const days = [...new Set([...(Array.isArray(item.days)?item.days:[]), ...importedDays])].filter(Boolean).slice(0,COACH_DAYS_LIMIT);
       item.days = days;
       item.count = Math.max(days.length, Number(item.count)||1, Number(raw.count)||1);
       if(String(raw.lastSeen||"") > String(item.lastSeen||"")){
@@ -1613,7 +1624,7 @@ function mergeImportedCoachIssues(imported){
       }
     }
   });
-  LS.coach = current.slice(0,30);
+  LS.coach = current.slice(0,COACH_LIMIT);
   return added;
 }
 
@@ -1658,7 +1669,7 @@ $("bkFile").addEventListener("change", ()=>{
         notes.push(item); addN++;
       });
       notes.sort((a,b)=> a.d<b.d ? 1 : a.d>b.d ? -1 : 0);
-      LS.notes = notes.slice(0,200);
+      LS.notes = notes.slice(0,NOTE_LIMIT);
 
       // フレーズ: 本文が同じものは統合(使用回数は多い方を採用)
       const phrases = LS.phrases;
