@@ -409,7 +409,7 @@
             <div class="hint"><kbd>Enter</kbd> 整える / <kbd>Ctrl+Enter</kbd> 添削 / <kbd>Shift+Enter</kbd> 改行</div>
             <label class="prep-opt"><input type="checkbox" id="prepToggle" checked> 添削でPREP分析</label>
             <div class="spacer"></div>
-            <span class="row-actions"><span class="status" id="kjStatus"></span><button class="btn sub" id="kjClear" title="入力と結果を消す（Esc）">クリア</button><button class="btn sub" id="prBtn" title="直した理由・PREP構造まで見る（Ctrl+Enter）">添削</button><button class="btn" id="kjBtn">整える</button></span>
+            <span class="row-actions"><span class="status" id="kjStatus"></span><button class="btn sub" id="kjClear" title="本文・前提条件・結果を消します。相手と用件は残ります（Esc）">クリア</button><button class="btn sub" id="prBtn" title="直した理由・PREP構造まで見る（Ctrl+Enter）">添削</button><button class="btn" id="kjBtn">整える</button></span>
           </div>
         </div>
         <div class="card hidden" id="kjResultCard">
@@ -476,7 +476,7 @@
         <div class="full" id="cmMaskHintWrap"><div class="mask-hint hidden" id="cmMaskHint"></div></div>
         <div class="full"><label for="cmInput">伝えたい要点</label><textarea id="cmInput" rows="7" placeholder="箇条書きで大丈夫です。&#10;・最新データをアップした&#10;・今日17時までに形状を確認してほしい&#10;・問題があればTeamsで連絡してほしい"></textarea></div>
       </div>
-      <div class="row"><div class="hint"><kbd>Enter</kbd> 作成 / <kbd>Shift+Enter</kbd> 改行</div><div class="spacer"></div><span class="row-actions"><span class="status" id="cmStatus"></span><button class="btn sub" id="cmClear" title="入力と結果を消す（Esc）">クリア</button><button class="btn" id="cmBtn">作成</button></span></div>
+      <div class="row"><div class="hint"><kbd>Enter</kbd> 作成 / <kbd>Shift+Enter</kbd> 改行</div><div class="spacer"></div><span class="row-actions"><span class="status" id="cmStatus"></span><button class="btn sub" id="cmClear" title="本文・前提条件・結果を消します。相手と用件は残ります（Esc）">クリア</button><button class="btn" id="cmBtn">作成</button></span></div>
     </div>
     <div class="card hidden" id="cmResultCard">
       <div class="sec-title">作成した文書</div>
@@ -505,7 +505,7 @@
         <div class="hint"><kbd>Enter</kbd> 翻訳 / <kbd>Shift+Enter</kbd> 改行</div>
         <div class="spacer"></div>
         <span class="row-actions"><span class="status" id="trStatus"></span>
-        <button class="btn sub" id="trClear" title="入力と結果を消す（Esc）">クリア</button><button class="btn" id="trBtn">翻訳</button></span>
+        <button class="btn sub" id="trClear" title="本文・前提条件・結果を消します。相手と用件は残ります（Esc）">クリア</button><button class="btn" id="trBtn">翻訳</button></span>
       </div>
     </div>
     <div class="card hidden" id="trResultCard">
@@ -1351,6 +1351,7 @@ function clearWork(inputId, cardIds, statusId, extraIds){
   (extraIds||[]).forEach(id=>{ const el = $(id); if(el) el.value = ""; });
   [].concat(cardIds).forEach(id=>{ const card = $(id); if(card) card.classList.add("hidden"); });
   setStatus(statusId, "", false, false);
+  updateMaskHints();
   $(inputId).focus();
 }
 function bindClear(btnId, inputId, cardIds, statusId, extraIds){
@@ -1362,9 +1363,9 @@ function bindClear(btnId, inputId, cardIds, statusId, extraIds){
     }
   });
 }
-bindClear("kjClear", "kjInput", ["kjResultCard", "prResultCard"], "kjStatus");
-bindClear("cmClear", "cmInput", "cmResultCard", "cmStatus", ["cmSubject"]);
-bindClear("trClear", "trInput", "trResultCard", "trStatus");
+bindClear("kjClear", "kjInput", ["kjResultCard", "prResultCard"], "kjStatus", ["kjContext"]);
+bindClear("cmClear", "cmInput", "cmResultCard", "cmStatus", ["cmSubject", "cmContext"]);
+bindClear("trClear", "trInput", "trResultCard", "trStatus", ["trContext"]);
 
 /* ---------- 下書きメモ ---------- */
 let draftSaveTimer = null;
