@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "mode": "restricted-network",
+  "allowedHosts": ["generativelanguage.googleapis.com"],
+  "allowedCapabilities": ["clipboard-write"],
+  "reviewedWarnings": [
+    {
+      "rule": "DYNAMIC_NETWORK",
+      "path": "index.html",
+      "reason": "通信先は固定の https://generativelanguage.googleapis.com のみ。URL内で変わるのは encodeURIComponent 済みのモデル名だけで、CSPの connect-src でも同じホストに限定している"
+    }
+  ],
+  "sendsUserData": true,
+  "storesCredentials": true,
+  "notes": "Google Gemini APIへ、利用者が変換・添削・翻訳などを明示操作したときだけ入力文を送る。実名は伏せ字へ置き換えてから送る。APIキーは利用者自身が設定画面で入力し、その端末のブラウザ(localStorage)にのみ保存する。インストール不要のブラウザ版という要件上の例外として 2026-09-11 に承認済み。キーはURLではなく x-goog-api-key ヘッダーで送る。クリップボードはコピーボタン押下時に生成済みの結果を書き込むだけで、読み取りはしない。"
+}

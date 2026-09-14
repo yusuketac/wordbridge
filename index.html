@@ -167,8 +167,18 @@
   .boxbtns{position:absolute; top:8px; right:8px; display:flex; gap:5px;}
 
   /* term notes */
-  .term{font-size:13px; color:var(--sub); padding:2px 0;}
+  .term{font-size:13px; color:var(--sub); padding:8px 2px; display:flex; gap:10px; align-items:flex-start; border-bottom:1px solid var(--line);}
   .term b{color:var(--ink);}
+  .term > div:first-child{flex:1; min-width:0; overflow-wrap:anywhere;}
+  .item-actions{display:flex; gap:5px; flex:none;}
+  .muted{color:var(--sub); font-size:12px;}
+  .history-item{border-bottom:1px solid var(--line); padding:12px 2px;}
+  .history-item:last-child{border-bottom:0;}
+  .history-meta{display:flex; align-items:center; gap:8px; color:var(--sub); font-size:11.5px;}
+  .history-meta b{color:var(--accent); font-size:12px;}
+  .history-meta .hi-del{margin-left:auto;}
+  .history-label{font-size:11px; color:var(--sub); font-weight:600; margin-top:8px;}
+  .history-text{white-space:pre-wrap; overflow-wrap:anywhere; font-size:13px;}
 
   /* settings */
   label{font-size:12.5px; font-weight:600; color:var(--sub); display:block; margin:12px 0 4px;}
@@ -366,7 +376,10 @@
       <button data-tab="kj" class="active"><span class="nav-code">REVIEW</span><span class="nav-label">文書校正</span></button>
       <button data-tab="cm"><span class="nav-code">CREATE</span><span class="nav-label">文書作成</span></button>
       <button data-tab="tr"><span class="nav-code">TRANS</span><span class="nav-label">翻訳</span></button>
+      <button data-tab="cv"><span class="nav-code">CASE</span><span class="nav-label">変換</span></button>
       <button data-tab="ph"><span class="nav-code">PHRASE</span><span class="nav-label">フレーズ <span id="phCount"></span></span></button>
+      <button data-tab="dc"><span class="nav-code">GLOSSARY</span><span class="nav-label">用語帳 <span id="dcCount"></span></span></button>
+      <button data-tab="hi"><span class="nav-code">HISTORY</span><span class="nav-label">履歴 <span id="hiCount"></span></span></button>
       <button data-tab="mn" class="t-learn"><span class="nav-code">MANNER</span><span class="nav-label">マナーガイド</span></button>
       <button data-tab="co" class="t-learn"><span class="nav-code">COACH</span><span class="nav-label">コーチ <span id="coachCount"></span></span></button>
       <button data-tab="nt" class="t-learn"><span class="nav-code">LEARN</span><span class="nav-label">学びノート <span id="noteCount"></span></span></button>
@@ -386,8 +399,8 @@
           <div class="target-block" id="kjTargetBlock">
           <div class="pick-row"><span class="pick-label">相手</span>
           <div class="tones" id="kjTones">
-            <button data-tone="casual">同僚・チャット</button>
-            <button data-tone="boss" class="on">上司・社内</button>
+            <button data-tone="casual" class="on">同僚・チャット</button>
+            <button data-tone="boss">上司・社内</button>
             <button data-tone="external">社外・取引先</button>
           </div></div>
           <div class="pick-row"><span class="pick-label">用件</span>
@@ -414,7 +427,7 @@
             <div class="hint"><kbd>Enter</kbd> 整える / <kbd>Ctrl+Enter</kbd> 添削 / <kbd>Shift+Enter</kbd> 改行</div>
             <label class="prep-opt"><input type="checkbox" id="prepToggle" checked> 添削でPREP分析</label>
             <div class="spacer"></div>
-            <span class="row-actions"><span class="status" id="kjStatus"></span><button class="btn sub" id="kjClear" title="本文・前提条件・結果を消します。相手と用件は残ります（Esc）">クリア</button><button class="btn sub" id="prBtn" title="直した理由・PREP構造まで見る（Ctrl+Enter）">添削</button><button class="btn" id="kjBtn">整える</button></span>
+            <span class="row-actions"><span class="status" id="kjStatus"></span><button class="btn sub" id="kjClear" title="本文・前提条件・結果を消し、相手と用件を初期値（同僚・チャット／依頼）に戻します（Esc）">クリア</button><button class="btn sub" id="prBtn" title="直した理由・PREP構造まで見る（Ctrl+Enter）">添削</button><button class="btn" id="kjBtn">整える</button></span>
           </div>
         </div>
         <div class="card hidden" id="kjResultCard">
@@ -473,7 +486,7 @@
       <div class="form-grid">
         <button type="button" class="target-summary full" id="cmTargetSummary"><span class="ts-caret">▾</span><span id="cmTargetText"></span></button>
         <div class="target-block" id="cmTargetBlock">
-        <div><label for="cmTone">相手</label><select id="cmTone"><option value="casual">同僚・チャット</option><option value="boss" selected>上司・社内</option><option value="external">社外・取引先</option></select></div>
+        <div><label for="cmTone">相手</label><select id="cmTone"><option value="casual" selected>同僚・チャット</option><option value="boss">上司・社内</option><option value="external">社外・取引先</option></select></div>
         <div><label for="cmPurpose">用途</label><select id="cmPurpose"><option>依頼</option><option>報告</option><option>確認</option><option>催促</option><option>お詫び</option><option>お礼</option><option>相談</option><option>日程調整</option></select></div>
         </div>
         <div class="full"><label for="cmSubject">件名・話題（任意）</label><input type="text" id="cmSubject" placeholder="例: 提出データ確認のお願い"></div>
@@ -481,7 +494,7 @@
         <div class="full" id="cmMaskHintWrap"><div class="mask-hint hidden" id="cmMaskHint"></div></div>
         <div class="full"><label for="cmInput">伝えたい要点</label><textarea id="cmInput" rows="7" placeholder="箇条書きで大丈夫です。&#10;・最新データをアップした&#10;・今日17時までに形状を確認してほしい&#10;・問題があればTeamsで連絡してほしい"></textarea></div>
       </div>
-      <div class="row"><div class="hint"><kbd>Enter</kbd> 作成 / <kbd>Shift+Enter</kbd> 改行</div><div class="spacer"></div><span class="row-actions"><span class="status" id="cmStatus"></span><button class="btn sub" id="cmClear" title="本文・前提条件・結果を消します。相手と用件は残ります（Esc）">クリア</button><button class="btn" id="cmBtn">作成</button></span></div>
+      <div class="row"><div class="hint"><kbd>Enter</kbd> 作成 / <kbd>Shift+Enter</kbd> 改行</div><div class="spacer"></div><span class="row-actions"><span class="status" id="cmStatus"></span><button class="btn sub" id="cmClear" title="本文・件名・前提条件・結果を消します。相手と用途は残ります（Esc）">クリア</button><button class="btn" id="cmBtn">作成</button></span></div>
     </div>
     <div class="card hidden" id="cmResultCard">
       <div class="sec-title">作成した文書</div>
@@ -510,7 +523,7 @@
         <div class="hint"><kbd>Enter</kbd> 翻訳 / <kbd>Shift+Enter</kbd> 改行</div>
         <div class="spacer"></div>
         <span class="row-actions"><span class="status" id="trStatus"></span>
-        <button class="btn sub" id="trClear" title="本文・前提条件・結果を消します。相手と用件は残ります（Esc）">クリア</button><button class="btn" id="trBtn">翻訳</button></span>
+        <button class="btn sub" id="trClear" title="本文・前提条件・結果を消します（Esc）">クリア</button><button class="btn" id="trBtn">翻訳</button></span>
       </div>
     </div>
     <div class="card hidden" id="trResultCard">
@@ -520,6 +533,38 @@
         <div class="sec-title">訳語メモ</div>
         <div id="trNotes"></div>
       </div>
+    </div>
+  </div>
+
+  <!-- ============ 変換（大文字・小文字・命名規則） ============ -->
+  <div class="panel" id="panel-cv">
+    <div class="page-head"><div class="page-desc">英字の大文字・小文字や命名規則をまとめてそろえます。AIは使わず、この画面の中だけで変換します。</div></div>
+    <div class="card">
+      <div class="pick-row"><span class="pick-label">文字</span>
+      <div class="intent-row" id="cvModesCase">
+        <button data-mode="upper" class="on" title="wheel front left → WHEEL FRONT LEFT">大文字</button>
+        <button data-mode="lower" title="WHEEL Front Left → wheel front left">小文字</button>
+        <button data-mode="title" title="wheel_front_left → Wheel_Front_Left（区切りはそのまま、単語ごとに先頭だけ大文字）">先頭大文字</button>
+      </div></div>
+      <div class="pick-row"><span class="pick-label">命名</span>
+      <div class="intent-row" id="cvModesName">
+        <button data-mode="camel" title="wheel front left → wheelFrontLeft">camelCase</button>
+        <button data-mode="pascal" title="wheel front left → WheelFrontLeft">PascalCase</button>
+        <button data-mode="snake" title="wheel front left → wheel_front_left">snake_case</button>
+        <button data-mode="usnake" title="wheel front left → WHEEL_FRONT_LEFT">UPPER_SNAKE</button>
+        <button data-mode="kebab" title="wheel front left → wheel-front-left">kebab-case</button>
+      </div></div>
+      <label for="cvInput" class="field-label" style="margin-top:4px;">変換したい文字列</label>
+      <textarea id="cvInput" rows="6" placeholder="1行に1つ。複数行をまとめて変換できます。&#10;例) wheel front left / WheelFrontLeft / wheel_front_left"></textarea>
+      <div class="row" style="margin-top:8px;">
+        <div class="hint">入力するとすぐ変換されます / <kbd>Enter</kbd> 改行</div>
+        <div class="spacer"></div>
+        <span class="row-actions"><span class="status" id="cvStatus"></span><button class="btn sub" id="cvClear" title="入力と結果を消します（Esc）">クリア</button></span>
+      </div>
+    </div>
+    <div class="card hidden" id="cvResultCard">
+      <div class="sec-title">変換結果</div>
+      <div class="result-box" id="cvResult"><div class="boxbtns"><button class="btn sub tiny" onclick="copyText('cvResult',this)">コピー</button></div><span id="cvResultText"></span></div>
     </div>
   </div>
 
@@ -546,6 +591,33 @@
         </select>
       </div>
       <div id="phList"></div>
+    </div>
+  </div>
+
+  <!-- ============ 用語帳 ============ -->
+  <div class="panel" id="panel-dc">
+    <div class="page-head"><div class="page-desc">仕事で使う用語と意味・訳語を、自分用の小さな辞典として残せます。データはこのブラウザ内にだけ保存されます。</div></div>
+    <div class="card">
+      <div class="form-grid glossary-form">
+        <div><label for="dcTerm">用語</label><input id="dcTerm" type="text" placeholder="例）turnaround time"></div>
+        <div><label for="dcReading">読み・英訳（任意）</label><input id="dcReading" type="text" placeholder="例）ターンアラウンドタイム"></div>
+        <div class="full"><label for="dcMeaning">意味・使い方</label><textarea id="dcMeaning" rows="2" placeholder="自分が迷わないための短い説明や、よく使う訳語"></textarea></div>
+        <div class="full"><label for="dcNote">メモ（任意）</label><input id="dcNote" type="text" placeholder="例）納期の話では『対応時間』よりこちらを使う"></div>
+      </div>
+      <div class="row" style="margin-top:8px;"><span class="status" id="dcStatus"></span><div class="spacer"></div><button class="btn sub hidden" id="dcCancel">キャンセル</button><button class="btn" id="dcAdd">登録</button></div>
+    </div>
+    <div class="card">
+      <div class="toolbar"><input type="text" id="dcSearch" placeholder="用語・意味・メモを検索…"></div>
+      <div id="dcList"></div>
+    </div>
+  </div>
+
+  <!-- ============ 履歴 ============ -->
+  <div class="panel" id="panel-hi">
+    <div class="page-head"><div class="page-desc">整える・添削・作成・翻訳の入力と結果をあとから確認できます。履歴はこのブラウザ内にのみ保存され、設定のバックアップに含まれます。</div></div>
+    <div class="card">
+      <div class="toolbar"><input type="text" id="hiSearch" placeholder="入力・結果を検索…"><button class="btn sub" id="hiClearAll">履歴をすべて削除</button></div>
+      <div id="hiList"></div>
     </div>
   </div>
 
@@ -758,7 +830,7 @@
         <input type="file" id="bkFile" accept=".json,application/json" class="hidden">
       </div>
       <div class="status" id="bkStatus" style="margin-top:6px;"></div>
-      <div class="hint">学びノート・フレーズ集・伏せ字リスト・設定をJSONファイル1つに保存します。ノートやフレーズには実名がそのまま入るため、ファイルの置き場所には注意してください。読み込み時は既存データに統合されるため、いま貯まっているものが消えることはありません。OneDrive内に書き出しておけば、別PCから同じファイルを読み込むだけで引っ越し完了です。</div>
+      <div class="hint">学びノート・フレーズ集・用語帳・履歴・伏せ字リスト・設定をJSONファイル1つに保存します。履歴やノートには入力した本文・実名がそのまま入るため、ファイルの置き場所には注意してください。読み込み時は既存データに統合されるため、いま貯まっているものが消えることはありません。OneDrive内に書き出しておけば、別PCから同じファイルを読み込むだけで引っ越し完了です。</div>
     </div>
   </div>
 
@@ -773,7 +845,7 @@
 
 /* ---------- storage ---------- */
 const STORAGE_KEYS = {
-  apikey: "wordbridge_apikey",
+  geminiKey: "wordbridge_apikey",
   model: "wordbridge_model",
   persona: "wordbridge_persona",
   tone: "wordbridge_tone",
@@ -784,11 +856,13 @@ const STORAGE_KEYS = {
   draft: "wordbridge_draft",
   masks: "wordbridge_masks",
   maskOn: "wordbridge_maskon",
-  train: "wordbridge_train"
+  train: "wordbridge_train",
+  dictionary: "wordbridge_dictionary",
+  history: "wordbridge_history"
 };
 
 const LEGACY_STORAGE_KEYS = {
-  apikey: "kd_apikey",
+  geminiKey: "kd_apikey",
   model: "kd_model",
   persona: "kd_persona",
   tone: "kd_tone",
@@ -809,15 +883,17 @@ function migrateLegacyStorage(){
 }
 
 const DEFAULT_MODEL = "gemini-3.5-flash-lite";
+const DICTIONARY_LIMIT = 500;
+const HISTORY_LIMIT = 150;
 
 const LS = {
-  get k(){ return localStorage.getItem(STORAGE_KEYS.apikey) || ""; },
-  set k(v){ localStorage.setItem(STORAGE_KEYS.apikey, v); },
+  get k(){ return localStorage.getItem(STORAGE_KEYS.geminiKey) || ""; },
+  set k(v){ localStorage.setItem(STORAGE_KEYS.geminiKey, v); },
   get model(){ return localStorage.getItem(STORAGE_KEYS.model) || DEFAULT_MODEL; },
   set model(v){ localStorage.setItem(STORAGE_KEYS.model, v); },
   get persona(){ return localStorage.getItem(STORAGE_KEYS.persona) || DEFAULT_PERSONA; },
   set persona(v){ localStorage.setItem(STORAGE_KEYS.persona, v); },
-  get tone(){ return localStorage.getItem(STORAGE_KEYS.tone) || "boss"; },
+  get tone(){ return localStorage.getItem(STORAGE_KEYS.tone) || "casual"; },
   set tone(v){ localStorage.setItem(STORAGE_KEYS.tone, v); },
   get notes(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEYS.notes)||"[]"); }catch(e){ return []; } },
   set notes(v){ localStorage.setItem(STORAGE_KEYS.notes, JSON.stringify(v)); },
@@ -834,7 +910,11 @@ const LS = {
   get maskOn(){ return localStorage.getItem(STORAGE_KEYS.maskOn) !== "0"; },
   set maskOn(v){ localStorage.setItem(STORAGE_KEYS.maskOn, v ? "1" : "0"); },
   get train(){ try{ const v=JSON.parse(localStorage.getItem(STORAGE_KEYS.train)||"{}"); return (v && typeof v==="object") ? v : {}; }catch(e){ return {}; } },
-  set train(v){ localStorage.setItem(STORAGE_KEYS.train, JSON.stringify(v)); }
+  set train(v){ localStorage.setItem(STORAGE_KEYS.train, JSON.stringify(v)); },
+  get dictionary(){ try{ const v=JSON.parse(localStorage.getItem(STORAGE_KEYS.dictionary)||"[]"); return Array.isArray(v) ? v : []; }catch(e){ return []; } },
+  set dictionary(v){ localStorage.setItem(STORAGE_KEYS.dictionary, JSON.stringify(v)); },
+  get history(){ try{ const v=JSON.parse(localStorage.getItem(STORAGE_KEYS.history)||"[]"); return Array.isArray(v) ? v : []; }catch(e){ return []; } },
+  set history(v){ localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(v)); }
 };
 
 const DEFAULT_PERSONA =
@@ -908,8 +988,11 @@ document.querySelectorAll("nav button").forEach(b=>{
     if(b.dataset.tab==="kj") $("kjInput").focus();
     if(b.dataset.tab==="cm") $("cmInput").focus();
     if(b.dataset.tab==="tr") $("trInput").focus();
+    if(b.dataset.tab==="cv") $("cvInput").focus();
     if(b.dataset.tab==="co") $("coInput").focus();
     if(b.dataset.tab==="ph") $("phSearch").focus();
+    if(b.dataset.tab==="dc") $("dcSearch").focus();
+    if(b.dataset.tab==="hi") $("hiSearch").focus();
     if(b.dataset.tab==="mn") $("mnSearch").focus();
   });
 });
@@ -1059,10 +1142,12 @@ async function callGemini(systemText, userText, onRetry, options={}){
   const model = LS.model;
   const cacheKey = responseCacheKey(model, systemText, userText);
   if(RESPONSE_CACHE.has(cacheKey)){
-    return attachResponseMeta(unmaskDeep(structuredClone(RESPONSE_CACHE.get(cacheKey))), { cached:true, elapsedMs:0 });
+    const cached = attachResponseMeta(unmaskDeep(structuredClone(RESPONSE_CACHE.get(cacheKey))), { cached:true, elapsedMs:0 });
+    recordHistoryResult(options.history, cached);
+    return cached;
   }
   const url = "https://generativelanguage.googleapis.com/v1beta/models/" +
-              encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(key);
+              encodeURIComponent(model) + ":generateContent";
   const body = {
     system_instruction: { parts: [{ text: systemText }] },
     contents: [{ role:"user", parts: [{ text: userText }] }],
@@ -1072,7 +1157,7 @@ async function callGemini(systemText, userText, onRetry, options={}){
   for(let attempt=0; attempt<API_MAX_ATTEMPTS; attempt++){
     try{
       res = await fetchWithTimeout(url, {
-        method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body)
+        method:"POST", headers:{ "Content-Type":"application/json", "x-goog-api-key": key }, body: JSON.stringify(body)
       });
     }catch(e){
       const canRetry = attempt < API_MAX_ATTEMPTS - 1;
@@ -1107,7 +1192,9 @@ async function callGemini(systemText, userText, onRetry, options={}){
   const parsed = parseJSON(text);
   RESPONSE_CACHE.set(cacheKey, parsed);
   if(RESPONSE_CACHE.size > 10) RESPONSE_CACHE.delete(RESPONSE_CACHE.keys().next().value);
-  return attachResponseMeta(unmaskDeep(parsed), { cached:false, elapsedMs:performance.now() - startedAt });
+  const result = attachResponseMeta(unmaskDeep(parsed), { cached:false, elapsedMs:performance.now() - startedAt });
+  recordHistoryResult(options.history, result);
+  return result;
 }
 
 function parseJSON(text){
@@ -1120,6 +1207,52 @@ function parseJSON(text){
 function esc(s){
   return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;");
 }
+
+/* ---------- 用語帳・履歴 ----------
+   どちらもlocalStorageだけを使用する。履歴はAPIに渡さず、成功した操作だけを保存する。 */
+let dcEditIndex = -1;
+
+function recordHistoryResult(config, result){
+  if(!config || !config.input) return;
+  const output = typeof config.output === "function" ? config.output(result) : "";
+  if(!String(output || "").trim()) return;
+  const history = LS.history;
+  history.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), type: String(config.type || "やり取り"), input: String(config.input), output: String(output), d: new Date().toISOString() });
+  LS.history = history.slice(0, HISTORY_LIMIT);
+  if($("hiList")) renderHistory();
+}
+
+function renderHistory(){
+  const history = LS.history;
+  $("hiCount").textContent = history.length ? "(" + history.length + ")" : "";
+  const q = $("hiSearch").value.trim().toLowerCase();
+  const list = history.filter(h=>!q || (h.type + "\n" + h.input + "\n" + h.output).toLowerCase().includes(q));
+  $("hiList").innerHTML = !history.length
+    ? '<div class="empty-state">まだ履歴はありません。整える・添削・作成・翻訳を実行すると、ここで見返せます。</div>'
+    : !list.length ? '<div class="empty-state">条件に合う履歴がありません。</div>'
+    : list.map(h=>'<article class="history-item"><div class="history-meta"><b>'+esc(h.type)+'</b><span>'+esc(String(h.d || "").replace("T"," ").slice(0,16))+'</span><button class="btn sub tiny hi-del" data-id="'+esc(h.id)+'">削除</button></div><div class="history-label">入力</div><div class="history-text">'+esc(h.input)+'</div><div class="history-label">結果</div><div class="history-text">'+esc(h.output)+'</div></article>').join("");
+  document.querySelectorAll("#hiList .hi-del").forEach(b=>b.addEventListener("click", ()=>{
+    LS.history = LS.history.filter(h=>h.id !== b.dataset.id); renderHistory();
+  }));
+}
+
+function renderDictionary(){
+  const entries = LS.dictionary;
+  $("dcCount").textContent = entries.length ? "(" + entries.length + ")" : "";
+  const q = $("dcSearch").value.trim().toLowerCase();
+  const list = entries.map((e,i)=>({...e,i})).filter(e=>!q || (e.term+"\n"+e.reading+"\n"+e.meaning+"\n"+e.note).toLowerCase().includes(q));
+  $("dcList").innerHTML = !entries.length
+    ? '<div class="empty-state">まだ用語はありません。迷いやすい訳語や意味を登録して、自分だけの辞典にできます。</div>'
+    : !list.length ? '<div class="empty-state">条件に合う用語がありません。</div>'
+    : list.map(e=>'<article class="term"><div><b>'+esc(e.term)+'</b>'+ (e.reading ? ' <span class="muted">— '+esc(e.reading)+'</span>' : '') +'<div>'+esc(e.meaning || "")+'</div>'+ (e.note ? '<div class="hint">'+esc(e.note)+'</div>' : '') +'</div><div class="item-actions"><button class="btn sub tiny dc-edit" data-i="'+e.i+'">編集</button><button class="btn sub tiny dc-del" data-i="'+e.i+'">削除</button></div></article>').join("");
+  document.querySelectorAll("#dcList .dc-edit").forEach(b=>b.addEventListener("click", ()=>{
+    const e = LS.dictionary[Number(b.dataset.i)]; if(!e) return;
+    dcEditIndex = Number(b.dataset.i); $("dcTerm").value=e.term||""; $("dcReading").value=e.reading||""; $("dcMeaning").value=e.meaning||""; $("dcNote").value=e.note||""; $("dcCancel").classList.remove("hidden"); $("dcAdd").textContent="更新"; $("dcTerm").focus();
+  }));
+  document.querySelectorAll("#dcList .dc-del").forEach(b=>b.addEventListener("click", ()=>{ const entries2=LS.dictionary; entries2.splice(Number(b.dataset.i),1); LS.dictionary=entries2; renderDictionary(); }));
+}
+
+function resetDictionaryForm(){ dcEditIndex=-1; ["dcTerm","dcReading","dcMeaning","dcNote"].forEach(id=>$(id).value=""); $("dcCancel").classList.add("hidden"); $("dcAdd").textContent="登録"; }
 
 function copyText(boxId, btn){
   const t = $(boxId + "Text").textContent;
@@ -1151,7 +1284,10 @@ function needKeyGuide(statusId){
 }
 
 /* ---------- 敬語変換 ---------- */
-let kjIntent = "依頼";
+/* 文書校正の相手・用件の初期値。起動時とクリア時にここへ戻す */
+const DEFAULT_TONE = "casual";
+const DEFAULT_INTENT = "依頼";
+let kjIntent = DEFAULT_INTENT;
 
 function selectTone(tone){
   LS.tone = tone;
@@ -1161,11 +1297,18 @@ function selectTone(tone){
 }
 
 document.querySelectorAll("#kjTones button").forEach(b=>b.addEventListener("click", ()=>selectTone(b.dataset.tone)));
-document.querySelectorAll("#kjIntents button").forEach(b=>b.addEventListener("click", ()=>{
-  kjIntent = b.dataset.intent;
-  document.querySelectorAll("#kjIntents button").forEach(x=>x.classList.toggle("on", x===b));
-  updateTargetSummary();
-}));
+function selectIntent(intent){
+  kjIntent = intent;
+  document.querySelectorAll("#kjIntents button").forEach(x=>x.classList.toggle("on", x.dataset.intent===intent));
+  if(typeof updateTargetSummary === "function") updateTargetSummary();
+}
+
+function resetTargets(){
+  selectTone(DEFAULT_TONE);
+  selectIntent(DEFAULT_INTENT);
+}
+
+document.querySelectorAll("#kjIntents button").forEach(b=>b.addEventListener("click", ()=>selectIntent(b.dataset.intent)));
 
 async function runKeigo(){
   const text = $("kjInput").value.trim();
@@ -1196,7 +1339,8 @@ ${writingProfile()}
 {"revised":"整えた文章","tips":[{"title":"要点","body":"次回にも使える短い説明"}],"tip":"今回の汎用的な学び1文"}`;
   try{
     const r = await callGemini(sys, text, msg=>setStatus("kjStatus", msg, false, true), {
-      maxOutputTokens: outputTokenLimit(text.length, 380, 1200)
+      maxOutputTokens: outputTokenLimit(text.length, 380, 1200),
+      history: { type:"整える", input:text, output:r=>r.revised }
     });
     $("kjResultCard").classList.remove("hidden");
     $("kjResultText").textContent = r.revised || "";
@@ -1243,7 +1387,8 @@ ${writingProfile()}
 {"draft":"文書全文","structure":"この構成にした理由を2文以内で説明","tip":"次回にも使える学び1文","tipTag":"結論先行 / 構成 / 簡潔さ / 敬語・配慮 / 語彙・言い回し / 表記 / その他 のいずれか"}`;
   try{
     const r = await callGemini(sys, points, msg=>setStatus("cmStatus", msg, false, true), {
-      maxOutputTokens: outputTokenLimit(points.length, 520, 1600)
+      maxOutputTokens: outputTokenLimit(points.length, 520, 1600),
+      history: { type:"文書作成", input:points, output:r=>r.draft }
     });
     $("cmResultCard").classList.remove("hidden");
     $("cmResultText").textContent = r.draft || "";
@@ -1282,7 +1427,8 @@ ${LS.persona}
 {"direction":"ja→en または en→ja","translation":"翻訳結果","notes":[{"term":"原語","note":"訳語の選択理由や補足(業界用語・言い回しなど、価値のあるもののみ最大3件。なければ空配列)"}]}`;
   try{
     const r = await callGemini(sys, text, msg=>setStatus("trStatus", msg, false, true), {
-      maxOutputTokens: outputTokenLimit(text.length, 420, 1400)
+      maxOutputTokens: outputTokenLimit(text.length, 420, 1400),
+      history: { type:"翻訳", input:text, output:r=>r.translation }
     });
     $("trResultCard").classList.remove("hidden");
     $("trDirection").textContent = "翻訳結果(" + (r.direction||"") + ")";
@@ -1344,7 +1490,8 @@ ${usePrep ? `"prep":{"adapted":true,"P":true,"R":false,"E":false,"P2":true,"comm
 "tip":"今日の学び(1文)","tipTag":"タグ","coachIssues":[{"key":"分類キー","title":"改善傾向の名前","observation":"今回見られた傾向","advice":"次回の具体的な行動"}]}`;
   try{
     const r = await callGemini(sys, text, msg=>setStatus("kjStatus", msg, false, true), {
-      maxOutputTokens: outputTokenLimit(text.length, 850, 2200)
+      maxOutputTokens: outputTokenLimit(text.length, 850, 2200),
+      history: { type:"添削", input:text, output:r=>r.revised }
     });
     $("prResultCard").classList.remove("hidden");
     $("prToneLabel").textContent = tone.label;
@@ -1407,26 +1554,76 @@ bindEnterRun(["cmSubject", "cmContext", "cmInput"], runCompose);
 bindEnterRun(["trContext", "trInput"], runTranslate);
 
 /* ---------- クリア（続けて次の文章を書くため） ---------- */
-function clearWork(inputId, cardIds, statusId, extraIds){
+function clearWork(inputId, cardIds, statusId, extraIds, after){
   $(inputId).value = "";
   (extraIds||[]).forEach(id=>{ const el = $(id); if(el) el.value = ""; });
   [].concat(cardIds).forEach(id=>{ const card = $(id); if(card) card.classList.add("hidden"); });
   setStatus(statusId, "", false, false);
+  if(after) after();
   updateMaskHints();
   $(inputId).focus();
 }
-function bindClear(btnId, inputId, cardIds, statusId, extraIds){
-  $(btnId).addEventListener("click", ()=>clearWork(inputId, cardIds, statusId, extraIds));
+function bindClear(btnId, inputId, cardIds, statusId, extraIds, after){
+  $(btnId).addEventListener("click", ()=>clearWork(inputId, cardIds, statusId, extraIds, after));
   $(inputId).addEventListener("keydown", e=>{
     if(e.key === "Escape" && !e.isComposing){
       e.preventDefault();
-      clearWork(inputId, cardIds, statusId, extraIds);
+      clearWork(inputId, cardIds, statusId, extraIds, after);
     }
   });
 }
-bindClear("kjClear", "kjInput", ["kjResultCard", "prResultCard"], "kjStatus", ["kjContext"]);
+bindClear("kjClear", "kjInput", ["kjResultCard", "prResultCard"], "kjStatus", ["kjContext"], resetTargets);
 bindClear("cmClear", "cmInput", "cmResultCard", "cmStatus", ["cmSubject", "cmContext"]);
 bindClear("trClear", "trInput", "trResultCard", "trStatus", ["trContext"]);
+
+/* ---------- 変換（大文字・小文字・命名規則） ----------
+   AIを使わない即時変換。1行ずつ変換し、行数は入力とそろえる(リストの対応が崩れないように) */
+let cvMode = "upper";
+
+function cvCap(w){ return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase(); }
+
+/* 命名規則用に単語へ分解する。空白・記号のほか、camelCaseのこぶ(wheelFront)と略語の境目(XMLHttp)でも区切る。
+   語中のアポストロフィは区切りにせず消す(don't → dont) */
+function cvWords(line){
+  return line
+    .replace(/(\p{L})['’](\p{L})/gu, "$1$2")
+    .replace(/([\p{Ll}\p{N}])(\p{Lu})/gu, "$1 $2")
+    .replace(/(\p{Lu}+)(\p{Lu}\p{Ll})/gu, "$1 $2")
+    .split(/[^\p{L}\p{N}]+/u)
+    .filter(Boolean);
+}
+
+const CV_MODES = {
+  upper:  line=>line.toUpperCase(),
+  lower:  line=>line.toLowerCase(),
+  /* 区切り文字はそのまま、英数字のまとまりごとに先頭だけ大文字(don't → Don't) */
+  title:  line=>line.replace(/[\p{L}\p{N}]+(?:['’][\p{L}\p{N}]+)*/gu, cvCap),
+  camel:  line=>cvWords(line).map((w,i)=>i ? cvCap(w) : w.toLowerCase()).join(""),
+  pascal: line=>cvWords(line).map(cvCap).join(""),
+  snake:  line=>cvWords(line).map(w=>w.toLowerCase()).join("_"),
+  usnake: line=>cvWords(line).map(w=>w.toUpperCase()).join("_"),
+  kebab:  line=>cvWords(line).map(w=>w.toLowerCase()).join("-")
+};
+
+function convertCase(text, mode){
+  const fn = CV_MODES[mode] || CV_MODES.upper;
+  return String(text).split(/\r?\n/).map(fn).join("\n");
+}
+
+function renderConvert(){
+  const src = $("cvInput").value;
+  const has = src.trim().length > 0;
+  $("cvResultCard").classList.toggle("hidden", !has);
+  $("cvResultText").textContent = has ? convertCase(src, cvMode) : "";
+}
+
+document.querySelectorAll("#cvModesCase button, #cvModesName button").forEach(b=>b.addEventListener("click", ()=>{
+  cvMode = b.dataset.mode;
+  document.querySelectorAll("#cvModesCase button, #cvModesName button").forEach(x=>x.classList.toggle("on", x===b));
+  renderConvert();
+}));
+$("cvInput").addEventListener("input", renderConvert);
+bindClear("cvClear", "cvInput", "cvResultCard", "cvStatus");
 
 /* ---------- 下書きメモ ---------- */
 let draftSaveTimer = null;
@@ -2267,6 +2464,30 @@ function saveAsPhrase(boxId, btn){
   btn.textContent = "登録しました"; setTimeout(()=>btn.textContent = "フレーズ登録", 1200);
 }
 
+/* ---------- 用語帳・履歴の操作 ---------- */
+$("dcAdd").addEventListener("click", ()=>{
+  const term = $("dcTerm").value.trim();
+  const meaning = $("dcMeaning").value.trim();
+  if(!term){ setStatus("dcStatus", "用語を入力してください。", true, false); return; }
+  if(!meaning){ setStatus("dcStatus", "意味・使い方を入力してください。", true, false); return; }
+  const entries = LS.dictionary;
+  const item = { term, reading:$("dcReading").value.trim(), meaning, note:$("dcNote").value.trim(), d:new Date().toISOString().slice(0,10) };
+  if(dcEditIndex >= 0 && entries[dcEditIndex]) entries[dcEditIndex] = {...entries[dcEditIndex], ...item};
+  else if(entries.some(e=>e.term===term && e.meaning===meaning)){ setStatus("dcStatus", "同じ用語が登録済みです。", true, false); return; }
+  else entries.unshift(item);
+  LS.dictionary = entries.slice(0, DICTIONARY_LIMIT);
+  resetDictionaryForm(); renderDictionary(); setStatus("dcStatus", "保存しました ✓", false, false);
+  setTimeout(()=>setStatus("dcStatus", "", false, false), 2000);
+});
+$("dcCancel").addEventListener("click", resetDictionaryForm);
+$("dcSearch").addEventListener("input", renderDictionary);
+$("hiSearch").addEventListener("input", renderHistory);
+$("hiClearAll").addEventListener("click", ()=>{
+  if(!LS.history.length) return;
+  if(!confirm("保存されている履歴をすべて削除します。元に戻せません。よろしいですか？")) return;
+  LS.history = []; renderHistory();
+});
+
 /* ---------- マナーガイド ---------- */
 function renderManners(){
   const q = $("mnSearch").value.trim().toLowerCase();
@@ -2297,7 +2518,7 @@ function loadSettings(){
     $("mkBulkKind").innerHTML = opts;
   }
   renderMasks();
-  selectTone(LS.tone);
+  resetTargets();
 }
 $("cmTone").addEventListener("change", ()=>selectTone($("cmTone").value));
 $("stPersonaReset").addEventListener("click", ()=>{
@@ -2324,7 +2545,7 @@ $("stModelFetch").addEventListener("click", async ()=>{
   if(!key){ setStatus("stStatus","先にAPIキーを入力してください。", true, false); return; }
   setStatus("stStatus","取得中…", false, true);
   try{
-    const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models?key="+encodeURIComponent(key)+"&pageSize=100");
+    const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=100", { headers:{ "x-goog-api-key": key } });
     if(!res.ok) throw new Error("取得失敗 ("+res.status+") — キーを確認してください。");
     const data = await res.json();
     const models = (data.models||[])
@@ -2374,9 +2595,10 @@ function mergeImportedCoachIssues(imported){
 $("bkExport").addEventListener("click", ()=>{
   const withKey = $("bkKey").checked;
   const data = {
-    app: "wordbridge", ver: 3, exported: new Date().toISOString().slice(0,10),
+    app: "wordbridge", ver: 4, exported: new Date().toISOString().slice(0,10),
     model: LS.model, persona: LS.persona, tone: LS.tone,
-    notes: LS.notes, phrases: LS.phrases, coach: LS.coach, masks: LS.masks
+    notes: LS.notes, phrases: LS.phrases, coach: LS.coach, masks: LS.masks,
+    dictionary: LS.dictionary, history: LS.history
   };
   if(withKey) data.apikey = LS.k;
   const a = document.createElement("a");
@@ -2449,14 +2671,37 @@ $("bkFile").addEventListener("change", ()=>{
       });
       LS.masks = masks;
 
+      // 用語帳: 用語+意味が同じものは重複させず、既存の項目を優先
+      const dictionary = LS.dictionary;
+      let addD = 0;
+      (Array.isArray(data.dictionary) ? data.dictionary : []).forEach(e=>{
+        if(!e || !e.term || !e.meaning) return;
+        const term = String(e.term), meaning = String(e.meaning);
+        if(dictionary.some(x=>x.term===term && x.meaning===meaning)) return;
+        dictionary.push({ term, meaning, reading:e.reading ? String(e.reading) : "", note:e.note ? String(e.note) : "", d:String(e.d||"").slice(0,10) }); addD++;
+      });
+      LS.dictionary = dictionary.slice(0, DICTIONARY_LIMIT);
+
+      // 履歴: IDが同じものを除外して日時順に統合。旧バックアップには無いので空のままでも問題ない
+      const history = LS.history;
+      let addH = 0;
+      (Array.isArray(data.history) ? data.history : []).forEach(h=>{
+        if(!h || !h.input || !h.output) return;
+        const id = String(h.id || "");
+        if(id && history.some(x=>x.id===id)) return;
+        history.push({ id:id || (Date.now().toString(36)+Math.random().toString(36).slice(2,6)), type:String(h.type||"やり取り"), input:String(h.input), output:String(h.output), d:String(h.d||"") }); addH++;
+      });
+      history.sort((a,b)=>String(b.d).localeCompare(String(a.d)));
+      LS.history = history.slice(0, HISTORY_LIMIT);
+
       // 設定(ファイルに入っている項目のみ反映)
       if(data.model) LS.model = String(data.model);
       if(data.persona) LS.persona = String(data.persona);
       if(data.tone && TONES[data.tone]) LS.tone = data.tone;
       if(data.apikey) LS.k = String(data.apikey);
 
-      loadSettings(); renderNotes(); renderPhrases(); renderCoach(); updateMaskHints();
-      setStatus("bkStatus", "読み込みました ✓ 学びノート +" + addN + "件 / フレーズ +" + addP + "件 / コーチ記録 +" + addC + "件 / 伏せ字 +" + addM + "件(重複は自動で除外)", false, false);
+      loadSettings(); renderNotes(); renderPhrases(); renderDictionary(); renderHistory(); renderCoach(); updateMaskHints();
+      setStatus("bkStatus", "読み込みました ✓ 学びノート +" + addN + "件 / フレーズ +" + addP + "件 / 用語帳 +" + addD + "件 / 履歴 +" + addH + "件 / コーチ記録 +" + addC + "件 / 伏せ字 +" + addM + "件(重複は自動で除外)", false, false);
     }catch(e){
       setStatus("bkStatus", e.message || "読み込みに失敗しました。", true, false);
     }
@@ -2481,6 +2726,8 @@ renderTrainCount();
 applyDiscreet(LS.discreet);
 renderNotes();
 renderPhrases();
+renderDictionary();
+renderHistory();
 renderManners();
 renderCoach();
 if(!LS.k){
