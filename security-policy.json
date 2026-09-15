@@ -8,9 +8,15 @@
       "rule": "DYNAMIC_NETWORK",
       "path": "index.html",
       "reason": "通信先は固定の https://generativelanguage.googleapis.com のみ。URL内で変わるのは encodeURIComponent 済みのモデル名だけで、CSPの connect-src でも同じホストに限定している"
+    },
+    {
+      "rule": "SENSITIVE_CAPABILITY",
+      "path": "tests/learning.test.cjs",
+      "reason": "テスト専用の模擬DOM・模擬クリップボードで、writeTextはメモリー配列への追加だけ。画面取得や実クリップボード操作は行わず、ネットワークfetchは例外にする。読むファイルは対象アプリのindex.htmlのみで、ユーザーデータやブラウザプロファイルにはアクセスしない。"
     }
   ],
   "sendsUserData": true,
   "storesCredentials": true,
+  "learningStorage": "学びの原文・改善後・理由はブラウザ内のノート（最大2000件）と履歴（最大150件）に保存し、利用者が削除または上限に達するまで保持する。JSONバックアップと学びノートのCSV・コピーにも含まれる。履歴分析は端末内でのみ行い、過去の本文を外部AIへ再送しない。通常の校正・作成ではその操作の入力だけから、同じ応答で学びを生成する。",
   "notes": "Google Gemini APIへ、利用者が変換・添削・翻訳などを明示操作したときだけ入力文を送る。実名は伏せ字へ置き換えてから送る。APIキーは利用者自身が設定画面で入力し、その端末のブラウザ(localStorage)にのみ保存する。インストール不要のブラウザ版という要件上の例外として 2026-09-11 に承認済み。キーはURLではなく x-goog-api-key ヘッダーで送る。クリップボードはコピーボタン押下時に生成済みの結果を書き込むだけで、読み取りはしない。"
 }

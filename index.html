@@ -179,6 +179,17 @@
   .history-meta .hi-del{margin-left:auto;}
   .history-label{font-size:11px; color:var(--sub); font-weight:600; margin-top:8px;}
   .history-text{white-space:pre-wrap; overflow-wrap:anywhere; font-size:13px;}
+  .learning-detail{margin-top:8px; min-width:0;}
+  .learning-detail p,.learning-detail .sample{white-space:pre-wrap; overflow-wrap:anywhere;}
+  .learning-detail .sample{padding:8px 10px; border:1px solid var(--line); border-radius:8px; margin:4px 0 8px;}
+  .learning-detail summary{cursor:pointer; color:var(--sub); font-size:12px; margin:8px 0;}
+  .learning-next{border-left:2px solid var(--accent); padding:7px 10px; margin-top:8px; font-size:13px;}
+  .note-item{flex-wrap:wrap;}
+  .note-item .note-text{min-width:180px;}
+  .note-item .learning-detail{width:100%;}
+  .manner-tools{flex-wrap:wrap;}
+  .manner-card .example{white-space:pre-wrap; overflow-wrap:anywhere;}
+  .save-warning{padding:10px; border:1px solid var(--warn); color:var(--warn);}
 
   /* settings */
   label{font-size:12.5px; font-weight:600; color:var(--sub); display:block; margin:12px 0 4px;}
@@ -328,6 +339,7 @@
   .manner-card h3{font-size:14px; margin-bottom:6px;}
   .manner-card p{color:var(--sub); font-size:12px; line-height:1.65;}
   .manner-card .example{margin-top:10px; padding:9px 10px; background:#0d141d; border-radius:7px; color:#d8e1eb; font-size:12px; white-space:pre-wrap;}
+  .mn-fav.on{color:#b88000; border-color:#d6b85a; background:#fff9e8;}
   .empty-state{padding:28px 14px; text-align:center; color:var(--sub); border:1px dashed var(--line); border-radius:9px;}
   .note-del{font-size:11px; padding:4px 6px; border-radius:6px;}
   footer{margin-top:24px; padding-top:16px; border-top:1px solid var(--line); color:#748399; text-align:left;}
@@ -624,13 +636,21 @@
   <!-- ============ マナーガイド ============ -->
   <div class="panel" id="panel-mn">
     <div class="page-head"><div class="page-desc">文章を送る前に迷いやすいポイントを、短い原則とそのまま使える例で確認できます。</div></div>
-    <div class="manner-tools"><input type="text" id="mnSearch" placeholder="場面や言葉で検索（例: 催促、CC、謝罪）"><select id="mnCategory" aria-label="カテゴリー"><option value="">すべて</option><option>メール</option><option>チャット</option><option>会議</option><option>依頼</option><option>報告</option><option>社外</option></select></div>
+    <div class="manner-tools"><input type="text" id="mnSearch" aria-label="例文を検索" placeholder="場面や言葉で検索（例: 催促、CC、謝罪）"><select id="mnCategory" aria-label="状況"><option value="">すべての状況</option></select><select id="mnAudience" aria-label="相手"><option value="">すべての相手</option><option>同僚・チャット</option><option>上司・社内</option><option>社外</option></select><select id="mnFavoriteOnly" aria-label="表示"><option value="">すべて表示</option><option value="favorite">お気に入りだけ</option></select></div>
+    <div class="hint" id="mnCount"></div>
+    <div class="hint">例文の【】を実際の内容に置き換えて使えます。約束・期限は送信前に確認してください。</div>
     <div class="manner-grid" id="mnList"></div>
   </div>
 
   <!-- ============ コーチ ============ -->
   <div class="panel" id="panel-co">
-    <div class="page-head"><div class="page-desc">添削で見つかった傾向を振り返り、仕事の伝え方や言葉づかいを相談できます。</div></div>
+    <div class="page-head"><div class="page-desc">いつもの校正・作成を、実例から学ぶ時間に。改善傾向と次に試す一歩を振り返れます。</div></div>
+    <div class="card">
+      <div class="sec-title">履歴から見える傾向</div>
+      <div class="toolbar"><select id="coHistoryPeriod" aria-label="振り返る期間"><option value="30">直近30日</option><option value="all">保存されている全期間</option></select><button class="btn sub" id="coHistoryRefresh">履歴を分析</button></div>
+      <div class="hint">この端末内で「整える・添削」の指摘と原文を集計します。履歴の外部送信はありません。同じ原文の再実行は1件として数えます。古い履歴は一部の表現だけを確認するため、指摘なし＝ミスなしではありません。</div>
+      <div id="coHistoryReport" class="learning-detail"></div>
+    </div>
     <div class="coach-summary" aria-label="コーチングの記録">
       <div class="coach-stat watch"><span>要チェック</span><b id="coWatchCount">0</b></div>
       <div class="coach-stat"><span>観察中</span><b id="coObserveCount">0</b></div>
@@ -650,7 +670,7 @@
       <aside class="card" style="margin:0;">
         <div class="sec-title">この機能の使い方</div>
         <div class="learning-list">
-          <div class="learning-item"><b>1. 添削で傾向を記録</b><span>原文に実際に見られた改善点だけを、1日につき1回まで記録します。</span></div>
+          <div class="learning-item"><b>1. いつもの操作が学びに</b><span>整える・添削で原文に確認できた改善点を記録。作成では要点から文章にする工夫を学びます。</span></div>
           <div class="learning-item"><b>2. 2日以上続くと要チェック</b><span>一度の指摘で決めつけず、繰り返し見られた傾向だけを要チェックにします。</span></div>
           <div class="learning-item"><b>3. できたら卒業</b><span>改善できた項目は自分で「できるようになった」へ移せます。</span></div>
         </div>
@@ -721,13 +741,13 @@
 
   <!-- ============ 学びノート ============ -->
   <div class="panel" id="panel-nt">
-    <div class="page-head"><div class="page-desc">添削で得た気づきを蓄積し、自分がつまずきやすいポイントを見える化します。</div></div>
+    <div class="page-head"><div class="page-desc">自分の原文・改善後・理由をセットで振り返ります。以前の一文だけのノートもそのまま残ります。</div></div>
     <div class="card">
       <div class="toolbar">
         <input type="text" id="ntSearch" placeholder="検索…">
         <select id="ntSort">
           <option value="new">新しい順</option>
-          <option value="freq">よく指摘される順</option>
+          <option value="freq">よく学んだ分類順</option>
         </select>
         <button class="btn sub tiny" id="ntCsv">CSV出力</button>
         <button class="btn sub tiny" id="ntCopyAll">全コピー</button>
@@ -834,6 +854,7 @@
     </div>
   </div>
 
+  <div id="saveWarning" class="save-warning hidden" role="alert"></div>
   <footer>注意: 未公開情報などの機密情報は入力しないでください。設定はこのPCのブラウザ内にのみ保存されます。</footer>
   </main>
 </div>
@@ -858,7 +879,8 @@ const STORAGE_KEYS = {
   maskOn: "wordbridge_maskon",
   train: "wordbridge_train",
   dictionary: "wordbridge_dictionary",
-  history: "wordbridge_history"
+  history: "wordbridge_history",
+  mannerFavorites: "wordbridge_manner_favorites"
 };
 
 const LEGACY_STORAGE_KEYS = {
@@ -914,7 +936,9 @@ const LS = {
   get dictionary(){ try{ const v=JSON.parse(localStorage.getItem(STORAGE_KEYS.dictionary)||"[]"); return Array.isArray(v) ? v : []; }catch(e){ return []; } },
   set dictionary(v){ localStorage.setItem(STORAGE_KEYS.dictionary, JSON.stringify(v)); },
   get history(){ try{ const v=JSON.parse(localStorage.getItem(STORAGE_KEYS.history)||"[]"); return Array.isArray(v) ? v : []; }catch(e){ return []; } },
-  set history(v){ localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(v)); }
+  set history(v){ localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(v)); },
+  get mannerFavorites(){ try{ const v=JSON.parse(localStorage.getItem(STORAGE_KEYS.mannerFavorites)||"[]"); return Array.isArray(v) ? v.filter(x=>typeof x==="string") : []; }catch(e){ return []; } },
+  set mannerFavorites(v){ localStorage.setItem(STORAGE_KEYS.mannerFavorites, JSON.stringify(v)); }
 };
 
 const DEFAULT_PERSONA =
@@ -939,7 +963,7 @@ function migrateDefaultModel(){
 }
 
 const TONES = {
-  casual:   { label:"カジュアル", desc:"同僚への社内チャット。ですます調は保ちつつ、堅苦しさのない親しみやすい文体。絵文字は使わない。" },
+  casual:   { label:"同僚・チャット", desc:"同僚へのやわらかい社内チャット。短いですます調を基本に「ありがとう！」「確認してもらえると助かります」「お願いします！」など自然な親しみを出す。『恐れ入りますが』『いただけますでしょうか』『何卒』などメール調の硬い敬語を避ける。感嘆符は必要なとき1つまで。絵文字・馴れ馴れしい命令・過剰な謝罪は使わない。原文の事実と期限は変えない。" },
   boss:     { label:"上司・社内", desc:"上司や社内の目上の人への報告・依頼・相談。失礼がなく、かつ過剰にへりくだらない簡潔なビジネス文体。結論から書く。" },
   external: { label:"社外", desc:"社外のクライアントや協力会社へのメール。丁寧なビジネス敬語。ただし冗長な定型句の重複は避ける。" }
 };
@@ -1135,6 +1159,7 @@ function unmaskDeep(value){
 async function callGemini(systemText, userText, onRetry, options={}){
   const key = LS.k;
   if(!key){ throw new Error("NOKEY"); }
+  if(options.history && options.history.learn) systemText += LEARNING_PROMPT;
   /* AIへ渡す文字列は、ここを通る時点で必ず伏せ字へ置き換える */
   systemText = maskText(systemText);
   userText = maskText(userText);
@@ -1217,10 +1242,64 @@ function recordHistoryResult(config, result){
   const output = typeof config.output === "function" ? config.output(result) : "";
   if(!String(output || "").trim()) return;
   const history = LS.history;
-  history.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), type: String(config.type || "やり取り"), input: String(config.input), output: String(output), d: new Date().toISOString() });
-  LS.history = history.slice(0, HISTORY_LIMIT);
+  const entry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), type: String(config.type || "やり取り"), input: String(config.input), output: String(output), d: new Date().toISOString(), context:String(config.context||"") };
+  if(config.learn) entry.learning = cleanLearning(result, entry.input, entry.output, entry.type);
+  history.unshift(entry);
+  try{ LS.history = history.slice(0, HISTORY_LIMIT); }
+  catch(e){ showSaveWarning(); }
+  if(entry.learning){
+    const l = entry.learning;
+    addNote(l.tip, l.tag, {source:entry.type, input:entry.input, output:entry.output, context:entry.context, learning:l});
+    const duplicate = history.slice(1).some(h=>h.type===entry.type && h.input===entry.input && h.output===entry.output);
+    if(!duplicate && entry.type!=="文書作成"){
+      const issues = l.points.filter(p=>p.key).map(p=>({key:p.key, observation:p.reason, advice:l.next}));
+      try{ recordCoachIssues(issues); }catch(e){ showSaveWarning(); }
+    }
+  }
   if($("hiList")) renderHistory();
+  if($("coHistoryReport")) renderHistoryCoach();
 }
+
+function showSaveWarning(){
+  $("saveWarning").textContent = "結果は表示できましたが、記録を保存できませんでした。容量・ブラウザの保存設定を確認し、必要な結果をコピーしてください。既存データは自動削除しません。";
+  $("saveWarning").classList.remove("hidden");
+}
+
+/* 引用は実際の原文・結果に存在するものだけ採用する。AI作成文を利用者のミス扱いしない。 */
+function cleanLearning(raw, input, output, source){
+  raw = raw && typeof raw==="object" ? raw : {};
+  const points = (Array.isArray(raw.points) ? raw.points : []).slice(0,5).filter(p=>
+    p && typeof p.before==="string" && p.before.trim() && input.includes(p.before) &&
+    typeof p.after==="string" && p.after.trim() && output.includes(p.after) &&
+    p.before!==p.after && typeof p.reason==="string" && p.reason.trim()
+  ).map(p=>({before:p.before, after:p.after, reason:p.reason.slice(0,700),
+    key:source!=="文書作成" && Object.hasOwn(COACH_ISSUE_TYPES,p.key) ? p.key : ""}));
+  return {
+    points, tip:String(raw.tip||raw.structure||"原文と改善後を見比べて、次の文章に取り入れましょう。").slice(0,1000),
+    tag:String(raw.tipTag||raw.tag||"その他").slice(0,12),
+    next:String(raw.next||raw.tip||"次の文章で、改善後の書き方を1つ試してみましょう。").slice(0,700),
+    good:typeof raw.good==="string" ? raw.good.slice(0,700) : ""
+  };
+}
+
+function learningHTML(n){
+  if(!n.input || !n.output) return '<div class="hint">旧形式の記録です。原文・改善後は保存されていません。今後の校正・作成から実例が残ります。</div>';
+  const l = cleanLearning(n.learning, n.input, n.output, n.source);
+  return '<div class="learning-detail">'+
+    (l.good ? '<p>よかった点: '+esc(l.good)+'</p>' : '')+
+    (l.points.length ? l.points.map(p=>'<div class="history-label">'+(n.source==="文書作成" ? "文章化の工夫" : "見直した箇所")+'</div><div class="sample">元: '+esc(p.before)+'\n改善後: '+esc(p.after)+'</div><p>理由: '+esc(p.reason)+'</p>').join("")
+      : '<p class="hint">箇所別の理由は記録されていません。下の原文と改善後で比較できます。</p>')+
+    '<div class="learning-next">次に試すこと: '+esc(l.next)+'</div>'+
+    '<details><summary>原文・改善後の全文を見比べる'+(n.source ? '（'+esc(n.source)+'）' : '')+'</summary>'+
+    (n.context ? '<p class="hint">'+esc(n.context)+'</p>' : '')+
+    '<div class="history-label">入力した文章</div><div class="sample">'+esc(n.input)+'</div><div class="history-label">改善後</div><div class="sample">'+esc(n.output)+'</div></details></div>';
+}
+
+const LEARNING_PROMPT = "\n【実例で学ぶための記録】\n"+
+  "- pointsを最大2件（添削は最大5件）付ける。beforeは入力から、afterは完成文から一字一句同じ短い箇所を引用し、reasonで読み手にどう伝わりやすくなるかを説明。対応箇所がない場合は空配列。引用やミスを捏造しない。\n"+
+  "- 各pointのkeyは "+COACH_CATEGORY_PROMPT+" のキーから選ぶ。好みの変更や文書作成の箇条書きからの展開ならkeyは空文字。箇条書きは材料であり、未完成・敬語不足・構成不足をミスと扱わない。\n"+
+  "- goodは入力に確認できる良い点を短く1文。なければ空文字。nextは次の文章で自分で試せる具体的な行動を1つ。\n"+
+  '- 既定のJSONに "points":[{"before":"","after":"","reason":"","key":""}],"good":"","next":"","tipTag":"結論先行/構成/簡潔さ/敬語・配慮/語彙・言い回し/表記/その他から1つ" を含める。';
 
 function renderHistory(){
   const history = LS.history;
@@ -1232,7 +1311,7 @@ function renderHistory(){
     : !list.length ? '<div class="empty-state">条件に合う履歴がありません。</div>'
     : list.map(h=>'<article class="history-item"><div class="history-meta"><b>'+esc(h.type)+'</b><span>'+esc(String(h.d || "").replace("T"," ").slice(0,16))+'</span><button class="btn sub tiny hi-del" data-id="'+esc(h.id)+'">削除</button></div><div class="history-label">入力</div><div class="history-text">'+esc(h.input)+'</div><div class="history-label">結果</div><div class="history-text">'+esc(h.output)+'</div></article>').join("");
   document.querySelectorAll("#hiList .hi-del").forEach(b=>b.addEventListener("click", ()=>{
-    LS.history = LS.history.filter(h=>h.id !== b.dataset.id); renderHistory();
+    LS.history = LS.history.filter(h=>h.id !== b.dataset.id); renderHistory(); renderHistoryCoach();
   }));
 }
 
@@ -1339,15 +1418,13 @@ ${writingProfile()}
 {"revised":"整えた文章","tips":[{"title":"要点","body":"次回にも使える短い説明"}],"tip":"今回の汎用的な学び1文"}`;
   try{
     const r = await callGemini(sys, text, msg=>setStatus("kjStatus", msg, false, true), {
-      maxOutputTokens: outputTokenLimit(text.length, 380, 1200),
-      history: { type:"整える", input:text, output:r=>r.revised }
+      maxOutputTokens: outputTokenLimit(text.length, 850, 1800),
+      history: { type:"整える", input:text, output:r=>r.revised, learn:true, context:tone.label+" / "+kjIntent+"\n"+context }
     });
     $("kjResultCard").classList.remove("hidden");
     $("kjResultText").textContent = r.revised || "";
     resetFollow("kj");
-    const tips = Array.isArray(r.tips) ? r.tips.slice(0,1) : [];
-    $("kjTips").innerHTML = tips.length ? tips.map(t=>'<div class="learning-item"><b>'+esc(t.title||"ポイント")+'</b><span>'+esc(t.body||"")+'</span></div>').join("") : '<div class="hint">大きな修正点はありませんでした。</div>';
-    if(r.tip) addNote(r.tip, "敬語・配慮");
+    $("kjTips").innerHTML = learningHTML({source:"整える", input:text, output:String(r.revised||""), learning:cleanLearning(r,text,String(r.revised||""),"整える")});
     showCompletionTime("kjStatus", r);
   }catch(e){
     if(e.message==="NOKEY") needKeyGuide("kjStatus");
@@ -1387,14 +1464,13 @@ ${writingProfile()}
 {"draft":"文書全文","structure":"この構成にした理由を2文以内で説明","tip":"次回にも使える学び1文","tipTag":"結論先行 / 構成 / 簡潔さ / 敬語・配慮 / 語彙・言い回し / 表記 / その他 のいずれか"}`;
   try{
     const r = await callGemini(sys, points, msg=>setStatus("cmStatus", msg, false, true), {
-      maxOutputTokens: outputTokenLimit(points.length, 520, 1600),
-      history: { type:"文書作成", input:points, output:r=>r.draft }
+      maxOutputTokens: outputTokenLimit(points.length, 950, 2200),
+      history: { type:"文書作成", input:points, output:r=>r.draft, learn:true, context:tone.label+" / "+purpose+" / "+subject+"\n"+context }
     });
     $("cmResultCard").classList.remove("hidden");
     $("cmResultText").textContent = r.draft || "";
     resetFollow("cm");
-    $("cmNote").textContent = r.structure || "";
-    if(r.tip) addNote(r.tip, r.tipTag || "構成");
+    $("cmNote").innerHTML = '<p>'+esc(r.structure||"")+'</p>'+learningHTML({source:"文書作成", input:points, output:String(r.draft||""), learning:cleanLearning(r,points,String(r.draft||""),"文書作成")});
     showCompletionTime("cmStatus", r);
   }catch(e){
     if(e.message==="NOKEY") needKeyGuide("cmStatus");
@@ -1490,18 +1566,19 @@ ${usePrep ? `"prep":{"adapted":true,"P":true,"R":false,"E":false,"P2":true,"comm
 "tip":"今日の学び(1文)","tipTag":"タグ","coachIssues":[{"key":"分類キー","title":"改善傾向の名前","observation":"今回見られた傾向","advice":"次回の具体的な行動"}]}`;
   try{
     const r = await callGemini(sys, text, msg=>setStatus("kjStatus", msg, false, true), {
-      maxOutputTokens: outputTokenLimit(text.length, 850, 2200),
-      history: { type:"添削", input:text, output:r=>r.revised }
+      maxOutputTokens: outputTokenLimit(text.length, 1200, 2600),
+      history: { type:"添削", input:text, output:r=>r.revised, learn:true, context:tone.label+" / "+kjIntent+"\n"+context }
     });
     $("prResultCard").classList.remove("hidden");
     $("prToneLabel").textContent = tone.label;
     $("prResultText").textContent = r.revised || "";
     resetFollow("pr");
 
-    const pts = Array.isArray(r.points) ? r.points : [];
+    const learning = cleanLearning(r,text,String(r.revised||""),"添削");
+    const pts = learning.points;
     $("prPoints").innerHTML = pts.length
       ? pts.map(p=>'<div class="point"><div class="ba"><span class="before">'+esc(p.before)+'</span> → <span class="after">'+esc(p.after)+'</span></div><div class="why">'+esc(p.reason)+'</div></div>').join("")
-      : '<div class="hint">大きな修正点はありませんでした。</div>';
+      : '<div class="hint">原文と結果の両方で引用を確認できる箇所別の理由はありません。全文と学びを見比べてください。</div>';
 
     if(usePrep && r.prep){
       $("prPrepWrap").classList.remove("hidden");
@@ -1519,10 +1596,10 @@ ${usePrep ? `"prep":{"adapted":true,"P":true,"R":false,"E":false,"P2":true,"comm
     }
 
     $("prTip").innerHTML = esc(r.tip || "") + (r.tipTag ? ' <span class="note-tag">' + esc(r.tipTag) + '</span>' : "");
-    if(r.tip){ addNote(r.tip, r.tipTag); }
-    const coachLogged = recordCoachIssues(r.coachIssues);
+    $("prTip").innerHTML += '<div class="learning-next">次に試すこと: '+esc(learning.next)+'</div>'+(learning.good ? '<p>よかった点: '+esc(learning.good)+'</p>' : '');
+    const coachLogged = learning.points.filter(p=>p.key).map(p=>({title:COACH_ISSUE_TYPES[p.key].title}));
     $("prCoachLog").textContent = coachLogged.length
-      ? "今回の添削から「" + coachLogged.map(x=>x.title).join("・") + "」を記録しました。繰り返し見られるとコーチの要チェックへ移ります。"
+      ? "今回の見直し候補: 「" + [...new Set(coachLogged.map(x=>x.title))].join("・") + "」。保存された指摘が別の日にも続くと、コーチの要チェックへ移ります。"
       : "今回の文章では、継続して記録する改善傾向は見つかりませんでした。";
     showCompletionTime("kjStatus", r);
   }catch(e){
@@ -1862,9 +1939,13 @@ ${writingProfile()}
   const userText = "【現在の文章】\n" + current + "\n\n【要望】\n" + order;
   try{
     const r = await callGemini(sys, userText, msg=>setStatus(cfg.status, msg, false, true), {
-      maxOutputTokens: outputTokenLimit(current.length, 420, 1600)
+      maxOutputTokens: outputTokenLimit(current.length, 420, 1600),
+      history:{type:"追加調整",input:userText,output:r=>r.revised,context:"AIの修正案への追加指示"}
     });
     if(r.revised){
+      const explanation=String(r.change||"追加の指示に合わせて調整しました。");
+      addNote(explanation,"表記",{source:"追加調整（AIの文）",input:current,output:String(r.revised),context:"追加指示: "+order,
+        learning:{tip:explanation,next:explanation,points:[{before:current,after:String(r.revised),reason:explanation,key:""}]}});
       followHistory[key].push(current);
       if(followHistory[key].length > 20) followHistory[key].shift();
       $(cfg.box + "Text").textContent = r.revised;
@@ -2033,7 +2114,10 @@ ${skipped
       : '<div class="hint">' + (skipped ? "—" : "大きな直しどころはありませんでした。") + "</div>";
     $("trainModelText").textContent = r.model || "";
     $("trainTip").innerHTML = esc(r.tip || "") + (r.tipTag ? ' <span class="note-tag">' + esc(r.tipTag) + "</span>" : "");
-    if(r.tip) addNote(r.tip, r.tipTag);
+    if(r.tip) addNote(r.tip, r.tipTag, {source:skipped ? "模範解答（未解答）" : "トレーニング",
+      input:skipped ? "（未解答）" : answer,output:String(r.model||""),context:"お題: "+String(q.situation||""),
+      learning:{tip:r.tip,good:good.map(String).join(" / "),next:improve.map(x=>String(x.advice||"")).join(" / ")||String(r.tip),
+        points:!skipped && answer && r.model && improve.length ? [{before:answer,after:String(r.model),reason:improve.map(x=>String(x.point||"")+": "+String(x.advice||"")).join("\n"),key:""}] : []}});
     $("trainResultWrap").classList.remove("hidden");
     countTraining();
     showCompletionTime("trainStatus", r);
@@ -2126,6 +2210,64 @@ document.addEventListener("keydown", e=>{
 $("screenVeil").addEventListener("dblclick", ()=>setVeil(false));
 
 /* ---------- コーチ ---------- */
+function noteReasons(n){
+  const l = cleanLearning(n.learning, String(n.input||""), String(n.output||""), n.source);
+  return l.points.map(p=>"元: "+p.before+"\n改善後: "+p.after+"\n理由: "+p.reason).join("\n\n");
+}
+function csvCell(value){
+  let s=String(value==null?"":value);
+  if(/^[\s]*[=+\-@]/.test(s)) s="'"+s;
+  return '"'+s.replace(/"/g,'""')+'"';
+}
+
+function historyCoachData(history, period, now=Date.now()){
+  const seen = new Set(), groups = new Map();
+  let total=0, detailed=0, legacy=0;
+  const cutoff = period==="all" ? -Infinity : now-30*86400000;
+  const rows = history.filter(h=>h && ["整える","添削"].includes(h.type) && typeof h.input==="string" && typeof h.output==="string")
+    .sort((a,b)=>String(b.d).localeCompare(String(a.d)));
+  for(const h of rows){
+    if(period!=="all" && (!Number.isFinite(Date.parse(h.d)) || Date.parse(h.d)<cutoff)) continue;
+    if(seen.has(h.input.trim())) continue;
+    seen.add(h.input.trim()); total++;
+    const l=cleanLearning(h.learning,h.input,h.output,h.type);
+    const points=l.points.filter(p=>p.key);
+    if(h.learning){ detailed++; }
+    else{
+      legacy++;
+      // 過去の本文を再送せず、前後両方に根拠がある限定した表現だけを確認する。
+      for(const [before,after] of [["ご確認していただ","ご確認いただ"],["おっしゃられ","おっしゃ"],["拝見させていただ","拝見し"]]){
+        if(h.input.includes(before) && !h.output.includes(before) && h.output.includes(after)){
+          points.push({key:"keigo",before,after,reason:"敬語表現が簡潔になっています。引用や場面による使い分けもあるため、全文と合わせて確認してください。",legacy:true});
+        }
+      }
+    }
+    const counted=new Set();
+    for(const p of points){
+      if(counted.has(p.key)) continue;
+      counted.add(p.key);
+      if(!groups.has(p.key)) groups.set(p.key,{key:p.key,count:0,days:new Set(),examples:[],legacy:false});
+      const g=groups.get(p.key);
+      g.count++; if(Number.isFinite(Date.parse(h.d))) g.days.add(h.d.slice(0,10));
+      g.legacy = g.legacy || !!p.legacy;
+      if(g.examples.length<3) g.examples.push({d:String(h.d||""),input:h.input,output:h.output,context:h.context||"",point:p});
+    }
+  }
+  return {total,detailed,legacy,groups:[...groups.values()].sort((a,b)=>b.count-a.count).map(g=>({...g,days:g.days.size}))};
+}
+function renderHistoryCoach(){
+  const data=historyCoachData(LS.history,$("coHistoryPeriod").value);
+  $("coHistoryReport").innerHTML = '<p class="hint">'+data.total+'件の異なる原文 / 指摘付き '+data.detailed+'件 / 旧形式 '+data.legacy+'件</p>'+
+    (!data.total ? '<p>対象の履歴がありません。整える・添削を使うと、根拠となる実例が貯まります。</p>' :
+    !data.groups.length ? '<p>この期間の履歴から、分類できる指摘は見つかりませんでした。旧形式や指摘なしの記録からミスの有無は判断できません。</p>' :
+    data.groups.map(g=>'<article class="coach-issue"><div class="coach-issue-head"><h3>'+esc(COACH_ISSUE_TYPES[g.key].title)+'</h3><span class="coach-count">'+g.count+'件 / '+g.days+'日</span></div>'+
+    '<p class="hint">'+(g.days>=2 ? '複数日に見られた傾向' : 'まだ観察中（1日だけでは傾向を断定しません）')+(g.legacy ? '・旧形式は表現ルールによる確認候補を含みます' : '')+'</p>'+
+    '<div class="learning-next">次に試すこと: '+esc(COACH_ISSUE_TYPES[g.key].advice)+'</div>'+
+    g.examples.map(e=>'<details><summary>根拠の実例 '+esc(e.d.slice(0,10))+' — '+esc(e.point.before.slice(0,45))+'</summary><div class="sample">元: '+esc(e.point.before)+'\n改善後: '+esc(e.point.after)+'</div><p>理由: '+esc(e.point.reason)+'</p><div class="history-label">原文の全文</div><div class="sample">'+esc(e.input)+'</div><div class="history-label">結果の全文</div><div class="sample">'+esc(e.output)+'</div></details>').join("")+'</article>').join(""));
+}
+$("coHistoryRefresh").addEventListener("click",renderHistoryCoach);
+$("coHistoryPeriod").addEventListener("change",renderHistoryCoach);
+
 function cleanCoachIssue(raw){
   if(!raw || typeof raw!=="object") return null;
   const key = String(raw.key||"").trim();
@@ -2200,6 +2342,7 @@ function bindCoachResolveButtons(){
 }
 
 function renderCoach(){
+  renderHistoryCoach();
   const all = LS.coach.filter(x=>x && COACH_ISSUE_TYPES[x.key]);
   const active = all.filter(x=>!x.resolvedAt);
   const watch = active.filter(x=>(Number(x.count)||1)>=2).sort((a,b)=>(b.count||0)-(a.count||0) || String(b.lastSeen||"").localeCompare(String(a.lastSeen||"")));
@@ -2214,7 +2357,7 @@ function renderCoach(){
     : '<div class="empty-state">まだ要チェック項目はありません。<br>同じ傾向が別の日の添削で2回見つかると表示されます。</div>';
   $("coObserveList").innerHTML = observing.length
     ? observing.map(x=>coachIssueCard(x,false)).join("")
-    : '<div class="empty-state">観察中の項目はありません。添削を使うと、原文に見られた改善傾向だけがここへ記録されます。</div>';
+    : '<div class="empty-state">観察中の項目はありません。整える・添削を使うと、原文に見られた改善傾向が記録されます。</div>';
   bindCoachResolveButtons();
 }
 
@@ -2273,11 +2416,11 @@ document.querySelectorAll("#coQuestionChips button").forEach(button=>button.addE
 /* ---------- 学びノート ---------- */
 let ntFilterTag = "";
 
-function addNote(tip, tag){
+function addNote(tip, tag, details={}){
   const notes = LS.notes;
-  if(notes.length && notes[0].tip === tip) return;
-  notes.unshift({ d: new Date().toISOString().slice(0,10), tip: tip, tag: String(tag||"その他").slice(0,12) });
-  LS.notes = notes.slice(0,NOTE_LIMIT);
+  if(notes.some(n=>n.tip===tip && (n.input||"")===(details.input||"") && (n.output||"")===(details.output||"") && (n.source||"")===(details.source||""))) return;
+  notes.unshift({ ...details, d: new Date().toISOString().slice(0,10), tip: String(tip), tag: String(tag||"その他").slice(0,12) });
+  try{ LS.notes = notes.slice(0,NOTE_LIMIT); }catch(e){ showSaveWarning(); }
   renderNotes();
 }
 
@@ -2286,7 +2429,7 @@ function renderNotes(){
   $("noteCount").textContent = notes.length ? "(" + notes.length + ")" : "";
 
   // タグ頻度(=よく指摘されるポイント)
-  const counts = {};
+  const counts = Object.create(null);
   notes.forEach(n=>{ const t = n.tag || "その他"; counts[t] = (counts[t]||0) + 1; });
   const tags = Object.keys(counts).sort((a,b)=>counts[b]-counts[a]);
   if(ntFilterTag && !counts[ntFilterTag]) ntFilterTag = "";
@@ -2304,7 +2447,7 @@ function renderNotes(){
   const q = $("ntSearch").value.trim().toLowerCase();
   let list = notes.map((n,i)=>({ ...n, i }))
     .filter(n=>!ntFilterTag || (n.tag||"その他")===ntFilterTag)
-    .filter(n=>!q || n.tip.toLowerCase().includes(q) || (n.tag||"").toLowerCase().includes(q));
+    .filter(n=>!q || [n.tip,n.tag,n.input,n.output,n.context,JSON.stringify(n.learning||{})].join("\n").toLowerCase().includes(q));
   if($("ntSort").value==="freq"){
     list.sort((a,b)=>(counts[b.tag||"その他"]-counts[a.tag||"その他"]) || (a.i-b.i));
   }
@@ -2324,7 +2467,7 @@ function renderNotes(){
     shown.map(n=>
       '<div class="note-item"><span class="note-date">'+esc(n.d)+'</span>'+
       (n.tag ? '<span class="note-tag">'+esc(n.tag)+'</span>' : '')+
-      '<span class="note-text">'+esc(n.tip)+'</span><button class="note-del" data-i="'+n.i+'" title="削除">削除</button></div>'
+      '<span class="note-text">'+esc(n.tip)+'</span><button class="note-del" data-i="'+n.i+'" title="削除">削除</button>'+learningHTML(n)+'</div>'
     ).join("");
   document.querySelectorAll("#ntList .note-del").forEach(b=>{
     b.addEventListener("click", ()=>{
@@ -2340,8 +2483,8 @@ $("ntClear").addEventListener("click", ()=>{
 $("ntCsv").addEventListener("click", ()=>{
   const notes = LS.notes;
   if(!notes.length) return;
-  const rows = [["日付","タグ","学び"]].concat(notes.map(n=>[n.d, n.tag||"", n.tip]));
-  const csv = "\uFEFF" + rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(",")).join("\r\n");
+  const rows = [["日付","タグ","学び","機能","原文","改善後","指摘と理由","次に試すこと"]].concat(notes.map(n=>[n.d, n.tag||"", n.tip,n.source||"",n.input||"",n.output||"",noteReasons(n),n.learning && n.learning.next || ""]));
+  const csv = "\uFEFF" + rows.map(r=>r.map(csvCell).join(",")).join("\r\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
   a.download = "WordBridge_学びノート_" + new Date().toISOString().slice(0,10) + ".csv";
@@ -2351,7 +2494,7 @@ $("ntCsv").addEventListener("click", ()=>{
 $("ntCopyAll").addEventListener("click", function(){
   const notes = LS.notes;
   if(!notes.length) return;
-  const text = notes.map(n=>n.d + (n.tag ? "【"+n.tag+"】" : " ") + n.tip).join("\n");
+  const text = notes.map(n=>n.d + (n.tag ? "【"+n.tag+"】" : " ") + n.tip+(n.input ? "\n原文: "+n.input+"\n改善後: "+n.output+"\n"+noteReasons(n)+"\n次に試すこと: "+(n.learning && n.learning.next || "") : "\n旧形式: 原文・改善後の保存なし")).join("\n\n");
   const btn = this;
   navigator.clipboard.writeText(text).then(()=>{
     btn.textContent = "✓ コピー済"; setTimeout(()=>btn.textContent = "全コピー", 1200);
@@ -2485,20 +2628,79 @@ $("hiSearch").addEventListener("input", renderHistory);
 $("hiClearAll").addEventListener("click", ()=>{
   if(!LS.history.length) return;
   if(!confirm("保存されている履歴をすべて削除します。元に戻せません。よろしいですか？")) return;
-  LS.history = []; renderHistory();
+  LS.history = []; renderHistory(); renderHistoryCoach();
 });
 
 /* ---------- マナーガイド ---------- */
+// 自作の実用テンプレート。可変部は【】を使い、利用前に置換する。
+const MANNER_SCENES = [
+  {cat:"依頼", title:"作業をお願いする", body:"お願いする作業・期限・用途を短く分けます。期限が相談可能なら、そのことも添えます。",
+    examples:["【資料】を【日時】までに確認してもらえると助かります。【用途】で使う予定です。難しそうなら教えてください！","【用途】に使用する【資料】について、【日時】までにご確認をお願いします。調整が必要でしたらお知らせください。","【用途】に使用する【資料】につきまして、【日時】までにご確認いただけますと幸いです。ご都合が難しい場合はお知らせください。"]},
+  {cat:"確認", title:"認識をそろえる", body:"自分の理解を先に示し、相手が合否を答えられる質問にします。",
+    examples:["【対象】は【自分の理解】で合っていますか？ 違うところがあれば教えてください。","【対象】について、【自分の理解】と認識しています。この理解でよいか、ご確認をお願いします。","【対象】につきまして、【自分の理解】と認識しております。相違がございましたらお知らせいただけますでしょうか。"]},
+  {cat:"催促", title:"返信の状況を尋ねる", body:"相手を責めず、必要な回答と期限を具体的に伝えます。",
+    examples:["先日お願いした【対象】、今どんな状況ですか？ 【日時】までに【回答内容】がわかると助かります。","先日お願いした【対象】について、現在の状況を教えていただけますか。【日時】までに【回答内容】を確認したいと考えています。","先日ご連絡した【対象】につきまして、現在の状況をお知らせいただけますでしょうか。【日時】までに【回答内容】を確認できますと幸いです。"]},
+  {cat:"報告", title:"完了と残件を知らせる", body:"完了と未完了を分け、確認が必要な点だけ依頼します。",
+    examples:["【作業】が完了しました！ 【保存先】に置いています。残りは【残件】で、【確認事項】だけ確認をお願いします。","【作業】が完了しました。成果物は【保存先】です。残件は【残件】です。【確認事項】についてご確認をお願いします。","【作業】が完了しましたので、ご報告いたします。【受け渡し方法】にてお送りしております。【確認事項】についてご確認いただけますと幸いです。"]},
+  {cat:"相談", title:"判断してほしいことを伝える", body:"相談の論点と、自分の案・理由を提示すると判断してもらいやすくなります。",
+    examples:["【論点】について相談です。【理由】なので【自分の案】で進めたいと思っています。どうでしょうか？","【論点】についてご相談です。【理由】から【自分の案】を考えています。この方針で進めてよいか、ご判断をお願いします。","【論点】についてご相談がございます。【理由】を踏まえ、【自分の案】をご提案いたします。ご意見をお聞かせいただけますと幸いです。"]},
+  {cat:"断り・調整", title:"対応が難しいとき", body:"難しい条件を明確にし、実行できる代案だけを示します。",
+    examples:["声をかけてくれてありがとう！ 【理由】で【依頼内容】は難しそうです。【代案】なら対応できますが、どうでしょうか？","【理由】のため、【依頼内容】への対応が難しい状況です。【代案】であれば対応可能ですので、ご相談させてください。","お声がけいただき、ありがとうございます。【理由】により、【依頼内容】への対応が難しい状況です。【代案】をご検討いただけますでしょうか。"]},
+  {cat:"お詫び", title:"遅れを知らせる", body:"事実と影響を隠さず、確認できている対応予定を伝えます。未確定の予定は確約しません。",
+    examples:["【作業】が【遅れの状況】になっています。待たせてしまってすみません。【対応予定】で進めています。","【作業】に【遅れの状況】が発生しています。【影響】があり、申し訳ありません。【対応予定】で進めています。","【作業】に【遅れの状況】が発生しており、申し訳ございません。【影響】についてお詫び申し上げます。現在、【対応予定】にて進めております。"]},
+  {cat:"お礼", title:"助けてもらった後", body:"何をしてもらい、どう助かったかを具体的に伝えます。",
+    examples:["【対応】ありがとう！ おかげで【助かったこと】。とても助かりました。","【対応】いただき、ありがとうございます。おかげで【助かったこと】。引き続きよろしくお願いします。","【対応】いただき、誠にありがとうございます。おかげさまで【助かったこと】。今後ともよろしくお願いいたします。"]},
+  {cat:"日程調整", title:"候補日を出す", body:"時間・所要時間・目的を明記し、候補外の回答もできるようにします。",
+    examples:["【目的】の打ち合わせを【所要時間】くらいしたいです。【候補日時】は空いていますか？ 難しければ別の候補を教えてください。","【目的】のため、【所要時間】ほどお時間をいただけますか。候補は【候補日時】です。ご都合を教えていただけると助かります。","【目的】について、【所要時間】ほどお打ち合わせをお願いできますでしょうか。【候補日時】を候補としております。ご都合のよい日時をお知らせいただけますと幸いです。"]},
+  {cat:"会議", title:"決まったことを共有する", body:"決定事項・担当・期限・未決事項を分けると、次の行動が明確になります。",
+    examples:["今日のまとめです。\n・決まったこと：【決定事項】\n・次にやること：【担当と作業】／【期限】\n・確認中：【未決事項】\n認識が違うところがあれば教えてください！","本日の打ち合わせ結果を共有します。\n決定事項：【決定事項】\n担当・作業：【担当と作業】\n期限：【期限】\n未決事項：【未決事項】\n認識に相違があればお知らせください。","本日はお時間をいただき、ありがとうございました。\n決定事項：【決定事項】\n担当・作業：【担当と作業】\n期限：【期限】\n確認事項：【未決事項】\n認識に相違がございましたら、お知らせいただけますと幸いです。"]}
+];
+const MANNER_AUDIENCES = ["同僚・チャット","上司・社内","社外"];
+const ORIGINAL_MANNER_SCENES = ["依頼","報告","メールの書き方","確認","敬語","催促","メールの書き方","会議","お詫び","報告"];
+const MANNER_LIBRARY = [
+  ...MANNERS.map((x,i)=>({...x,cat:ORIGINAL_MANNER_SCENES[i],audience:x.cat==="社外" ? "社外" : x.cat==="チャット" ? "同僚・チャット" : "共通"})),
+  ...MANNER_SCENES.flatMap(s=>s.examples.map((example,i)=>({cat:s.cat,title:s.title,body:s.body,example,audience:MANNER_AUDIENCES[i]})))
+].map((x,i)=>({...x,id:"manner-"+(i+1)}));
+function filteredManners(q,cat,audience,favorites=null){
+  q=q.trim().toLowerCase();
+  const favoriteSet = new Set(favorites);
+  return MANNER_LIBRARY.map((x,i)=>({...x,i})).filter(x=>(!cat || x.cat===cat) && (!audience || x.audience===audience || x.audience==="共通") && (!favorites || favoriteSet.has(x.id)) && (!q || [x.cat,x.title,x.body,x.example,x.audience].join(" ").toLowerCase().includes(q)));
+}
+function validMannerFavorites(items){
+  const known = new Set(MANNER_LIBRARY.map(x=>x.id));
+  return [...new Set((Array.isArray(items) ? items : []).map(String).filter(id=>known.has(id)))];
+}
+function toggleMannerFavorite(id){
+  if(!MANNER_LIBRARY.some(x=>x.id===id)) return;
+  const favorites = validMannerFavorites(LS.mannerFavorites);
+  const next = favorites.includes(id) ? favorites.filter(x=>x!==id) : [id,...favorites];
+  try{ LS.mannerFavorites = next; }
+  catch(e){ showSaveWarning(); return; }
+  renderManners();
+}
 function renderManners(){
   const q = $("mnSearch").value.trim().toLowerCase();
   const cat = $("mnCategory").value;
-  const list = MANNERS.filter(x=>(!cat || x.cat===cat) && (!q || (x.cat+x.title+x.body+x.example).toLowerCase().includes(q)));
+  const favorites = validMannerFavorites(LS.mannerFavorites);
+  const favoriteOnly = $("mnFavoriteOnly").value==="favorite";
+  const list = filteredManners(q,cat,$("mnAudience").value,favoriteOnly ? favorites : null);
+  const favoriteSet = new Set(favorites);
+  $("mnCount").textContent = list.length+" / "+MANNER_LIBRARY.length+"件 ・ お気に入り "+favorites.length+"件";
   $("mnList").innerHTML = list.length ? list.map(x=>
-    '<article class="manner-card"><div class="manner-meta">'+esc(x.cat)+'</div><h3>'+esc(x.title)+'</h3><p>'+esc(x.body)+'</p><div class="example">'+esc(x.example)+'</div></article>'
+    '<article class="manner-card"><div class="manner-meta">'+esc(x.cat)+' / '+esc(x.audience)+'</div><h3>'+esc(x.title)+'</h3><p>'+esc(x.body)+'</p><div class="example">'+esc(x.example)+'</div><div class="row" style="margin-top:8px;"><button class="btn sub tiny mn-copy" data-i="'+x.i+'">例文をコピー</button><button class="btn sub tiny mn-fav'+(favoriteSet.has(x.id)?' on':'')+'" data-id="'+x.id+'" aria-pressed="'+(favoriteSet.has(x.id)?'true':'false')+'">'+(favoriteSet.has(x.id)?'★ お気に入り':'☆ お気に入り')+'</button></div></article>'
   ).join("") : '<div class="empty-state" style="grid-column:1/-1;">条件に合う項目がありません。別の言葉で検索してください。</div>';
+  document.querySelectorAll("#mnList .mn-copy").forEach(b=>b.addEventListener("click",async ()=>{
+    try{ await navigator.clipboard.writeText(MANNER_LIBRARY[Number(b.dataset.i)].example); b.textContent="コピー済み"; }
+    catch(e){ b.textContent="コピー不可・例文を選択してコピー"; }
+    setTimeout(()=>b.textContent="例文をコピー",2000);
+  }));
+  document.querySelectorAll("#mnList .mn-fav").forEach(b=>b.addEventListener("click",()=>toggleMannerFavorite(b.dataset.id)));
 }
+$("mnCategory").innerHTML = '<option value="">すべての状況</option>'+[...new Set(MANNER_LIBRARY.map(x=>x.cat))].map(c=>'<option>'+esc(c)+'</option>').join("");
 $("mnSearch").addEventListener("input", renderManners);
 $("mnCategory").addEventListener("change", renderManners);
+$("mnAudience").addEventListener("change", renderManners);
+$("mnFavoriteOnly").addEventListener("change", renderManners);
 
 /* ---------- 設定 ---------- */
 function loadSettings(){
@@ -2564,6 +2766,20 @@ $("stModelFetch").addEventListener("click", async ()=>{
 });
 
 /* ---------- バックアップ / 復元 ---------- */
+function noteIdentity(n){
+  return JSON.stringify([n.d,n.tip,n.source||"",n.input||"",n.output||""]);
+}
+function cleanNote(raw){
+  if(!raw || typeof raw.tip!=="string" || !raw.tip.trim()) return null;
+  const n={d:String(raw.d||""),tip:raw.tip,tag:String(raw.tag||"その他").slice(0,12)};
+  if(typeof raw.input==="string" && typeof raw.output==="string"){
+    n.input=raw.input; n.output=raw.output; n.source=String(raw.source||"");
+    n.context=String(raw.context||"");
+    n.learning=cleanLearning(raw.learning,n.input,n.output,n.source);
+  }
+  return n;
+}
+
 function mergeImportedCoachIssues(imported){
   if(!Array.isArray(imported)) return 0;
   const current = LS.coach;
@@ -2595,10 +2811,10 @@ function mergeImportedCoachIssues(imported){
 $("bkExport").addEventListener("click", ()=>{
   const withKey = $("bkKey").checked;
   const data = {
-    app: "wordbridge", ver: 4, exported: new Date().toISOString().slice(0,10),
+    app: "wordbridge", ver: 6, exported: new Date().toISOString().slice(0,10),
     model: LS.model, persona: LS.persona, tone: LS.tone,
     notes: LS.notes, phrases: LS.phrases, coach: LS.coach, masks: LS.masks,
-    dictionary: LS.dictionary, history: LS.history
+    dictionary: LS.dictionary, history: LS.history, mannerFavorites: validMannerFavorites(LS.mannerFavorites)
   };
   if(withKey) data.apikey = LS.k;
   const a = document.createElement("a");
@@ -2622,16 +2838,15 @@ $("bkFile").addEventListener("change", ()=>{
 
       // 学びノート: 日付+本文が一致するものは重複として除外し、統合
       const notes = LS.notes;
-      const seen = new Set(notes.map(n=>n.d + "|" + n.tip));
+      const seen = new Set(notes.map(noteIdentity));
       let addN = 0;
-      (Array.isArray(data.notes) ? data.notes : []).forEach(n=>{
-        if(!n || !n.tip) return;
-        const key = (n.d||"") + "|" + n.tip;
+      (Array.isArray(data.notes) ? data.notes : []).forEach(raw=>{
+        const n=cleanNote(raw);
+        if(!n) return;
+        const key = noteIdentity(n);
         if(seen.has(key)) return;
         seen.add(key);
-        const item = { d: String(n.d||""), tip: String(n.tip) };
-        if(n.tag) item.tag = String(n.tag).slice(0,12);
-        notes.push(item); addN++;
+        notes.push(n); addN++;
       });
       notes.sort((a,b)=> a.d<b.d ? 1 : a.d>b.d ? -1 : 0);
       LS.notes = notes.slice(0,NOTE_LIMIT);
@@ -2689,10 +2904,15 @@ $("bkFile").addEventListener("change", ()=>{
         if(!h || !h.input || !h.output) return;
         const id = String(h.id || "");
         if(id && history.some(x=>x.id===id)) return;
-        history.push({ id:id || (Date.now().toString(36)+Math.random().toString(36).slice(2,6)), type:String(h.type||"やり取り"), input:String(h.input), output:String(h.output), d:String(h.d||"") }); addH++;
+        const item={ id:id || (Date.now().toString(36)+Math.random().toString(36).slice(2,6)), type:String(h.type||"やり取り"), input:String(h.input), output:String(h.output), d:String(h.d||""), context:String(h.context||"") };
+        if(h.learning) item.learning=cleanLearning(h.learning,item.input,item.output,item.type);
+        history.push(item); addH++;
       });
       history.sort((a,b)=>String(b.d).localeCompare(String(a.d)));
       LS.history = history.slice(0, HISTORY_LIMIT);
+
+      // マナーのお気に入り: 同じ例文IDは重複させず、現在の登録を残して統合
+      LS.mannerFavorites = validMannerFavorites([...LS.mannerFavorites, ...(Array.isArray(data.mannerFavorites) ? data.mannerFavorites : [])]);
 
       // 設定(ファイルに入っている項目のみ反映)
       if(data.model) LS.model = String(data.model);
