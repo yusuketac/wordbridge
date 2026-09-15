@@ -179,6 +179,13 @@
   .history-meta .hi-del{margin-left:auto;}
   .history-label{font-size:11px; color:var(--sub); font-weight:600; margin-top:8px;}
   .history-text{white-space:pre-wrap; overflow-wrap:anywhere; font-size:13px;}
+  .stock-item{border-bottom:1px solid var(--line); padding:12px 2px;}
+  .stock-item:last-child{border-bottom:0;}
+  .stock-meta{display:flex; align-items:center; gap:7px; flex-wrap:wrap; color:var(--sub); font-size:11px;}
+  .stock-meta b{color:var(--accent); font-size:12px;}
+  .stock-text{white-space:pre-wrap; overflow-wrap:anywhere; font-size:13px; line-height:1.7; margin-top:7px;}
+  .stock-tags{display:flex; gap:4px; flex-wrap:wrap; margin-top:7px;}
+  .stock-tags span{padding:2px 7px; border:1px solid var(--line); border-radius:999px; color:var(--sub); font-size:10px;}
   .learning-detail{margin-top:8px; min-width:0;}
   .learning-detail p,.learning-detail .sample{white-space:pre-wrap; overflow-wrap:anywhere;}
   .learning-detail .sample{padding:8px 10px; border:1px solid var(--line); border-radius:8px; margin:4px 0 8px;}
@@ -392,6 +399,7 @@
       <button data-tab="ph"><span class="nav-code">PHRASE</span><span class="nav-label">フレーズ <span id="phCount"></span></span></button>
       <button data-tab="dc"><span class="nav-code">GLOSSARY</span><span class="nav-label">用語帳 <span id="dcCount"></span></span></button>
       <button data-tab="hi"><span class="nav-code">HISTORY</span><span class="nav-label">履歴 <span id="hiCount"></span></span></button>
+      <button data-tab="sk"><span class="nav-code">STOCK</span><span class="nav-label">ストック <span id="skCount"></span></span></button>
       <button data-tab="mn" class="t-learn"><span class="nav-code">MANNER</span><span class="nav-label">マナーガイド</span></button>
       <button data-tab="co" class="t-learn"><span class="nav-code">COACH</span><span class="nav-label">コーチ <span id="coachCount"></span></span></button>
       <button data-tab="nt" class="t-learn"><span class="nav-code">LEARN</span><span class="nav-label">学びノート <span id="noteCount"></span></span></button>
@@ -633,6 +641,27 @@
     </div>
   </div>
 
+  <!-- ============ ストック ============ -->
+  <div class="panel" id="panel-sk">
+    <div class="page-head"><div class="page-desc">自分や参考になる文章を、あとで使う・比べるために残します。ストックした本文はAIへ自動送信されません。</div></div>
+    <div class="card">
+      <div class="form-grid">
+        <div><label for="skTitle">見出し（任意）</label><input id="skTitle" type="text" placeholder="例）日程変更のお願い"></div>
+        <div><label for="skOwner">文章の種類</label><select id="skOwner"><option>自分</option><option>参考</option></select></div>
+        <div><label for="skCategory">分類</label><select id="skCategory"><option>言い回し</option><option>構成</option><option>依頼</option><option>報告</option><option>説明</option><option>その他</option></select></div>
+        <div><label for="skTags">タグ（任意・カンマ区切り）</label><input id="skTags" type="text" placeholder="例）社外, 日程調整"></div>
+        <div class="full"><label for="skText">文章</label><textarea id="skText" rows="7" placeholder="残したい文章を貼り付けます。個人情報や機密情報は残さないでください。"></textarea></div>
+        <div class="full"><label for="skNote">なぜ残すか・使う場面（任意）</label><input id="skNote" type="text" placeholder="例）結論と代案の順が分かりやすい"></div>
+      </div>
+      <div class="row" style="margin-top:8px;"><span class="status" id="skStatus"></span><div class="spacer"></div><button class="btn sub hidden" id="skCancel">キャンセル</button><button class="btn" id="skAdd">ストックする</button></div>
+    </div>
+    <div class="card">
+      <div class="toolbar"><input type="text" id="skSearch" placeholder="見出し・文章・タグ・メモを検索…"><select id="skOwnerFilter" aria-label="文章の種類"><option value="">すべて</option><option>自分</option><option>参考</option></select><select id="skCategoryFilter" aria-label="分類"><option value="">すべての分類</option><option>言い回し</option><option>構成</option><option>依頼</option><option>報告</option><option>説明</option><option>その他</option></select><select id="skFavoriteOnly" aria-label="表示"><option value="">すべて表示</option><option value="favorite">お気に入りだけ</option></select><select id="skSort" aria-label="並び順"><option value="new">新しい順</option><option value="use">よく使う順</option></select></div>
+      <div class="hint" id="skStats"></div>
+      <div id="skList"></div>
+    </div>
+  </div>
+
   <!-- ============ マナーガイド ============ -->
   <div class="panel" id="panel-mn">
     <div class="page-head"><div class="page-desc">文章を送る前に迷いやすいポイントを、短い原則とそのまま使える例で確認できます。</div></div>
@@ -850,7 +879,7 @@
         <input type="file" id="bkFile" accept=".json,application/json" class="hidden">
       </div>
       <div class="status" id="bkStatus" style="margin-top:6px;"></div>
-      <div class="hint">学びノート・フレーズ集・用語帳・履歴・伏せ字リスト・設定をJSONファイル1つに保存します。履歴やノートには入力した本文・実名がそのまま入るため、ファイルの置き場所には注意してください。読み込み時は既存データに統合されるため、いま貯まっているものが消えることはありません。OneDrive内に書き出しておけば、別PCから同じファイルを読み込むだけで引っ越し完了です。</div>
+      <div class="hint">学びノート・フレーズ集・用語帳・履歴・ストック・伏せ字リスト・設定をJSONファイル1つに保存します。履歴やノート、ストックには入力した本文・実名がそのまま入るため、ファイルの置き場所には注意してください。読み込み時は既存データに統合されるため、いま貯まっているものが消えることはありません。OneDrive内に書き出しておけば、別PCから同じファイルを読み込むだけで引っ越し完了です。</div>
     </div>
   </div>
 
@@ -880,7 +909,8 @@ const STORAGE_KEYS = {
   train: "wordbridge_train",
   dictionary: "wordbridge_dictionary",
   history: "wordbridge_history",
-  mannerFavorites: "wordbridge_manner_favorites"
+  mannerFavorites: "wordbridge_manner_favorites",
+  stock: "wordbridge_stock"
 };
 
 const LEGACY_STORAGE_KEYS = {
@@ -907,6 +937,8 @@ function migrateLegacyStorage(){
 const DEFAULT_MODEL = "gemini-3.5-flash-lite";
 const DICTIONARY_LIMIT = 500;
 const HISTORY_LIMIT = 150;
+const STOCK_LIMIT = 500;
+const STOCK_RENDER_LIMIT = 200;
 
 const LS = {
   get k(){ return localStorage.getItem(STORAGE_KEYS.geminiKey) || ""; },
@@ -938,7 +970,9 @@ const LS = {
   get history(){ try{ const v=JSON.parse(localStorage.getItem(STORAGE_KEYS.history)||"[]"); return Array.isArray(v) ? v : []; }catch(e){ return []; } },
   set history(v){ localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(v)); },
   get mannerFavorites(){ try{ const v=JSON.parse(localStorage.getItem(STORAGE_KEYS.mannerFavorites)||"[]"); return Array.isArray(v) ? v.filter(x=>typeof x==="string") : []; }catch(e){ return []; } },
-  set mannerFavorites(v){ localStorage.setItem(STORAGE_KEYS.mannerFavorites, JSON.stringify(v)); }
+  set mannerFavorites(v){ localStorage.setItem(STORAGE_KEYS.mannerFavorites, JSON.stringify(v)); },
+  get stock(){ try{ const v=JSON.parse(localStorage.getItem(STORAGE_KEYS.stock)||"[]"); return Array.isArray(v) ? v : []; }catch(e){ return []; } },
+  set stock(v){ localStorage.setItem(STORAGE_KEYS.stock, JSON.stringify(v)); }
 };
 
 const DEFAULT_PERSONA =
@@ -1017,6 +1051,7 @@ document.querySelectorAll("nav button").forEach(b=>{
     if(b.dataset.tab==="ph") $("phSearch").focus();
     if(b.dataset.tab==="dc") $("dcSearch").focus();
     if(b.dataset.tab==="hi") $("hiSearch").focus();
+    if(b.dataset.tab==="sk") $("skSearch").focus();
     if(b.dataset.tab==="mn") $("mnSearch").focus();
   });
 });
@@ -1309,10 +1344,70 @@ function renderHistory(){
   $("hiList").innerHTML = !history.length
     ? '<div class="empty-state">まだ履歴はありません。整える・添削・作成・翻訳を実行すると、ここで見返せます。</div>'
     : !list.length ? '<div class="empty-state">条件に合う履歴がありません。</div>'
-    : list.map(h=>'<article class="history-item"><div class="history-meta"><b>'+esc(h.type)+'</b><span>'+esc(String(h.d || "").replace("T"," ").slice(0,16))+'</span><button class="btn sub tiny hi-del" data-id="'+esc(h.id)+'">削除</button></div><div class="history-label">入力</div><div class="history-text">'+esc(h.input)+'</div><div class="history-label">結果</div><div class="history-text">'+esc(h.output)+'</div></article>').join("");
+    : list.map(h=>'<article class="history-item"><div class="history-meta"><b>'+esc(h.type)+'</b><span>'+esc(String(h.d || "").replace("T"," ").slice(0,16))+'</span><button class="btn sub tiny hi-stock" data-id="'+esc(h.id)+'">ストック</button><button class="btn sub tiny hi-del" data-id="'+esc(h.id)+'">削除</button></div><div class="history-label">入力</div><div class="history-text">'+esc(h.input)+'</div><div class="history-label">結果</div><div class="history-text">'+esc(h.output)+'</div></article>').join("");
+  document.querySelectorAll("#hiList .hi-stock").forEach(b=>b.addEventListener("click", ()=>{
+    const result = stockFromHistory(b.dataset.id);
+    b.textContent = result.ok ? "ストック済み" : result.duplicate ? "登録済み" : "保存できません";
+    setTimeout(()=>b.textContent="ストック", 1500);
+  }));
   document.querySelectorAll("#hiList .hi-del").forEach(b=>b.addEventListener("click", ()=>{
     LS.history = LS.history.filter(h=>h.id !== b.dataset.id); renderHistory(); renderHistoryCoach();
   }));
+}
+
+const STOCK_OWNERS = ["自分","参考"];
+const STOCK_CATEGORIES = ["言い回し","構成","依頼","報告","説明","その他"];
+let skEditId = "";
+function cleanStock(raw){
+  if(!raw || typeof raw!=="object") return null;
+  const text = String(raw.text||"").trim();
+  if(!text || text.length>10000) return null;
+  const tags = [...new Set((Array.isArray(raw.tags) ? raw.tags : String(raw.tags||"").split(/[、,]/)).map(x=>String(x).trim()).filter(Boolean).slice(0,8).map(x=>x.slice(0,24)))];
+  return {id:String(raw.id||""), title:String(raw.title||"").trim().slice(0,100), text, owner:STOCK_OWNERS.includes(raw.owner)?raw.owner:"自分", category:STOCK_CATEGORIES.includes(raw.category)?raw.category:"その他", tags, note:String(raw.note||"").trim().slice(0,240), d:String(raw.d||new Date().toISOString()).slice(0,24), n:Math.max(0,Number(raw.n)||0), favorite:!!raw.favorite, sourceHistoryId:String(raw.sourceHistoryId||"")};
+}
+function stockIdentity(item){ return JSON.stringify([item.owner,item.text]); }
+function saveStock(raw, replaceId=""){
+  const item = cleanStock(raw);
+  if(!item) return {ok:false, message:"文章を入力してください（10,000文字まで）。"};
+  const entries = LS.stock.map(cleanStock).filter(Boolean);
+  const existing = replaceId ? entries.find(x=>x.id===replaceId) : null;
+  if(!existing && item.sourceHistoryId && entries.some(x=>x.sourceHistoryId===item.sourceHistoryId)) return {ok:false, duplicate:true, message:"この履歴はストック済みです。"};
+  if(!existing && entries.some(x=>stockIdentity(x)===stockIdentity(item))) return {ok:false, duplicate:true, message:"同じ文章が登録済みです。"};
+  if(existing){ item.id=existing.id; item.d=existing.d; item.n=existing.n; item.favorite=existing.favorite; entries[entries.indexOf(existing)]=item; }
+  else { item.id=Date.now().toString(36)+Math.random().toString(36).slice(2,7); entries.unshift(item); }
+  try{ LS.stock = entries.slice(0,STOCK_LIMIT); }
+  catch(e){ showSaveWarning(); return {ok:false, message:"保存できませんでした。"}; }
+  return {ok:true};
+}
+function stockFromHistory(id){
+  const h=LS.history.find(x=>x && x.id===id);
+  if(!h) return {ok:false};
+  const category = h.type==="文書作成" ? "構成" : h.type==="翻訳" ? "言い回し" : h.type==="添削" ? "説明" : "その他";
+  const result=saveStock({title:String(h.type||"文章")+"の完成文",text:h.output,owner:"自分",category,tags:[String(h.type||"")],note:"履歴から保存",sourceHistoryId:id});
+  if(result.ok) renderStock();
+  return result;
+}
+function resetStockForm(){
+  skEditId=""; ["skTitle","skTags","skText","skNote"].forEach(id=>$(id).value=""); $("skOwner").value="自分"; $("skCategory").value="言い回し"; $("skCancel").classList.add("hidden"); $("skAdd").textContent="ストックする";
+}
+function stockStats(entries){
+  const own=entries.filter(x=>x.owner==="自分").length, ref=entries.length-own, fav=entries.filter(x=>x.favorite).length;
+  const top=[...new Set(entries.map(x=>x.category))].map(category=>({category,count:entries.filter(x=>x.category===category).length})).sort((a,b)=>b.count-a.count)[0];
+  return "保存 "+entries.length+"件（自分 "+own+" / 参考 "+ref+" / お気に入り "+fav+"）"+(top ? " ・ 多い分類: "+top.category+" "+top.count+"件" : "")+"。分析はこの端末内の分類・利用回数だけで行います。";
+}
+function renderStock(){
+  const entries=LS.stock.map(cleanStock).filter(Boolean);
+  $("skCount").textContent=entries.length ? "("+entries.length+")" : "";
+  $("skStats").textContent=stockStats(entries);
+  const q=$("skSearch").value.trim().toLowerCase(), owner=$("skOwnerFilter").value, category=$("skCategoryFilter").value, favoriteOnly=$("skFavoriteOnly").value==="favorite";
+  let list=entries.filter(x=>(!owner||x.owner===owner)&&(!category||x.category===category)&&(!favoriteOnly||x.favorite)&&(!q||[x.title,x.text,x.owner,x.category,x.tags.join(" "),x.note].join("\n").toLowerCase().includes(q)));
+  list.sort($("skSort").value==="use" ? (a,b)=>(b.n-a.n)||String(b.d).localeCompare(String(a.d)) : (a,b)=>String(b.d).localeCompare(String(a.d)));
+  const hidden=Math.max(0,list.length-STOCK_RENDER_LIMIT); list=list.slice(0,STOCK_RENDER_LIMIT);
+  $("skList").innerHTML=!entries.length ? '<div class="empty-state">まだストックはありません。参考になる文章を残すか、履歴の完成文から「ストック」を選んでください。</div>' : !list.length ? '<div class="empty-state">条件に合う文章がありません。</div>' : (hidden ? '<p class="hint">'+(hidden+STOCK_RENDER_LIMIT)+'件中、新しい順の'+STOCK_RENDER_LIMIT+'件を表示しています。</p>' : '')+list.map(x=>'<article class="stock-item"><div class="stock-meta"><b>'+esc(x.owner)+' / '+esc(x.category)+'</b><span>'+esc(String(x.d).replace("T"," ").slice(0,10))+'</span><span>使用 '+x.n+'回</span></div><div class="stock-text">'+(x.title?'<b>'+esc(x.title)+'</b>\n':'')+esc(x.text)+'</div>'+ (x.tags.length?'<div class="stock-tags">'+x.tags.map(tag=>'<span>'+esc(tag)+'</span>').join("")+'</div>':'')+(x.note?'<div class="hint" style="margin-top:7px;">'+esc(x.note)+'</div>':'')+'<div class="row" style="margin-top:9px;"><button class="btn sub tiny sk-copy" data-id="'+esc(x.id)+'">コピー</button><button class="btn sub tiny sk-fav" data-id="'+esc(x.id)+'">'+(x.favorite?'★ お気に入り':'☆ お気に入り')+'</button><button class="btn sub tiny sk-edit" data-id="'+esc(x.id)+'">編集</button><button class="btn sub tiny sk-del" data-id="'+esc(x.id)+'">削除</button></div></article>').join("");
+  document.querySelectorAll("#skList .sk-copy").forEach(b=>b.addEventListener("click",async()=>{const item=LS.stock.map(cleanStock).find(x=>x&&x.id===b.dataset.id);if(!item)return;try{await navigator.clipboard.writeText(item.text);item.n++;LS.stock=LS.stock.map(x=>x.id===item.id?item:x);b.textContent="コピー済み";}catch(e){b.textContent="コピー不可";}setTimeout(()=>b.textContent="コピー",1500);}));
+  document.querySelectorAll("#skList .sk-fav").forEach(b=>b.addEventListener("click",()=>{const items=LS.stock.map(cleanStock).filter(Boolean);const item=items.find(x=>x.id===b.dataset.id);if(!item)return;item.favorite=!item.favorite;try{LS.stock=items;renderStock();}catch(e){showSaveWarning();}}));
+  document.querySelectorAll("#skList .sk-edit").forEach(b=>b.addEventListener("click",()=>{const item=LS.stock.map(cleanStock).find(x=>x&&x.id===b.dataset.id);if(!item)return;skEditId=item.id;$("skTitle").value=item.title;$("skOwner").value=item.owner;$("skCategory").value=item.category;$("skTags").value=item.tags.join(", ");$("skText").value=item.text;$("skNote").value=item.note;$("skCancel").classList.remove("hidden");$("skAdd").textContent="更新";$("skTitle").focus();}));
+  document.querySelectorAll("#skList .sk-del").forEach(b=>b.addEventListener("click",()=>{try{LS.stock=LS.stock.filter(x=>x&&x.id!==b.dataset.id);renderStock();}catch(e){showSaveWarning();}}));
 }
 
 function renderDictionary(){
@@ -2624,6 +2719,13 @@ $("dcAdd").addEventListener("click", ()=>{
 });
 $("dcCancel").addEventListener("click", resetDictionaryForm);
 $("dcSearch").addEventListener("input", renderDictionary);
+$("skAdd").addEventListener("click", ()=>{
+  const result=saveStock({title:$("skTitle").value,owner:$("skOwner").value,category:$("skCategory").value,tags:$("skTags").value,text:$("skText").value,note:$("skNote").value},skEditId);
+  if(!result.ok){ setStatus("skStatus",result.message||"保存できませんでした。",true,false); return; }
+  resetStockForm(); renderStock(); setStatus("skStatus","ストックしました ✓",false,false); setTimeout(()=>setStatus("skStatus","",false,false),2000);
+});
+$("skCancel").addEventListener("click", resetStockForm);
+["skSearch","skOwnerFilter","skCategoryFilter","skFavoriteOnly","skSort"].forEach(id=>$(id).addEventListener(id==="skSearch"?"input":"change",renderStock));
 $("hiSearch").addEventListener("input", renderHistory);
 $("hiClearAll").addEventListener("click", ()=>{
   if(!LS.history.length) return;
@@ -2811,10 +2913,10 @@ function mergeImportedCoachIssues(imported){
 $("bkExport").addEventListener("click", ()=>{
   const withKey = $("bkKey").checked;
   const data = {
-    app: "wordbridge", ver: 6, exported: new Date().toISOString().slice(0,10),
+    app: "wordbridge", ver: 7, exported: new Date().toISOString().slice(0,10),
     model: LS.model, persona: LS.persona, tone: LS.tone,
     notes: LS.notes, phrases: LS.phrases, coach: LS.coach, masks: LS.masks,
-    dictionary: LS.dictionary, history: LS.history, mannerFavorites: validMannerFavorites(LS.mannerFavorites)
+    dictionary: LS.dictionary, history: LS.history, mannerFavorites: validMannerFavorites(LS.mannerFavorites), stock: LS.stock.map(cleanStock).filter(Boolean)
   };
   if(withKey) data.apikey = LS.k;
   const a = document.createElement("a");
@@ -2911,6 +3013,18 @@ $("bkFile").addEventListener("change", ()=>{
       history.sort((a,b)=>String(b.d).localeCompare(String(a.d)));
       LS.history = history.slice(0, HISTORY_LIMIT);
 
+      // ストック: 本文と種類が同じものは重複させず、既存を優先して統合
+      const stock = LS.stock.map(cleanStock).filter(Boolean);
+      let addS = 0;
+      (Array.isArray(data.stock) ? data.stock : []).forEach(raw=>{
+        const item=cleanStock(raw);
+        if(!item || stock.some(x=>stockIdentity(x)===stockIdentity(item))) return;
+        item.id=item.id && !stock.some(x=>x.id===item.id) ? item.id : Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+        stock.push(item); addS++;
+      });
+      stock.sort((a,b)=>String(b.d).localeCompare(String(a.d)));
+      LS.stock = stock.slice(0,STOCK_LIMIT);
+
       // マナーのお気に入り: 同じ例文IDは重複させず、現在の登録を残して統合
       LS.mannerFavorites = validMannerFavorites([...LS.mannerFavorites, ...(Array.isArray(data.mannerFavorites) ? data.mannerFavorites : [])]);
 
@@ -2920,8 +3034,8 @@ $("bkFile").addEventListener("change", ()=>{
       if(data.tone && TONES[data.tone]) LS.tone = data.tone;
       if(data.apikey) LS.k = String(data.apikey);
 
-      loadSettings(); renderNotes(); renderPhrases(); renderDictionary(); renderHistory(); renderCoach(); updateMaskHints();
-      setStatus("bkStatus", "読み込みました ✓ 学びノート +" + addN + "件 / フレーズ +" + addP + "件 / 用語帳 +" + addD + "件 / 履歴 +" + addH + "件 / コーチ記録 +" + addC + "件 / 伏せ字 +" + addM + "件(重複は自動で除外)", false, false);
+      loadSettings(); renderNotes(); renderPhrases(); renderDictionary(); renderHistory(); renderStock(); renderCoach(); updateMaskHints();
+      setStatus("bkStatus", "読み込みました ✓ 学びノート +" + addN + "件 / フレーズ +" + addP + "件 / 用語帳 +" + addD + "件 / 履歴 +" + addH + "件 / ストック +" + addS + "件 / コーチ記録 +" + addC + "件 / 伏せ字 +" + addM + "件(重複は自動で除外)", false, false);
     }catch(e){
       setStatus("bkStatus", e.message || "読み込みに失敗しました。", true, false);
     }
@@ -2948,6 +3062,7 @@ renderNotes();
 renderPhrases();
 renderDictionary();
 renderHistory();
+renderStock();
 renderManners();
 renderCoach();
 if(!LS.k){
