@@ -411,7 +411,7 @@
 
   <!-- ============ 文章を整える / 添削 ============ -->
   <div class="panel show" id="panel-kj">
-    <div class="page-head"><div class="page-desc">書いた文章を、相手に合う表現へ。直した理由まで知りたいときは「添削」を選びます。</div></div>
+    <div class="page-head"><div class="page-desc">相手に送る文は宛先に合わせ、ChatGPTへの質問・ナレッジ・資料文は「構成・表現」で整えます。</div></div>
     <div class="quick-grid">
       <div>
         <div class="card">
@@ -422,12 +422,14 @@
             <button data-tone="casual" class="on">同僚・チャット</button>
             <button data-tone="boss">上司・社内</button>
             <button data-tone="external">社外・取引先</button>
+            <button data-tone="structure" title="宛先を想定しない文章。構成・明瞭さ・言葉の正確さを優先して整えます">構成・表現</button>
           </div></div>
-          <div class="pick-row"><span class="pick-label">用件</span>
+          <div class="pick-row" id="kjIntentRow"><span class="pick-label">用件</span>
           <div class="intent-row" id="kjIntents">
             <button data-intent="依頼" class="on">依頼</button><button data-intent="報告">報告</button><button data-intent="確認">確認</button><button data-intent="催促">催促</button><button data-intent="お詫び">お詫び</button><button data-intent="お礼">お礼</button>
           </div></div>
           </div>
+          <div class="hint hidden" id="kjStructureHint">ChatGPTへの質問、ナレッジ、資料文などに。宛先への敬語ではなく、結論・情報の順番・表現を見直します。</div>
           <label for="kjContext" class="field-label">前提条件（任意）</label>
           <input type="text" id="kjContext" placeholder="例：データアップについて、外注先へ送るTeamsメッセージ">
           <button type="button" class="draft-toggle" id="kjDraftToggle" style="margin-top:14px;"><span class="ts-caret" id="kjDraftCaret">▸</span>下書き<span class="draft-badge" id="kjDraftBadge"></span></button>
@@ -445,7 +447,7 @@
           <div class="mask-hint hidden" id="kjMaskHint"></div>
           <div class="row" style="margin-top:10px;">
             <div class="hint"><kbd>Enter</kbd> 整える / <kbd>Ctrl+Enter</kbd> 添削 / <kbd>Shift+Enter</kbd> 改行</div>
-            <label class="prep-opt"><input type="checkbox" id="prepToggle" checked> 添削でPREP分析</label>
+            <label class="prep-opt" id="prepOption"><input type="checkbox" id="prepToggle" checked> 添削でPREP分析</label>
             <div class="spacer"></div>
             <span class="row-actions"><span class="status" id="kjStatus"></span><button class="btn sub" id="kjClear" title="本文・前提条件・結果を消し、相手と用件を初期値（同僚・チャット／依頼）に戻します（Esc）">クリア</button><button class="btn sub" id="prBtn" title="直した理由・PREP構造まで見る（Ctrl+Enter）">添削</button><button class="btn" id="kjBtn">整える</button></span>
           </div>
@@ -463,7 +465,7 @@
           <div class="sec-title">今回のポイント</div><div id="kjTips" class="learning-list"></div>
         </div>
         <div class="card hidden" id="prResultCard">
-          <div class="sec-title">修正案（<span id="prToneLabel"></span>向け）</div>
+          <div class="sec-title">修正案（<span id="prToneLabel"></span>）</div>
           <div class="result-box teal" id="prResult"><div class="boxbtns"><button class="btn sub tiny" onclick="saveAsPhrase('prResult',this)">フレーズ登録</button><button class="btn sub tiny" onclick="copyText('prResult',this)">コピー</button></div><span id="prResultText"></span></div>
           <div class="sec-title">追加の指示</div>
           <div class="followup">
@@ -999,7 +1001,8 @@ function migrateDefaultModel(){
 const TONES = {
   casual:   { label:"同僚・チャット", desc:"同僚へのやわらかい社内チャット。短いですます調を基本に「ありがとう！」「確認してもらえると助かります」「お願いします！」など自然な親しみを出す。『恐れ入りますが』『いただけますでしょうか』『何卒』などメール調の硬い敬語を避ける。感嘆符は必要なとき1つまで。絵文字・馴れ馴れしい命令・過剰な謝罪は使わない。原文の事実と期限は変えない。" },
   boss:     { label:"上司・社内", desc:"上司や社内の目上の人への報告・依頼・相談。失礼がなく、かつ過剰にへりくだらない簡潔なビジネス文体。結論から書く。" },
-  external: { label:"社外", desc:"社外のクライアントや協力会社へのメール。丁寧なビジネス敬語。ただし冗長な定型句の重複は避ける。" }
+  external: { label:"社外", desc:"社外のクライアントや協力会社へのメール。丁寧なビジネス敬語。ただし冗長な定型句の重複は避ける。" },
+  structure:{ label:"構成・表現", desc:"ChatGPTへの質問、ナレッジ、資料文など、宛先を想定しない文章。敬語やあいさつを足さず、目的・結論・情報の順番、文の明瞭さ、用語と表記の統一を優先する。" }
 };
 
 /* 保存件数の上限。localStorageは1サイト約5MBで、学びノート1件は約200バイト。
@@ -1466,8 +1469,27 @@ let kjIntent = DEFAULT_INTENT;
 function selectTone(tone){
   LS.tone = tone;
   document.querySelectorAll("#kjTones button").forEach(b=>b.classList.toggle("on", b.dataset.tone===tone));
-  if($("cmTone")) $("cmTone").value = tone;
+  if($("cmTone") && [...$("cmTone").options].some(o=>o.value===tone)) $("cmTone").value = tone;
+  updateReviewMode();
   if(typeof updateTargetSummary === "function") updateTargetSummary();
+}
+
+function isStructureReview(){ return LS.tone === "structure"; }
+
+function updateReviewMode(){
+  const structure = isStructureReview();
+  $("kjIntentRow").classList.toggle("hidden", structure);
+  $("kjStructureHint").classList.toggle("hidden", !structure);
+  $("prepOption").classList.toggle("hidden", structure);
+  $("kjContext").placeholder = structure
+    ? "例：ChatGPTへの質問として、必要な条件が伝わるようにしたい"
+    : "例：データアップについて、外注先へ送るTeamsメッセージ";
+  $("kjInput").placeholder = structure
+    ? "例: この内容をChatGPTに相談したいのですが、何から確認すればよいですか\nEnterで構成を整える / Ctrl+Enterで詳しく添削 / Shift+Enterで改行"
+    : "例: 今日中にデータを確認して返事してください\nEnterで整える / Ctrl+Enterで添削 / Shift+Enterで改行";
+  $("kjBtn").textContent = structure ? "構成を整える" : "整える";
+  $("prBtn").textContent = structure ? "詳しく添削" : "添削";
+  $("prBtn").title = structure ? "構成・表現の理由まで見る（Ctrl+Enter）" : "直した理由・PREP構造まで見る（Ctrl+Enter）";
 }
 
 document.querySelectorAll("#kjTones button").forEach(b=>b.addEventListener("click", ()=>selectTone(b.dataset.tone)));
@@ -1489,23 +1511,24 @@ async function runKeigo(){
   if(!text) return;
   if(!LS.k){ needKeyGuide("kjStatus"); return; }
   const tone = TONES[LS.tone] || TONES.boss;
+  const structure = isStructureReview();
   const context = $("kjContext").value.trim();
   $("prResultCard").classList.add("hidden");
   $("kjBtn").disabled = true;
   $("prBtn").disabled = true;
   setStatus("kjStatus", "整えています…", false, true);
   const sys =
-`あなたは日本語の敬語とビジネスコミュニケーションに精通した文章コーチです。
+`${structure ? "あなたは日本語の文章構成と表現に精通した編集コーチです。" : "あなたは日本語の敬語とビジネスコミュニケーションに精通した文章コーチです。"}
 【依頼者プロフィール】
 ${writingProfile()}
 
-【相手】${tone.label}: ${tone.desc}
-【用件】${kjIntent}
+【校正モード】${tone.label}: ${tone.desc}
+${structure ? "【文章の用途】宛先を想定しない文章" : "【用件】"+kjIntent}
 【今回の前提条件】${context || "指定なし"}
 
 【指示】
-- 原文の意味、事実、固有名詞、期限を変えず、相手と用件に合う自然なビジネス日本語へ整える。
-- 敬語を重ねすぎず、簡潔で、相手が次に何をすればよいか分かる文章にする。
+- 原文の意味、事実、固有名詞、期限を変えず、${structure ? "目的・結論・情報の順番が分かる、簡潔で正確な日本語へ整える。" : "相手と用件に合う自然なビジネス日本語へ整える。"}
+- ${structure ? "あいさつ、宛名、敬語、依頼や約束を勝手に足さない。箇条書きや見出しなどの形式は、読みやすさを高める場合だけ整える。" : "敬語を重ねすぎず、簡潔で、相手が次に何をすればよいか分かる文章にする。"}
 - 原文にない約束、謝罪、期限、事情を追加しない。
 - 前提条件は相手・状況・目的の判断にだけ使い、本文にない事実として書き足さない。
 - 変更の学びになる短いポイントを1件だけ示す。
@@ -1514,7 +1537,7 @@ ${writingProfile()}
   try{
     const r = await callGemini(sys, text, msg=>setStatus("kjStatus", msg, false, true), {
       maxOutputTokens: outputTokenLimit(text.length, 850, 1800),
-      history: { type:"整える", input:text, output:r=>r.revised, learn:true, context:tone.label+" / "+kjIntent+"\n"+context }
+      history: { type:"整える", input:text, output:r=>r.revised, learn:true, context:tone.label+(structure ? "" : " / "+kjIntent)+"\n"+context }
     });
     $("kjResultCard").classList.remove("hidden");
     $("kjResultText").textContent = r.revised || "";
@@ -1628,23 +1651,25 @@ async function runProof(){
   if(!text) return;
   if(!LS.k){ needKeyGuide("kjStatus"); return; }
   const tone = TONES[LS.tone] || TONES.boss;
-  const usePrep = $("prepToggle").checked;
+  const structure = isStructureReview();
+  const usePrep = !structure && $("prepToggle").checked;
   const context = $("kjContext").value.trim();
   $("kjResultCard").classList.add("hidden");
   $("prBtn").disabled = true;
   $("kjBtn").disabled = true;
   setStatus("kjStatus", "添削中…", false, true);
   const sys =
-`あなたは経験豊富なビジネス文書コーチです。添削を通じて依頼者の文章力を育てることが目的です。
+`${structure ? "あなたは日本語の文章構成と表現に精通した編集コーチです。添削を通じて依頼者の文章力を育てることが目的です。" : "あなたは経験豊富なビジネス文書コーチです。添削を通じて依頼者の文章力を育てることが目的です。"}
 【依頼者プロフィール】
 ${writingProfile()}
 
-【今回の宛先・場面】${tone.label}: ${tone.desc}
-【用件】${kjIntent}
+【校正モード】${tone.label}: ${tone.desc}
+${structure ? "【文章の用途】宛先を想定しない文章" : "【用件】"+kjIntent}
 【今回の前提条件】${context || "指定なし"}
 
 【指示】
-- 原文の意図を保ったまま、宛先・場面に合った文章に書き直す。
+- 原文の意図を保ったまま、${structure ? "目的・結論・情報の順番、主語と動作の明瞭さ、用語と表記の統一を優先して書き直す。" : "宛先・場面に合った文章に書き直す。"}
+- ${structure ? "宛名、あいさつ、結び、敬語、依頼や約束を追加せず、宛先がないこと自体を問題として扱わない。" : "敬語と配慮を過不足なく整える。"}
 - 変更した箇所ごとに「なぜそうしたか」を、依頼者が次から自分で書けるようになる形で説明する(最大5件、重要な順)。
 - 問題のない箇所は褒めてよい。否定的・威圧的な言い方はしない。
 - 前提条件は相手・状況・目的の判断にだけ使い、原文にない事実として書き足さない。
@@ -1662,7 +1687,7 @@ ${usePrep ? `"prep":{"adapted":true,"P":true,"R":false,"E":false,"P2":true,"comm
   try{
     const r = await callGemini(sys, text, msg=>setStatus("kjStatus", msg, false, true), {
       maxOutputTokens: outputTokenLimit(text.length, 1200, 2600),
-      history: { type:"添削", input:text, output:r=>r.revised, learn:true, context:tone.label+" / "+kjIntent+"\n"+context }
+      history: { type:"添削", input:text, output:r=>r.revised, learn:true, context:tone.label+(structure ? "" : " / "+kjIntent)+"\n"+context }
     });
     $("prResultCard").classList.remove("hidden");
     $("prToneLabel").textContent = tone.label;
@@ -2243,7 +2268,7 @@ $("coPracticeGo").addEventListener("click", ()=>{
 });
 
 /* ---------- 控えめ表示 ---------- */
-const TONE_SHORT = { casual:"同僚", boss:"上司", external:"社外" };
+const TONE_SHORT = { casual:"同僚", boss:"上司", external:"社外", structure:"構成・表現" };
 const REAL_TITLE = document.title;
 const ICON_LINK = document.querySelector('link[rel="icon"]');
 const REAL_ICON = ICON_LINK.getAttribute("href");
@@ -2251,7 +2276,7 @@ const QUIET_TITLE = "Notes";
 const QUIET_ICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%231b232e'/%3E%3Crect x='19' y='13' width='26' height='38' rx='3' fill='%238a94a3'/%3E%3Cpath d='M26 25h12M26 32h12M26 39h7' stroke='%231b232e' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E";
 
 const TARGET_BLOCKS = [
-  { block:"kjTargetBlock", summary:"kjTargetSummary", text:"kjTargetText", label:()=>TONE_SHORT[LS.tone] + " / " + kjIntent },
+  { block:"kjTargetBlock", summary:"kjTargetSummary", text:"kjTargetText", label:()=>TONE_SHORT[LS.tone] + (isStructureReview() ? "" : " / " + kjIntent) },
   { block:"cmTargetBlock", summary:"cmTargetSummary", text:"cmTargetText", label:()=>TONE_SHORT[$("cmTone").value] + " / " + $("cmPurpose").value }
 ];
 
