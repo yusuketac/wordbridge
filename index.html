@@ -70,6 +70,12 @@
   .row{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
   .spacer{flex:1;}
   .row-actions{display:flex; align-items:center; gap:8px; margin-left:auto;}
+  .file-pick{display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin:0 0 8px;}
+  .file-name{font-size:11.5px; color:var(--sub); overflow-wrap:anywhere;}
+  .image-drop{border:1px dashed var(--line); border-radius:8px; padding:9px 11px; margin:0 0 8px; color:var(--sub); font-size:11.5px; transition:border-color .12s,background .12s,color .12s;}
+  .image-drop.dragover{border-color:var(--accent); background:#142333; color:#d6ebfa;}
+  .image-drop.receiving{border-color:var(--accent); background:#142333; color:#d6ebfa;}
+  .image-drop.ready{border-color:#2f6b54; background:#10271f; color:#8ee6ba; border-style:solid;}
   .prep-opt{display:flex; align-items:center; gap:5px; margin:0; font-size:11.5px; font-weight:500; color:var(--sub); cursor:pointer;}
   .draft-toggle{display:inline-flex; align-items:center; gap:6px; margin:0 0 8px; padding:0; border:0; background:none; color:var(--sub); font-size:12px; font-weight:600; cursor:pointer;}
   .draft-toggle:hover{color:var(--accent);}
@@ -540,6 +546,14 @@
       <input type="text" id="trContext" placeholder="例：海外の協力会社へ送る、作業指示のチャットメッセージ">
       <label for="trInput" class="field-label" style="margin-top:12px;">翻訳したい文章</label>
       <textarea id="trInput" rows="4" placeholder="日本語 → 英語 / 英語 → 日本語（自動判定）&#10;Enterですぐ翻訳 / Shift+Enterで改行"></textarea>
+      <div class="file-pick">
+        <label class="btn sub tiny" for="trImageFile">画像を選択<input type="file" id="trImageFile" accept="image/png,image/jpeg,image/webp" class="hidden"></label>
+        <span class="file-name" id="trImageName">PNG・JPEG・WebP（最大5MB）</span>
+        <button class="btn sub tiny hidden" id="trImageRemove" type="button">画像を外す</button>
+        <button class="btn sub tiny" id="trOcrBtn" type="button" disabled>画像から文字を読み取る</button>
+      </div>
+      <div class="image-drop" id="trImageDropZone" tabindex="0">画像をここへドラッグ＆ドロップ、またはSnapmarkでコピーした画像をここか翻訳欄へ貼り付け</div>
+      <div class="hint">画像を保存せず、読み取りボタンを押したときだけGeminiへ送信します。抽出後に内容を確認してから翻訳できます。</div>
       <div class="mask-hint hidden" id="trMaskHint"></div>
       <div class="row" style="margin-top:8px;">
         <div class="hint"><kbd>Enter</kbd> 翻訳 / <kbd>Shift+Enter</kbd> 改行</div>
@@ -551,6 +565,13 @@
     <div class="card hidden" id="trResultCard">
       <div class="sec-title" id="trDirection">翻訳結果</div>
       <div class="result-box" id="trResult"><div class="boxbtns"><button class="btn sub tiny" onclick="saveAsPhrase('trResult',this)">フレーズ登録</button><button class="btn sub tiny" onclick="copyText('trResult',this)">コピー</button></div><span id="trResultText"></span></div>
+      <div class="sec-title">追加の指示</div>
+      <div class="followup">
+        <input type="text" id="trFollow" placeholder="例: この説明を追加 / より技術的に / 前提は社内向けではなく顧客向け">
+        <button class="btn sub tiny" id="trUndo" disabled>戻す</button>
+        <button class="btn sub" id="trFollowBtn">訳し直す</button>
+      </div>
+      <div class="follow-note hidden" id="trFollowNote"></div>
       <div id="trNotesWrap" class="hidden">
         <div class="sec-title">訳語メモ</div>
         <div id="trNotes"></div>
@@ -1201,10 +1222,13 @@ async function callGemini(systemText, userText, onRetry, options={}){
   /* AIへ渡す文字列は、ここを通る時点で必ず伏せ字へ置き換える */
   systemText = maskText(systemText);
   userText = maskText(userText);
+  const userParts = Array.isArray(options.userParts)
+    ? options.userParts.map(part=>part && typeof part.text === "string" ? {...part, text:maskText(part.text)} : part)
+    : [{ text:userText }];
   const startedAt = performance.now();
   const model = LS.model;
-  const cacheKey = responseCacheKey(model, systemText, userText);
-  if(RESPONSE_CACHE.has(cacheKey)){
+  const cacheKey = options.noCache ? "" : responseCacheKey(model, systemText, JSON.stringify(userParts));
+  if(cacheKey && RESPONSE_CACHE.has(cacheKey)){
     const cached = attachResponseMeta(unmaskDeep(structuredClone(RESPONSE_CACHE.get(cacheKey))), { cached:true, elapsedMs:0 });
     recordHistoryResult(options.history, cached);
     return cached;
@@ -1213,7 +1237,7 @@ async function callGemini(systemText, userText, onRetry, options={}){
               encodeURIComponent(model) + ":generateContent";
   const body = {
     system_instruction: { parts: [{ text: systemText }] },
-    contents: [{ role:"user", parts: [{ text: userText }] }],
+    contents: [{ role:"user", parts: userParts }],
     generationConfig: buildGenerationConfig(model, options.maxOutputTokens)
   };
   let res = null;
@@ -1253,8 +1277,10 @@ async function callGemini(systemText, userText, onRetry, options={}){
   try{ text = data.candidates[0].content.parts.map(p=>p.text||"").join(""); }
   catch(e){ throw new Error("応答の解析に失敗しました。"); }
   const parsed = parseJSON(text);
-  RESPONSE_CACHE.set(cacheKey, parsed);
-  if(RESPONSE_CACHE.size > 10) RESPONSE_CACHE.delete(RESPONSE_CACHE.keys().next().value);
+  if(cacheKey){
+    RESPONSE_CACHE.set(cacheKey, parsed);
+    if(RESPONSE_CACHE.size > 10) RESPONSE_CACHE.delete(RESPONSE_CACHE.keys().next().value);
+  }
   const result = attachResponseMeta(unmaskDeep(parsed), { cached:false, elapsedMs:performance.now() - startedAt });
   recordHistoryResult(options.history, result);
   return result;
@@ -1598,6 +1624,126 @@ ${writingProfile()}
 $("cmBtn").addEventListener("click", runCompose);
 
 /* ---------- 翻訳 ---------- */
+const OCR_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
+const OCR_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+let trImage = null;
+
+function clearTranslationImage(){
+  trImage = null;
+  $("trImageFile").value = "";
+  $("trImageName").textContent = "PNG・JPEG・WebP（最大5MB）";
+  $("trImageRemove").classList.add("hidden");
+  $("trOcrBtn").disabled = true;
+  trImageDropZone.classList.remove("receiving", "ready");
+  trImageDropZone.textContent = "画像をここへドラッグ＆ドロップ、またはSnapmarkでコピーした画像をここか翻訳欄へ貼り付け";
+}
+
+function readImageFile(file){
+  return new Promise((resolve,reject)=>{
+    const reader = new FileReader();
+    reader.onerror = ()=>reject(new Error("画像を読み込めませんでした。別の画像でお試しください。"));
+    reader.onload = ()=>{
+      const data = String(reader.result || "").split(",")[1] || "";
+      if(!data) reject(new Error("画像を読み込めませんでした。別の画像でお試しください。"));
+      else resolve(data);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function setTranslationImage(file, source="選択"){
+  clearTranslationImage();
+  if(!file) return;
+  if(!OCR_IMAGE_TYPES.has(file.type)){ setStatus("trStatus", "PNG・JPEG・WebP画像を選択してください。", true, false); return; }
+  if(file.size > OCR_IMAGE_MAX_BYTES){ setStatus("trStatus", "画像は5MB以下にしてください。", true, false); return; }
+  trImageDropZone.classList.add("receiving");
+  trImageDropZone.textContent = source + "した画像を準備しています…";
+  setStatus("trStatus", "画像を準備しています…", false, true);
+  try{
+    trImage = { name:file.name || "画像", mimeType:file.type, data:await readImageFile(file) };
+    $("trImageName").textContent = trImage.name + "（読み取り待ち）";
+    $("trImageRemove").classList.remove("hidden");
+    $("trOcrBtn").disabled = false;
+    trImageDropZone.classList.remove("receiving");
+    trImageDropZone.classList.add("ready");
+    trImageDropZone.textContent = "✓ " + source + "しました: " + trImage.name + "。画像から文字を読み取れます。";
+    setStatus("trStatus", "", false, false);
+  }catch(e){ clearTranslationImage(); setStatus("trStatus", e.message, true, false); }
+}
+
+function imageFileFromTransfer(transfer){
+  if(!transfer) return null;
+  const items = Array.from(transfer.items || []);
+  const imageItem = items.find(item=>item && OCR_IMAGE_TYPES.has(item.type));
+  if(imageItem && typeof imageItem.getAsFile === "function") return imageItem.getAsFile();
+  return Array.from(transfer.files || []).find(file=>file && OCR_IMAGE_TYPES.has(file.type)) || null;
+}
+
+$("trImageFile").addEventListener("change", ()=>setTranslationImage($("trImageFile").files[0], "選択"));
+
+const trImageDropZone = $("trImageDropZone");
+["dragenter","dragover"].forEach(type=>trImageDropZone.addEventListener(type, e=>{
+  if(!imageFileFromTransfer(e.dataTransfer)) return;
+  e.preventDefault();
+  trImageDropZone.classList.add("dragover");
+}));
+["dragleave","dragend"].forEach(type=>trImageDropZone.addEventListener(type, ()=>trImageDropZone.classList.remove("dragover")));
+trImageDropZone.addEventListener("drop", e=>{
+  const file = imageFileFromTransfer(e.dataTransfer);
+  if(!file) return;
+  e.preventDefault();
+  trImageDropZone.classList.remove("dragover");
+  setTranslationImage(file, "ドロップ");
+});
+
+function acceptPastedTranslationImage(e){
+  const file = imageFileFromTransfer(e.clipboardData);
+  if(!file) return;
+  e.preventDefault();
+  setTranslationImage(file, "貼り付け");
+}
+$("trInput").addEventListener("paste", acceptPastedTranslationImage);
+trImageDropZone.addEventListener("paste", acceptPastedTranslationImage);
+
+$("trImageRemove").addEventListener("click", ()=>{ clearTranslationImage(); setStatus("trStatus", "画像を外しました。", false, false); });
+
+async function runImageOcr(){
+  if(!trImage) return;
+  if(!LS.k){ needKeyGuide("trStatus"); return; }
+  $("trOcrBtn").disabled = true;
+  $("trBtn").disabled = true;
+  setStatus("trStatus", "画像の文字を読み取っています…", false, true);
+  const sys =
+`あなたは画像内の文章を正確に転記するアシスタントです。
+【指示】
+- 画像に判読できる文字だけを、見出し・箇条書き・改行の順序をできるだけ保って転記する。
+- 翻訳、要約、補完、推測、説明はしない。読めない箇所は「[判読不能]」とする。
+- 個人情報・機密情報らしい内容でも伏せ字化や省略はせず、見えている文字をそのまま転記する。利用者が内容を確認してから次の翻訳操作を行う。
+- 必ず次のJSONのみで回答する:
+{"text":"読み取った文字列","notice":"判読不能箇所など、必要な注意があれば1文。なければ空文字"}`;
+  try{
+    const r = await callGemini(sys, "この画像内の文字を読み取ってください。", msg=>setStatus("trStatus", msg, false, true), {
+      maxOutputTokens: 2400,
+      noCache:true,
+      userParts: [
+        { text:"この画像内の文字を読み取ってください。" },
+        { inlineData:{ mimeType:trImage.mimeType, data:trImage.data } }
+      ]
+    });
+    $("trInput").value = String(r.text || "");
+    updateMaskHints();
+    setStatus("trStatus", r.notice ? "読み取りました。" + r.notice : "読み取りました。内容を確認してから翻訳してください。", false, false);
+    $("trInput").focus();
+  }catch(e){
+    if(e.message==="NOKEY") needKeyGuide("trStatus");
+    else setStatus("trStatus", e.message, true, false);
+  }finally{
+    $("trOcrBtn").disabled = !trImage;
+    $("trBtn").disabled = false;
+  }
+}
+$("trOcrBtn").addEventListener("click", runImageOcr);
+
 async function runTranslate(){
   const text = $("trInput").value.trim();
   if(!text) return;
@@ -1627,6 +1773,7 @@ ${LS.persona}
     $("trResultCard").classList.remove("hidden");
     $("trDirection").textContent = "翻訳結果(" + (r.direction||"") + ")";
     $("trResultText").textContent = r.translation || "";
+    resetFollow("tr");
     const notes = Array.isArray(r.notes) ? r.notes.filter(n=>n && n.term) : [];
     if(notes.length){
       $("trNotesWrap").classList.remove("hidden");
@@ -1771,7 +1918,7 @@ function bindClear(btnId, inputId, cardIds, statusId, extraIds, after){
 }
 bindClear("kjClear", "kjInput", ["kjResultCard", "prResultCard"], "kjStatus", ["kjContext"], resetTargets);
 bindClear("cmClear", "cmInput", "cmResultCard", "cmStatus", ["cmSubject", "cmContext"]);
-bindClear("trClear", "trInput", "trResultCard", "trStatus", ["trContext"]);
+bindClear("trClear", "trInput", "trResultCard", "trStatus", ["trContext"], clearTranslationImage);
 
 /* ---------- 変換（大文字・小文字・命名規則） ----------
    AIを使わない即時変換。1行ずつ変換し、行数は入力とそろえる(リストの対応が崩れないように) */
@@ -2023,9 +2170,10 @@ MASK_HINTS.forEach(h=>h.src.forEach(id=>{
 const FOLLOW_TARGETS = {
   kj: { box:"kjResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>$("kjContext").value.trim(), purpose:()=>kjIntent },
   pr: { box:"prResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>$("kjContext").value.trim(), purpose:()=>kjIntent },
-  cm: { box:"cmResult", status:"cmStatus", tone:()=>TONES[$("cmTone").value] || TONES.boss, context:()=>$("cmContext").value.trim(), purpose:()=>$("cmPurpose").value }
+  cm: { box:"cmResult", status:"cmStatus", tone:()=>TONES[$("cmTone").value] || TONES.boss, context:()=>$("cmContext").value.trim(), purpose:()=>$("cmPurpose").value },
+  tr: { box:"trResult", status:"trStatus", context:()=>$("trContext").value.trim(), source:()=>$("trInput").value.trim(), translation:true }
 };
-const followHistory = { kj: [], pr: [], cm: [] };
+const followHistory = { kj: [], pr: [], cm: [], tr: [] };
 
 function refreshUndo(key){
   $(key + "Undo").disabled = followHistory[key].length === 0;
@@ -2037,11 +2185,28 @@ async function runFollowUp(key){
   const current = $(cfg.box + "Text").textContent.trim();
   if(!order || !current) return;
   if(!LS.k){ needKeyGuide(cfg.status); return; }
-  const tone = cfg.tone();
   $(key + "FollowBtn").disabled = true;
-  setStatus(cfg.status, "直しています…", false, true);
-  const sys =
-`あなたは日本語のビジネス文書コーチです。すでにある文章を、依頼者の要望どおりに直します。
+  setStatus(cfg.status, cfg.translation ? "訳し直しています…" : "直しています…", false, true);
+  const sys = cfg.translation
+    ? `あなたはプロの翻訳者です。すでにある訳文を、原文と依頼者の追加指示に沿って訳し直します。
+【依頼者プロフィール】
+${LS.persona}
+
+【今回の前提条件】${cfg.context() || "指定なし"}
+
+【指示】
+- 「原文」と「現在の訳文」を確認し、「追加指示」に沿って訳文の全文を作り直す。
+- 現在の訳文と同じ翻訳先言語を維持する。
+- 追加指示で、新しい前提、含めたい内容、対象読者、語調が示された場合は反映する。
+- 追加指示が「今回の前提条件」と矛盾する場合は、後から示された追加指示を優先する。
+- 追加指示に関係のない事実、固有名詞、期限、数値は勝手に足したり変えたりしない。
+- 追加指示が曖昧なときは、最も自然で無難な解釈を1つ選び、追加の質問はしない。
+- 何をどう変えたかを1文で説明する。
+- 必ず次のJSONのみで回答する:
+{"revised":"訳し直した文章の全文","change":"何をどう変えたかの説明1文"}`
+    : (()=>{
+      const tone = cfg.tone();
+      return `あなたは日本語のビジネス文書コーチです。すでにある文章を、依頼者の要望どおりに直します。
 【依頼者プロフィール】
 ${writingProfile()}
 
@@ -2056,19 +2221,27 @@ ${writingProfile()}
 - 何をどう変えたかを1文で説明する。
 - 必ず次のJSONのみで回答する:
 {"revised":"直した文章の全文","change":"何をどう変えたかの説明1文"}`;
-  const userText = "【現在の文章】\n" + current + "\n\n【要望】\n" + order;
+    })();
+  const userText = cfg.translation
+    ? "【原文】\n" + cfg.source() + "\n\n【現在の訳文】\n" + current + "\n\n【追加指示】\n" + order
+    : "【現在の文章】\n" + current + "\n\n【要望】\n" + order;
   try{
     const r = await callGemini(sys, userText, msg=>setStatus(cfg.status, msg, false, true), {
       maxOutputTokens: outputTokenLimit(current.length, 420, 1600),
-      history:{type:"追加調整",input:userText,output:r=>r.revised,context:"AIの修正案への追加指示"}
+      history:{type:cfg.translation ? "翻訳調整" : "追加調整",input:userText,output:r=>r.revised,context:cfg.translation ? "翻訳結果への追加指示" : "AIの修正案への追加指示"}
     });
     if(r.revised){
       const explanation=String(r.change||"追加の指示に合わせて調整しました。");
-      addNote(explanation,"表記",{source:"追加調整（AIの文）",input:current,output:String(r.revised),context:"追加指示: "+order,
+      if(!cfg.translation) addNote(explanation,"表記",{source:"追加調整（AIの文）",input:current,output:String(r.revised),context:"追加指示: "+order,
         learning:{tip:explanation,next:explanation,points:[{before:current,after:String(r.revised),reason:explanation,key:""}]}});
-      followHistory[key].push(current);
+      followHistory[key].push(cfg.translation ? {
+        text:current,
+        notesHidden:$("trNotesWrap").classList.contains("hidden"),
+        notesHtml:$("trNotes").innerHTML
+      } : current);
       if(followHistory[key].length > 20) followHistory[key].shift();
       $(cfg.box + "Text").textContent = r.revised;
+      if(cfg.translation) $("trNotesWrap").classList.add("hidden");
       refreshUndo(key);
     }
     const note = $(key + "FollowNote");
@@ -2092,7 +2265,14 @@ Object.keys(FOLLOW_TARGETS).forEach(key=>{
   $(key + "Undo").addEventListener("click", ()=>{
     const prev = followHistory[key].pop();
     if(prev === undefined) return;
-    $(FOLLOW_TARGETS[key].box + "Text").textContent = prev;
+    const cfg = FOLLOW_TARGETS[key];
+    if(cfg.translation && prev && typeof prev === "object"){
+      $(cfg.box + "Text").textContent = prev.text;
+      $("trNotes").innerHTML = prev.notesHtml;
+      $("trNotesWrap").classList.toggle("hidden", prev.notesHidden);
+    }else{
+      $(cfg.box + "Text").textContent = prev;
+    }
     $(key + "FollowNote").classList.add("hidden");
     refreshUndo(key);
   });

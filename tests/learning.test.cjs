@@ -11,7 +11,7 @@ function harness(){
       classList:{add:(...xs)=>xs.forEach(x=>classes.add(x)),remove:(...xs)=>xs.forEach(x=>classes.delete(x)),
         contains:x=>classes.has(x),toggle:(x,on)=>{on=on===undefined?!classes.has(x):on;on?classes.add(x):classes.delete(x);return on;}},
       addEventListener:(type,fn)=>(listeners[type]||=[]).push(fn),
-      async fire(type){for(const fn of listeners[type]||[]) await fn.call(this,{target:this,key:"",preventDefault(){}});},
+      async fire(type,event={}){const base={target:this,key:"",preventDefault(){this.defaultPrevented=true;}};Object.assign(base,event);for(const fn of listeners[type]||[]) await fn.call(this,base);return base;},
       click(){return this.fire("click");},focus(){},scrollIntoView(){},
       getAttribute(k){return this[k]||"";},setAttribute(k,v){this[k]=v;},
       appendChild(child){this.options.push(child);},querySelectorAll(){return [];}
@@ -29,7 +29,7 @@ function harness(){
   const sandbox={document,localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,String(v))},
     navigator:{clipboard:{writeText:async s=>copied.push(s)}},console,performance,structuredClone,Blob,
     URL:{createObjectURL:b=>{sandbox.lastBlob=b;return "blob:test";},revokeObjectURL(){}},
-    FileReader:class{readAsText(f){this.result=f.text;this.onload();}},setTimeout:()=>0,clearTimeout(){},
+    FileReader:class{readAsText(f){this.result=f.text;this.onload();}readAsDataURL(f){this.result=f.dataUrl;this.onload();}},setTimeout:()=>0,clearTimeout(){},
     AbortController,confirm:()=>true,fetch:async()=>{throw Error("Network forbidden");}};
   sandbox.window=sandbox;vm.createContext(sandbox);vm.runInContext(source,sandbox);
   return {run:js=>vm.runInContext(js,sandbox),get,storage,sandbox,copied,scoped,element};
@@ -66,6 +66,44 @@ function seed(h){h.sandbox.p=p;h.sandbox.fixture={type:"整える",input:p.befor
     const call="callGemini('system','テスト人名様、ご確認していただけますか',null,{history:{type:'整える',input:'テスト人名様、ご確認していただけますか',output:r=>r.revised,learn:true},maxOutputTokens:900})";
     const r=await h.run(call);assert.match(r.revised,/テスト人名/);assert.ok(!JSON.stringify(h.sandbox.requests).includes("テスト人名"));assert.match(h.sandbox.requests[0].body.system_instruction.parts[0].text,/実例で学ぶ/);
     await h.run(call);assert.equal(h.sandbox.requests.length,1);assert.equal(h.run("LS.notes.length"),1);assert.match(h.run("LS.notes[0].input"),/テスト人名/);
+  });
+  await test("image OCR sends only the selected image on explicit action and does not cache it",async()=>{
+    const h=harness();h.run("LS.k='dummy';trImage={name:'sample.png',mimeType:'image/png',data:'aW1hZ2U=',};requests=[]");
+    h.sandbox.payload={text:"Image text",notice:""};
+    h.run("fetchWithTimeout=async(url,opts)=>{requests.push(JSON.parse(opts.body));return {ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(payload)}]}}]})}}");
+    await h.get("trOcrBtn").fire("click");
+    const parts=h.sandbox.requests[0].contents[0].parts;
+    assert.equal(parts[1].inlineData.mimeType,"image/png");assert.equal(parts[1].inlineData.data,"aW1hZ2U=");
+    assert.equal(h.get("trInput").value,"Image text");assert.equal(h.run("RESPONSE_CACHE.size"),0);assert.equal(h.run("LS.history.length"),0);
+  });
+  await test("translation image accepts drop and Snapmark-style paste without changing text paste",async()=>{
+    const h=harness(),file={name:"snap.png",type:"image/png",size:8,dataUrl:"data:image/png;base64,aW1hZ2U="};
+    const drop=await h.get("trImageDropZone").fire("drop",{dataTransfer:{files:[file],items:[]}});
+    assert.equal(drop.defaultPrevented,true);assert.equal(h.run("trImage.name"),"snap.png");assert.equal(h.get("trOcrBtn").disabled,false);assert.equal(h.get("trImageDropZone").classList.contains("ready"),true);assert.match(h.get("trImageDropZone").textContent,/ドロップしました/);
+    h.run("clearTranslationImage()");const paste=await h.get("trInput").fire("paste",{clipboardData:{items:[{type:'image/png',getAsFile:()=>file}]}});
+    assert.equal(paste.defaultPrevented,true);assert.equal(h.run("trImage.mimeType"),"image/png");assert.match(h.get("trImageDropZone").textContent,/貼り付けしました/);
+    h.get("trInput").value="keep text";const textPaste=await h.get("trInput").fire("paste",{clipboardData:{items:[],files:[]}});
+    assert.equal(textPaste.defaultPrevented,undefined);assert.equal(h.get("trInput").value,"keep text");
+  });
+  await test("translation follow-up uses source and added premise, then restores result and notes",async()=>{
+    const h=harness();h.run("LS.k='dummy';requests=[]");h.get("trInput").value="Please send the draft today.";h.get("trContext").value="社内向け";
+    h.sandbox.payload={direction:"en→ja",translation:"今日、下書きを送ってください。",notes:[{term:"draft",note:"下書き"}]};
+    h.run("fetchWithTimeout=async(url,opts)=>{requests.push(JSON.parse(opts.body));return {ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(payload)}]}}]})}}");
+    await h.get("trBtn").fire("click");
+    assert.equal(h.get("trResultText").textContent,"今日、下書きを送ってください。");assert.equal(h.get("trNotesWrap").classList.contains("hidden"),false);
+    h.get("trFollow").value="前提は社内向けではなく顧客向け。丁寧にしてください。";h.sandbox.payload={revised:"本日中に下書きをお送りいただけますでしょうか。",change:"顧客向けの丁寧な表現へ変更しました。"};
+    await h.get("trFollowBtn").fire("click");
+    const followRequest=h.sandbox.requests[1];assert.match(followRequest.system_instruction.parts[0].text,/現在の訳文と同じ翻訳先言語/);assert.match(followRequest.system_instruction.parts[0].text,/後から示された追加指示を優先/);
+    assert.match(followRequest.contents[0].parts[0].text,/Please send the draft today/);assert.match(followRequest.contents[0].parts[0].text,/顧客向け/);
+    assert.equal(h.get("trResultText").textContent,"本日中に下書きをお送りいただけますでしょうか。");assert.equal(h.get("trNotesWrap").classList.contains("hidden"),true);
+    assert.equal(h.run("LS.history[0].type"),"翻訳調整");assert.equal(h.run("LS.notes.length"),0);
+    await h.get("trUndo").fire("click");assert.equal(h.get("trResultText").textContent,"今日、下書きを送ってください。");assert.equal(h.get("trNotesWrap").classList.contains("hidden"),false);assert.match(h.get("trNotes").innerHTML,/draft/);
+  });
+  await test("existing writing follow-up still revises and records a learning note",async()=>{
+    const h=harness();h.run("LS.k='dummy'");h.get("kjResultText").textContent="確認をお願いします。";h.get("kjFollow").value="もう少し丁寧に";
+    h.sandbox.payload={revised:"ご確認をお願いいたします。",change:"丁寧な依頼表現へ変更しました。"};
+    h.run("fetchWithTimeout=async()=>({ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(payload)}]}}]})})");
+    await h.get("kjFollowBtn").fire("click");assert.equal(h.get("kjResultText").textContent,"ご確認をお願いいたします。");assert.equal(h.run("LS.notes.length"),1);assert.equal(h.run("LS.history[0].type"),"追加調整");
   });
   await test("review and compose button handlers save examples and show coaching",async()=>{
     for(const [button,inputId,outputField,sourceType,resultId] of [
