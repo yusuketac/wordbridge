@@ -196,6 +196,10 @@
   .learning-detail p,.learning-detail .sample{white-space:pre-wrap; overflow-wrap:anywhere;}
   .learning-detail .sample{padding:8px 10px; border:1px solid var(--line); border-radius:8px; margin:4px 0 8px;}
   .learning-detail summary{cursor:pointer; color:var(--sub); font-size:12px; margin:8px 0;}
+  .coach-comparison{margin-top:10px; padding:10px 11px; border:1px solid #2a5268; border-radius:9px; background:#0f1c26;}
+  .coach-comparison .history-meta{margin-bottom:4px;}
+  .coach-comparison .before-full{border-left:2px solid #9f5963;}
+  .coach-comparison .after-full{border-left:2px solid #2f8067;}
   .learning-next{border-left:2px solid var(--accent); padding:7px 10px; margin-top:8px; font-size:13px;}
   .note-item{flex-wrap:wrap;}
   .note-item .note-text{min-width:180px;}
@@ -308,6 +312,12 @@
   .quick-grid{display:grid; grid-template-columns:minmax(0,1.35fr) minmax(250px,.65fr); gap:14px; align-items:start;}
   .field-label{display:block; margin:0 0 7px; color:#b8c4d3; font-size:12px; font-weight:600;}
   .intent-row{display:flex; gap:6px; flex-wrap:wrap;}
+  .write-modes{display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:12px; padding:3px; border:1px solid var(--line); border-radius:10px; background:#0d141d;}
+  .write-modes button{padding:8px 12px; border:0; border-radius:7px; background:transparent; color:var(--sub); cursor:pointer; font-size:12px;}
+  .write-modes button.on{background:#173044; color:var(--ink); font-weight:600;}
+  .write-context{margin:12px 0;}
+  .write-context summary{cursor:pointer; color:var(--sub); font-size:12px;}
+  .write-context[open] summary{margin-bottom:10px; color:#b8c4d3;}
   .learning-list{display:grid; gap:9px;}
   .learning-item{padding:11px 12px; border:1px solid var(--line); background:#101720; border-radius:9px;}
   .learning-item b{display:block; font-size:12px; margin-bottom:3px; color:#d9e3ed;}
@@ -398,8 +408,7 @@
     </header>
 
     <nav aria-label="メインナビゲーション">
-      <button data-tab="kj" class="active"><span class="nav-code">REVIEW</span><span class="nav-label">文書校正</span></button>
-      <button data-tab="cm"><span class="nav-code">CREATE</span><span class="nav-label">文書作成</span></button>
+      <button data-tab="kj" class="active"><span class="nav-code">WRITE</span><span class="nav-label">文章</span></button>
       <button data-tab="tr"><span class="nav-code">TRANS</span><span class="nav-label">翻訳</span></button>
       <button data-tab="cv"><span class="nav-code">CASE</span><span class="nav-label">変換</span></button>
       <button data-tab="ph"><span class="nav-code">PHRASE</span><span class="nav-label">フレーズ <span id="phCount"></span></span></button>
@@ -415,12 +424,15 @@
   </aside>
   <main class="workspace">
 
-  <!-- ============ 文章を整える / 添削 ============ -->
+  <!-- ============ 文章（校正 / 作成） ============ -->
   <div class="panel show" id="panel-kj">
-    <div class="page-head"><div class="page-desc">相手に送る文は宛先に合わせ、AIへの入力文や自分用メモは「AI・メモ」で流れと表現を整えます。</div></div>
+    <div class="page-head"><div class="page-desc" id="writePageDesc">文章を直す「校正」と、要点から文章にする「作成」を切り替えます。</div></div>
     <div class="quick-grid">
       <div>
         <div class="card">
+          <div class="write-modes" id="writeModes" aria-label="文章の操作を選択">
+            <button data-mode="review" class="on">校正</button><button data-mode="compose">作成</button>
+          </div>
           <button type="button" class="target-summary" id="kjTargetSummary"><span class="ts-caret">▾</span><span id="kjTargetText"></span></button>
           <div class="target-block" id="kjTargetBlock">
           <div class="pick-row"><span class="pick-label">相手</span>
@@ -432,33 +444,34 @@
           </div></div>
           <div class="pick-row" id="kjIntentRow"><span class="pick-label">用件</span>
           <div class="intent-row" id="kjIntents">
-            <button data-intent="依頼" class="on">依頼</button><button data-intent="報告">報告</button><button data-intent="確認">確認</button><button data-intent="催促">催促</button><button data-intent="お詫び">お詫び</button><button data-intent="お礼">お礼</button>
+            <button data-intent="依頼" class="on">依頼</button><button data-intent="報告">報告</button><button data-intent="確認">確認</button><button data-intent="催促">催促</button><button data-intent="お詫び">お詫び</button><button data-intent="お礼">お礼</button><button data-intent="相談">相談</button><button data-intent="日程調整">日程調整</button>
           </div></div>
           </div>
           <div class="hint hidden" id="kjStructureHint">ChatGPTなどAIへの質問・指示文や、自分用メモに。宛名や敬語を足さず、文章の流れ・情報の順番・表現を整えます。</div>
-          <div class="form-grid" style="margin-top:12px;">
-            <div><label for="kjWorkTitle">業務タイトル（任意）</label><input type="text" id="kjWorkTitle" placeholder="例：デジタルツイン用データ確認"></div>
-            <div><label for="kjContext">前提条件（任意）</label><input type="text" id="kjContext" placeholder="例：外注先へ送るTeamsメッセージ"></div>
-            <div class="full"><label for="kjKnowledge">ナレッジ（任意）</label><textarea id="kjKnowledge" rows="3" placeholder="用語・背景・判断基準など。箇条書きで入力できます"></textarea></div>
-          </div>
-          <button type="button" class="draft-toggle" id="kjDraftToggle" style="margin-top:14px;"><span class="ts-caret" id="kjDraftCaret">▸</span>下書き<span class="draft-badge" id="kjDraftBadge"></span></button>
-          <div class="draft-box hidden" id="kjDraftBox">
-            <textarea id="kjDraft" rows="6" placeholder="ここで文章を組み立てます。Enterは改行です。&#10;書けたら「本文へ送る」を押してください。"></textarea>
-            <div class="row" style="margin-top:8px;">
-              <span class="hint" id="kjDraftStatus" style="margin:0;">入力すると自動保存されます</span>
-              <div class="spacer"></div>
-              <button class="btn sub tiny" id="kjDraftClear">下書きを消す</button>
-              <button class="btn sub tiny" id="kjDraftSend">本文へ送る</button>
+          <details class="write-context" id="writeContext">
+            <summary>業務情報（任意）</summary>
+            <div class="form-grid">
+              <div><label for="kjWorkTitle">業務タイトル</label><input type="text" id="kjWorkTitle" placeholder="例：月次報告"></div>
+              <div><label for="kjContext">前提条件</label><input type="text" id="kjContext" placeholder="例：社内チャットで共有"></div>
+              <div class="full"><label for="kjKnowledge">ナレッジ</label><textarea id="kjKnowledge" rows="3" placeholder="用語・背景・判断基準など"></textarea></div>
             </div>
+          </details>
+          <div id="reviewModeFields">
+            <button type="button" class="draft-toggle" id="kjDraftToggle"><span class="ts-caret" id="kjDraftCaret">▸</span>下書き<span class="draft-badge" id="kjDraftBadge"></span></button>
+            <div class="draft-box hidden" id="kjDraftBox">
+              <textarea id="kjDraft" rows="6" placeholder="ここで文章を組み立てます。Enterは改行です。&#10;書けたら「本文へ送る」を押してください。"></textarea>
+              <div class="row" style="margin-top:8px;"><span class="hint" id="kjDraftStatus" style="margin:0;">入力すると自動保存されます</span><div class="spacer"></div><button class="btn sub tiny" id="kjDraftClear">下書きを消す</button><button class="btn sub tiny" id="kjDraftSend">本文へ送る</button></div>
+            </div>
+            <label for="kjInput" class="field-label">直したい文章</label>
+            <textarea id="kjInput" rows="7" placeholder="例: 今日中にデータを確認して返事してください&#10;Enterで整える / Ctrl+Enterで詳しく添削 / Shift+Enterで改行"></textarea>
+            <div class="mask-hint hidden" id="kjMaskHint"></div>
+            <div class="row" style="margin-top:10px;"><div class="hint"><kbd>Enter</kbd> 整える / <kbd>Ctrl+Enter</kbd> 詳しく添削 / <kbd>Shift+Enter</kbd> 改行</div><label class="prep-opt" id="prepOption"><input type="checkbox" id="prepToggle" checked> PREP分析</label><div class="spacer"></div><span class="row-actions"><span class="status" id="kjStatus"></span><button class="btn sub" id="kjClear" title="入力・業務情報・結果を消します（Esc）">クリア</button><button class="btn sub" id="prBtn" title="直した理由まで詳しく見る（Ctrl+Enter）">詳しく添削</button><button class="btn" id="kjBtn">整える</button></span></div>
           </div>
-          <label for="kjInput" class="field-label">整えたい文章</label>
-          <textarea id="kjInput" rows="7" placeholder="例: 今日中にデータを確認して返事してください&#10;Enterで整える / Ctrl+Enterで添削 / Shift+Enterで改行"></textarea>
-          <div class="mask-hint hidden" id="kjMaskHint"></div>
-          <div class="row" style="margin-top:10px;">
-            <div class="hint"><kbd>Enter</kbd> 整える / <kbd>Ctrl+Enter</kbd> 添削 / <kbd>Shift+Enter</kbd> 改行</div>
-            <label class="prep-opt" id="prepOption"><input type="checkbox" id="prepToggle" checked> 添削でPREP分析</label>
-            <div class="spacer"></div>
-            <span class="row-actions"><span class="status" id="kjStatus"></span><button class="btn sub" id="kjClear" title="本文・業務タイトル・ナレッジ・前提条件・結果を消し、相手と用件を初期値（同僚・チャット／依頼）に戻します（Esc）">クリア</button><button class="btn sub" id="prBtn" title="直した理由・PREP構造まで見る（Ctrl+Enter）">添削</button><button class="btn" id="kjBtn">整える</button></span>
+          <div id="composeModeFields" class="hidden">
+            <label for="cmSubject" class="field-label">件名・話題（任意）</label><input type="text" id="cmSubject" placeholder="例：提出データ確認のお願い">
+            <label for="cmInput" class="field-label" style="margin-top:12px;">伝えたい要点</label><textarea id="cmInput" rows="7" placeholder="箇条書きで大丈夫です。&#10;・最新データを共有した&#10;・今日17時までに確認してほしい"></textarea>
+            <div class="mask-hint hidden" id="cmMaskHint"></div>
+            <div class="row" style="margin-top:10px;"><div class="hint"><kbd>Enter</kbd> 作成 / <kbd>Shift+Enter</kbd> 改行</div><div class="spacer"></div><span class="row-actions"><span class="status" id="cmStatus"></span><button class="btn sub" id="cmClear" title="入力・業務情報・結果を消します（Esc）">クリア</button><button class="btn" id="cmBtn">作成</button></span></div>
           </div>
         </div>
         <div class="card hidden" id="kjResultCard">
@@ -498,6 +511,14 @@
           <div class="sec-title">コーチの記録</div>
           <div class="tipbox" id="prCoachLog"></div>
         </div>
+        <div class="card hidden" id="cmResultCard">
+          <div class="sec-title">作成した文章</div>
+          <div class="result-box teal" id="cmResult"><div class="boxbtns"><button class="btn sub tiny" onclick="saveAsPhrase('cmResult',this)">フレーズ登録</button><button class="btn sub tiny" onclick="copyText('cmResult',this)">コピー</button></div><span id="cmResultText"></span></div>
+          <div class="sec-title">追加の指示</div>
+          <div class="followup"><input type="text" id="cmFollow" placeholder="例: もっと短く / 挨拶は省く / 期限を強調"><button class="btn sub tiny" id="cmUndo" disabled>戻す</button><button class="btn sub" id="cmFollowBtn">直す</button></div>
+          <div class="follow-note hidden" id="cmFollowNote"></div>
+          <div class="sec-title">構成メモ</div><div id="cmNote" class="tipbox"></div>
+        </div>
       </div>
       <aside class="card" id="kjBasics">
         <div class="sec-title">迷ったときの基本</div>
@@ -515,39 +536,6 @@
           <div class="learning-item"><b>曖昧語を減らす</b><span>「これ」「いい感じ」ではなく、対象と期待する状態を具体的に書きます。</span></div>
         </div>
       </aside>
-    </div>
-  </div>
-
-  <!-- ============ 文書作成 ============ -->
-  <div class="panel" id="panel-cm">
-    <div class="page-head"><div class="page-desc">宛先・用途・伝えたいことを選び、メールやチャットの下書きを短時間で作成します。</div></div>
-    <div class="card">
-      <div class="form-grid">
-        <button type="button" class="target-summary full" id="cmTargetSummary"><span class="ts-caret">▾</span><span id="cmTargetText"></span></button>
-        <div class="target-block" id="cmTargetBlock">
-        <div><label for="cmTone">相手</label><select id="cmTone"><option value="casual" selected>同僚・チャット</option><option value="boss">上司・社内</option><option value="external">社外・取引先</option></select></div>
-        <div><label for="cmPurpose">用途</label><select id="cmPurpose"><option>依頼</option><option>報告</option><option>確認</option><option>催促</option><option>お詫び</option><option>お礼</option><option>相談</option><option>日程調整</option></select></div>
-        </div>
-        <div><label for="cmWorkTitle">業務タイトル（任意）</label><input type="text" id="cmWorkTitle" placeholder="例：デジタルツイン用データ確認"></div>
-        <div><label for="cmSubject">件名・話題（任意）</label><input type="text" id="cmSubject" placeholder="例: 提出データ確認のお願い"></div>
-        <div class="full"><label for="cmKnowledge">ナレッジ（任意）</label><textarea id="cmKnowledge" rows="3" placeholder="用語・背景・判断基準など。箇条書きで入力できます"></textarea></div>
-        <div class="full"><label for="cmContext">前提条件（任意）</label><input type="text" id="cmContext" placeholder="例：外注先へ送るTeamsメッセージ"></div>
-        <div class="full" id="cmMaskHintWrap"><div class="mask-hint hidden" id="cmMaskHint"></div></div>
-        <div class="full"><label for="cmInput">伝えたい要点</label><textarea id="cmInput" rows="7" placeholder="箇条書きで大丈夫です。&#10;・最新データをアップした&#10;・今日17時までに形状を確認してほしい&#10;・問題があればTeamsで連絡してほしい"></textarea></div>
-      </div>
-      <div class="row"><div class="hint"><kbd>Enter</kbd> 作成 / <kbd>Shift+Enter</kbd> 改行</div><div class="spacer"></div><span class="row-actions"><span class="status" id="cmStatus"></span><button class="btn sub" id="cmClear" title="本文・業務タイトル・件名・ナレッジ・前提条件・結果を消します。相手と用途は残ります（Esc）">クリア</button><button class="btn" id="cmBtn">作成</button></span></div>
-    </div>
-    <div class="card hidden" id="cmResultCard">
-      <div class="sec-title">作成した文書</div>
-      <div class="result-box teal" id="cmResult"><div class="boxbtns"><button class="btn sub tiny" onclick="saveAsPhrase('cmResult',this)">フレーズ登録</button><button class="btn sub tiny" onclick="copyText('cmResult',this)">コピー</button></div><span id="cmResultText"></span></div>
-      <div class="sec-title">追加の指示</div>
-      <div class="followup">
-        <input type="text" id="cmFollow" placeholder="例: もっと短く / やっぱり挨拶は省く / 期限を強調">
-        <button class="btn sub tiny" id="cmUndo" disabled>戻す</button>
-        <button class="btn sub" id="cmFollowBtn">直す</button>
-      </div>
-      <div class="follow-note hidden" id="cmFollowNote"></div>
-      <div class="sec-title">構成メモ</div><div id="cmNote" class="tipbox"></div>
     </div>
   </div>
 
@@ -1080,8 +1068,7 @@ document.querySelectorAll("nav button").forEach(b=>{
     b.classList.add("active");
     $("panel-"+b.dataset.tab).classList.add("show");
     if(typeof collapseTargets === "function") collapseTargets();
-    if(b.dataset.tab==="kj") $("kjInput").focus();
-    if(b.dataset.tab==="cm") $("cmInput").focus();
+    if(b.dataset.tab==="kj") $(writeMode==="compose" ? "cmInput" : "kjInput").focus();
     if(b.dataset.tab==="tr") $("trInput").focus();
     if(b.dataset.tab==="cv") $("cvInput").focus();
     if(b.dataset.tab==="co") $("coInput").focus();
@@ -1504,11 +1491,11 @@ function needKeyGuide(statusId){
 const DEFAULT_TONE = "casual";
 const DEFAULT_INTENT = "依頼";
 let kjIntent = DEFAULT_INTENT;
+let writeMode = "review";
 
 function selectTone(tone){
   LS.tone = tone;
   document.querySelectorAll("#kjTones button").forEach(b=>b.classList.toggle("on", b.dataset.tone===tone));
-  if($("cmTone") && [...$("cmTone").options].some(o=>o.value===tone)) $("cmTone").value = tone;
   updateReviewMode();
   if(typeof updateTargetSummary === "function") updateTargetSummary();
 }
@@ -1528,10 +1515,32 @@ function updateReviewMode(){
   $("kjInput").placeholder = structure
     ? "例: ChatGPTへの質問文や、後で見返す自分用メモ\nEnterで流れを整える / Ctrl+Enterで詳しく添削 / Shift+Enterで改行"
     : "例: 今日中にデータを確認して返事してください\nEnterで整える / Ctrl+Enterで添削 / Shift+Enterで改行";
+  $("cmInput").placeholder = structure
+    ? "箇条書きで大丈夫です。\n・AIに確認したいこと\n・前提と条件\n・欲しい回答の形"
+    : "箇条書きで大丈夫です。\n・伝えたいこと\n・期限\n・相手にしてほしいこと";
   $("kjBtn").textContent = structure ? "文章を整える" : "整える";
   $("prBtn").textContent = structure ? "詳しく添削" : "添削";
   $("prBtn").title = structure ? "文章の流れ・表現を直した理由まで見る（Ctrl+Enter）" : "直した理由・PREP構造まで見る（Ctrl+Enter）";
 }
+
+function updateWriteMode(focus=false){
+  const compose = writeMode === "compose";
+  document.querySelectorAll("#writeModes button").forEach(b=>b.classList.toggle("on", b.dataset.mode===writeMode));
+  $("reviewModeFields").classList.toggle("hidden", compose);
+  $("composeModeFields").classList.toggle("hidden", !compose);
+  $("writePageDesc").textContent = compose
+    ? "伝えたい要点から、相手と用途に合う文章を作ります。"
+    : "今ある文章を、意味を変えずに読みやすく整えます。";
+  ["kjResultCard","prResultCard","cmResultCard"].forEach(id=>$(id).classList.add("hidden"));
+  setStatus("kjStatus", "", false, false);
+  setStatus("cmStatus", "", false, false);
+  if(focus) $(compose ? "cmInput" : "kjInput").focus();
+}
+
+document.querySelectorAll("#writeModes button").forEach(b=>b.addEventListener("click", ()=>{
+  writeMode = b.dataset.mode === "compose" ? "compose" : "review";
+  updateWriteMode(true);
+}));
 
 document.querySelectorAll("#kjTones button").forEach(b=>b.addEventListener("click", ()=>selectTone(b.dataset.tone)));
 function selectIntent(intent){
@@ -1602,39 +1611,39 @@ async function runCompose(){
   const points = $("cmInput").value.trim();
   if(!points) return;
   if(!LS.k){ needKeyGuide("cmStatus"); return; }
-  const tone = TONES[$("cmTone").value] || TONES.boss;
-  const purpose = $("cmPurpose").value;
-  const workTitle = $("cmWorkTitle").value.trim();
+  const tone = TONES[LS.tone] || TONES.boss;
+  const structure = isStructureReview();
+  const purpose = kjIntent;
+  const workTitle = $("kjWorkTitle").value.trim();
   const subject = $("cmSubject").value.trim();
-  const knowledge = $("cmKnowledge").value.trim();
-  const context = $("cmContext").value.trim();
+  const knowledge = $("kjKnowledge").value.trim();
+  const context = $("kjContext").value.trim();
   $("cmBtn").disabled = true;
   setStatus("cmStatus", "作成中…", false, true);
   const sys =
-`あなたは実務に強い日本語ビジネス文書作成アシスタントです。
+`${structure ? "あなたは日本語の文章構成と表現に精通した作成アシスタントです。" : "あなたは実務に強い日本語ビジネス文書作成アシスタントです。"}
 【依頼者プロフィール】
 ${writingProfile()}
 
-【相手】${tone.label}: ${tone.desc}
-【用途】${purpose}
+${structure ? "【文章の用途】AIへの入力文または自分用メモ（対人向けではない文章）" : "【相手】"+tone.label+": "+tone.desc+"\n【用途】"+purpose}
 【業務タイトル】${workTitle || "指定なし"}
 【件名・話題】${subject || "指定なし"}
 【参照ナレッジ】${knowledge || "指定なし"}
 【今回の前提条件】${context || "指定なし"}
 
 【指示】
-- 入力された要点だけを使い、メールまたはチャットとしてそのまま送れる自然な下書きを作る。
+- 入力された要点だけを使い、${structure ? "目的と条件が分かる、簡潔で読みやすい文章を作る。" : "メールまたはチャットとしてそのまま送れる自然な下書きを作る。"}
 - 結論または用件を先にし、必要に応じて理由、期限、相手にしてほしいことを明確にする。
 - 入力にない事実、期限、相手の名前、約束を作らない。不足は曖昧なまま勝手に補完しない。
 - 参照ナレッジは用語・背景・判断基準の確認に使い、関係のない内容を本文へ写したり、ナレッジにない事実を作ったりしない。
 - 前提条件は相手・状況・目的の判断にだけ使い、本文にない事実として書き足さない。
-- 社内チャットなら短く、社外なら必要な挨拶と結びを含める。
+- ${structure ? "宛名、あいさつ、結び、敬語、依頼や約束を勝手に足さない。" : "社内チャットなら短く、社外なら必要な挨拶と結びを含める。"}
 - 必ず次のJSONのみで回答する:
 {"draft":"文書全文","structure":"この構成にした理由を2文以内で説明","tip":"次回にも使える学び1文","tipTag":"結論先行 / 構成 / 簡潔さ / 敬語・配慮 / 語彙・言い回し / 表記 / その他 のいずれか"}`;
   try{
     const r = await callGemini(sys, points, msg=>setStatus("cmStatus", msg, false, true), {
       maxOutputTokens: outputTokenLimit(points.length, 950, 2200),
-      history: { type:"文書作成", input:points, output:r=>r.draft, learn:true, context:tone.label+" / "+purpose+"\n業務タイトル: "+workTitle+"\n件名・話題: "+subject+"\nナレッジ: "+knowledge+"\n前提条件: "+context }
+      history: { type:"文書作成", input:points, output:r=>r.draft, learn:true, context:tone.label+(structure ? "" : " / "+purpose)+"\n業務タイトル: "+workTitle+"\n件名・話題: "+subject+"\nナレッジ: "+knowledge+"\n前提条件: "+context }
     });
     $("cmResultCard").classList.remove("hidden");
     $("cmResultText").textContent = r.draft || "";
@@ -1923,8 +1932,9 @@ function bindEnterRun(ids, action, ctrlAction){
   }));
 }
 
-bindEnterRun(["kjWorkTitle", "kjContext", "kjInput"], runKeigo, runProof);
-bindEnterRun(["cmWorkTitle", "cmSubject", "cmContext", "cmInput"], runCompose);
+function runWritePrimary(){ return writeMode === "compose" ? runCompose() : runKeigo(); }
+function runWriteDetail(){ return writeMode === "compose" ? runCompose() : runProof(); }
+bindEnterRun(["kjWorkTitle", "kjContext", "kjInput", "cmSubject", "cmInput"], runWritePrimary, runWriteDetail);
 bindEnterRun(["trContext", "trInput"], runTranslate);
 
 /* ---------- クリア（続けて次の文章を書くため） ---------- */
@@ -1947,7 +1957,7 @@ function bindClear(btnId, inputId, cardIds, statusId, extraIds, after){
   });
 }
 bindClear("kjClear", "kjInput", ["kjResultCard", "prResultCard"], "kjStatus", ["kjWorkTitle", "kjKnowledge", "kjContext"], resetTargets);
-bindClear("cmClear", "cmInput", "cmResultCard", "cmStatus", ["cmWorkTitle", "cmSubject", "cmKnowledge", "cmContext"]);
+bindClear("cmClear", "cmInput", "cmResultCard", "cmStatus", ["cmSubject", "kjWorkTitle", "kjKnowledge", "kjContext"], resetTargets);
 bindClear("trClear", "trInput", "trResultCard", "trStatus", ["trContext"], clearTranslationImage);
 
 /* ---------- 変換（大文字・小文字・命名規則） ----------
@@ -2175,7 +2185,7 @@ $("mkOn").addEventListener("change", ()=>{
 /* いまの入力に効く伏せ字を、実行前に見えるようにする */
 const MASK_HINTS = [
   { hint:"kjMaskHint", src:["kjInput", "kjWorkTitle", "kjKnowledge", "kjContext"] },
-  { hint:"cmMaskHint", src:["cmInput", "cmWorkTitle", "cmSubject", "cmKnowledge", "cmContext"] },
+  { hint:"cmMaskHint", src:["cmInput", "cmSubject", "kjWorkTitle", "kjKnowledge", "kjContext"] },
   { hint:"trMaskHint", src:["trInput", "trContext"] }
 ];
 
@@ -2200,7 +2210,7 @@ MASK_HINTS.forEach(h=>h.src.forEach(id=>{
 const FOLLOW_TARGETS = {
   kj: { box:"kjResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"業務タイトル: "+$("kjWorkTitle").value.trim()+"\nナレッジ: "+$("kjKnowledge").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
   pr: { box:"prResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"業務タイトル: "+$("kjWorkTitle").value.trim()+"\nナレッジ: "+$("kjKnowledge").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
-  cm: { box:"cmResult", status:"cmStatus", tone:()=>TONES[$("cmTone").value] || TONES.boss, context:()=>"業務タイトル: "+$("cmWorkTitle").value.trim()+"\n件名・話題: "+$("cmSubject").value.trim()+"\nナレッジ: "+$("cmKnowledge").value.trim()+"\n前提条件: "+$("cmContext").value.trim(), purpose:()=>$("cmPurpose").value },
+  cm: { box:"cmResult", status:"cmStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"業務タイトル: "+$("kjWorkTitle").value.trim()+"\n件名・話題: "+$("cmSubject").value.trim()+"\nナレッジ: "+$("kjKnowledge").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
   tr: { box:"trResult", status:"trStatus", context:()=>$("trContext").value.trim(), source:()=>$("trInput").value.trim(), translation:true }
 };
 const followHistory = { kj: [], pr: [], cm: [], tr: [] };
@@ -2486,8 +2496,7 @@ const QUIET_TITLE = "Notes";
 const QUIET_ICON = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%231b232e'/%3E%3Crect x='19' y='13' width='26' height='38' rx='3' fill='%238a94a3'/%3E%3Cpath d='M26 25h12M26 32h12M26 39h7' stroke='%231b232e' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E";
 
 const TARGET_BLOCKS = [
-  { block:"kjTargetBlock", summary:"kjTargetSummary", text:"kjTargetText", label:()=>TONE_SHORT[LS.tone] + (isStructureReview() ? "" : " / " + kjIntent) },
-  { block:"cmTargetBlock", summary:"cmTargetSummary", text:"cmTargetText", label:()=>TONE_SHORT[$("cmTone").value] + " / " + $("cmPurpose").value }
+  { block:"kjTargetBlock", summary:"kjTargetSummary", text:"kjTargetText", label:()=>TONE_SHORT[LS.tone] + (isStructureReview() ? "" : " / " + kjIntent) }
 ];
 
 function updateTargetSummary(){
@@ -2515,7 +2524,6 @@ TARGET_BLOCKS.forEach(t=>{
     $(t.block).classList.toggle("collapsed");
   });
 });
-$("cmPurpose").addEventListener("change", updateTargetSummary);
 
 /* ---------- 画面を伏せる（Ctrl+Shift+H） ---------- */
 let veiled = false;
@@ -2585,6 +2593,17 @@ function historyCoachData(history, period, now=Date.now()){
   }
   return {total,detailed,legacy,groups:[...groups.values()].sort((a,b)=>b.count-a.count).map(g=>({...g,days:g.days.size}))};
 }
+function coachComparisonHTML(e, latest){
+  if(!e) return "";
+  const date=esc(e.d.slice(0,10));
+  const body='<div class="coach-comparison"><div class="history-meta"><b>'+(latest?'最新の実際の修正例':'実際の修正例')+'</b><span>'+date+'</span></div>'+
+    (e.context ? '<p class="hint">'+esc(e.context)+'</p>' : '')+
+    '<div class="history-label">実際の修正前</div><div class="sample before-full">'+esc(e.input)+'</div>'+
+    '<div class="history-label">実際の修正後</div><div class="sample after-full">'+esc(e.output)+'</div>'+
+    '<div class="history-label">この傾向に関係する変更箇所</div><div class="sample">修正前: '+esc(e.point.before)+'\n修正後: '+esc(e.point.after)+'</div>'+
+    '<p>理由: '+esc(e.point.reason)+'</p></div>';
+  return latest ? body : '<details><summary>別の修正例 '+date+'を見る</summary>'+body+'</details>';
+}
 function renderHistoryCoach(){
   const data=historyCoachData(LS.history,$("coHistoryPeriod").value);
   $("coHistoryReport").innerHTML = '<p class="hint">'+data.total+'件の異なる原文 / 指摘付き '+data.detailed+'件 / 旧形式 '+data.legacy+'件</p>'+
@@ -2593,7 +2612,7 @@ function renderHistoryCoach(){
     data.groups.map(g=>'<article class="coach-issue"><div class="coach-issue-head"><h3>'+esc(COACH_ISSUE_TYPES[g.key].title)+'</h3><span class="coach-count">'+g.count+'件 / '+g.days+'日</span></div>'+
     '<p class="hint">'+(g.days>=2 ? '複数日に見られた傾向' : 'まだ観察中（1日だけでは傾向を断定しません）')+(g.legacy ? '・旧形式は表現ルールによる確認候補を含みます' : '')+'</p>'+
     '<div class="learning-next">次に試すこと: '+esc(COACH_ISSUE_TYPES[g.key].advice)+'</div>'+
-    g.examples.map(e=>'<details><summary>根拠の実例 '+esc(e.d.slice(0,10))+' — '+esc(e.point.before.slice(0,45))+'</summary><div class="sample">元: '+esc(e.point.before)+'\n改善後: '+esc(e.point.after)+'</div><p>理由: '+esc(e.point.reason)+'</p><div class="history-label">原文の全文</div><div class="sample">'+esc(e.input)+'</div><div class="history-label">結果の全文</div><div class="sample">'+esc(e.output)+'</div></details>').join("")+'</article>').join(""));
+    coachComparisonHTML(g.examples[0],true)+g.examples.slice(1).map(e=>coachComparisonHTML(e,false)).join("")+'</article>').join(""));
 }
 $("coHistoryRefresh").addEventListener("click",renderHistoryCoach);
 $("coHistoryPeriod").addEventListener("change",renderHistoryCoach);
@@ -3059,7 +3078,6 @@ function loadSettings(){
   renderMasks();
   resetTargets();
 }
-$("cmTone").addEventListener("change", ()=>selectTone($("cmTone").value));
 $("stPersonaReset").addEventListener("click", ()=>{
   const cur = $("stPersona").value.trim();
   if(cur && cur !== DEFAULT_PERSONA.trim() && !confirm("今書かれているペルソナを、標準の文面で置き換えます。よろしいですか?")) return;
@@ -3291,6 +3309,7 @@ migrateDefaultPersona();
 loadSettings();
 loadDraft();
 updateMaskHints();
+updateWriteMode(false);
 renderTrainCount();
 applyDiscreet(LS.discreet);
 renderNotes();

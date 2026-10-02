@@ -130,7 +130,15 @@ function seed(h){h.sandbox.p=p;h.sandbox.fixture={type:"整える",input:p.befor
     assert.match(sys,/AIへの入力文または自分用メモ/);assert.match(sys,/宛名、あいさつ、結び、敬語、依頼や約束を追加せず/);
     assert.equal(h.get("kjIntentRow").classList.contains("hidden"),true);assert.equal(h.get("prepOption").classList.contains("hidden"),true);assert.equal(h.get("kjBasics").classList.contains("hidden"),true);assert.equal(h.get("kjStructureBasics").classList.contains("hidden"),false);
     assert.equal(h.get("prPrepWrap").classList.contains("hidden"),true);assert.equal(h.run("LS.history[0].context.startsWith('AI・メモ')"),true);
-    assert.equal(h.get("cmTone").value,"casual");assert.equal(h.get("prToneLabel").textContent,"AI・メモ");assert.match(html,/id="kjStructureHint"[^>]*>[^<]*自分用メモ/);
+    assert.equal(h.run("writeMode"),"review");assert.equal(h.get("prToneLabel").textContent,"AI・メモ");assert.match(html,/id="kjStructureHint"[^>]*>[^<]*自分用メモ/);
+  });
+  await test("review and compose share one simple writing screen",async()=>{
+    const h=harness();
+    assert.doesNotMatch(html,/data-tab="cm"/);assert.doesNotMatch(html,/id="panel-cm"/);assert.match(html,/id="writeModes"/);assert.match(html,/<details class="write-context" id="writeContext">/);
+    h.run("writeMode='compose';updateWriteMode(false)");
+    assert.equal(h.get("reviewModeFields").classList.contains("hidden"),true);assert.equal(h.get("composeModeFields").classList.contains("hidden"),false);
+    h.run("writeMode='review';updateWriteMode(false)");
+    assert.equal(h.get("reviewModeFields").classList.contains("hidden"),false);assert.equal(h.get("composeModeFields").classList.contains("hidden"),true);
   });
   await test("review and compose send work title and knowledge, then clear them",async()=>{
     const review=harness();seed(review);review.run("LS.k='dummy';requests=[]");
@@ -142,14 +150,14 @@ function seed(h){h.sandbox.p=p;h.sandbox.fixture={type:"整える",input:p.befor
     assert.match(reviewSys,/【業務タイトル】月次品質確認/);assert.match(reviewSys,/【参照ナレッジ】LODは形状の詳細度を示す/);assert.match(review.run("LS.history[0].context"),/業務タイトル: 月次品質確認/);
     await review.get("kjClear").fire("click");assert.equal(review.get("kjWorkTitle").value,"");assert.equal(review.get("kjKnowledge").value,"");
 
-    const compose=harness();seed(compose);compose.run("LS.k='dummy';requests=[]");
-    compose.get("cmWorkTitle").value="外注データ受領";compose.get("cmSubject").value="受領連絡";compose.get("cmKnowledge").value="納品物はFBXとする";compose.get("cmContext").value="Teamsチャット";compose.get("cmInput").value="受領したことを伝える";
+    const compose=harness();seed(compose);compose.run("LS.k='dummy';requests=[];writeMode='compose';updateWriteMode(false)");
+    compose.get("kjWorkTitle").value="外注データ受領";compose.get("cmSubject").value="受領連絡";compose.get("kjKnowledge").value="納品物はFBXとする";compose.get("kjContext").value="Teamsチャット";compose.get("cmInput").value="受領したことを伝える";
     compose.sandbox.payload={draft:"データを受領しました。",structure:"結論を先にした",tip:"結論を先に",tipTag:"結論先行",points:[]};
     compose.run("fetchWithTimeout=async(url,opts)=>{requests.push(JSON.parse(opts.body));return {ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(payload)}]}}]})}}");
     await compose.get("cmBtn").fire("click");
     const composeSys=compose.sandbox.requests[0].system_instruction.parts[0].text;
     assert.match(composeSys,/【業務タイトル】外注データ受領/);assert.match(composeSys,/【参照ナレッジ】納品物はFBXとする/);assert.match(compose.run("LS.history[0].context"),/ナレッジ: 納品物はFBXとする/);
-    await compose.get("cmClear").fire("click");assert.equal(compose.get("cmWorkTitle").value,"");assert.equal(compose.get("cmKnowledge").value,"");
+    await compose.get("cmClear").fire("click");assert.equal(compose.get("kjWorkTitle").value,"");assert.equal(compose.get("kjKnowledge").value,"");
   });
   await test("failed API request leaves history and notes unchanged",async()=>{
     const h=harness();h.run("LS.k='dummy';fetchWithTimeout=async()=>({ok:false,status:403,json:async()=>({error:{message:'denied'}})})");
@@ -158,7 +166,8 @@ function seed(h){h.sandbox.p=p;h.sandbox.fixture={type:"整える",input:p.befor
   });
   await test("local history analysis performs no fetch",async()=>{
     const h=harness();seed(h);h.run("LS.history=[fixture]");h.get("coHistoryPeriod").value="all";
-    await h.get("coHistoryRefresh").fire("click");assert.match(h.get("coHistoryReport").innerHTML,/敬語を簡潔にする/);
+    await h.get("coHistoryRefresh").fire("click");const report=h.get("coHistoryReport").innerHTML;
+    assert.match(report,/敬語を簡潔にする/);assert.match(report,/最新の実際の修正例/);assert.match(report,/実際の修正前/);assert.match(report,/ご確認していただけますか/);assert.match(report,/実際の修正後/);assert.match(report,/ご確認いただけますか/);
   });
   await test("filtered example copy uses correct library entry and reports clipboard failure",async()=>{
     const h=harness();const chosen=h.run("filteredManners('','断り・調整','同僚・チャット')[0]");
