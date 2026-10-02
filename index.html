@@ -176,6 +176,14 @@
   .term{font-size:13px; color:var(--sub); padding:8px 2px; display:flex; gap:10px; align-items:flex-start; border-bottom:1px solid var(--line);}
   .term b{color:var(--ink);}
   .term > div:first-child{flex:1; min-width:0; overflow-wrap:anywhere;}
+  .word-list{display:grid; gap:9px;}
+  .word-card{padding:11px 12px; border:1px solid var(--line); background:#101720; border-radius:9px;}
+  .word-head{display:flex; gap:8px; align-items:center; flex-wrap:wrap;}
+  .word-head b{font-size:14px; color:var(--ink);}
+  .word-kind{font-size:10.5px; color:var(--accent); border:1px solid #28526a; border-radius:999px; padding:2px 7px;}
+  .word-meaning{font-size:12.5px; color:var(--sub); margin-top:5px; white-space:pre-wrap;}
+  .word-example{margin-top:8px; padding:8px 10px; border-left:2px solid var(--accent2); background:#0d161f; border-radius:5px; white-space:pre-wrap; overflow-wrap:anywhere; font-size:13px;}
+  .word-actions{display:flex; gap:6px; justify-content:flex-end; margin-top:8px;}
   .item-actions{display:flex; gap:5px; flex:none;}
   .muted{color:var(--sub); font-size:12px;}
   .history-item{border-bottom:1px solid var(--line); padding:12px 2px;}
@@ -315,6 +323,7 @@
   .write-modes{display:grid; grid-template-columns:1fr 1fr; gap:4px; margin-bottom:12px; padding:3px; border:1px solid var(--line); border-radius:10px; background:#0d141d;}
   .write-modes button{padding:8px 12px; border:0; border-radius:7px; background:transparent; color:var(--sub); cursor:pointer; font-size:12px;}
   .write-modes button.on{background:#173044; color:var(--ink); font-weight:600;}
+  #wordModes{grid-template-columns:repeat(3,1fr);}
   .write-context{margin:12px 0;}
   .write-context summary{cursor:pointer; color:var(--sub); font-size:12px;}
   .write-context[open] summary{margin-bottom:10px; color:#b8c4d3;}
@@ -411,8 +420,7 @@
       <button data-tab="kj" class="active"><span class="nav-code">WRITE</span><span class="nav-label">文章</span></button>
       <button data-tab="tr"><span class="nav-code">TRANS</span><span class="nav-label">翻訳</span></button>
       <button data-tab="cv"><span class="nav-code">CASE</span><span class="nav-label">変換</span></button>
-      <button data-tab="ph"><span class="nav-code">PHRASE</span><span class="nav-label">フレーズ <span id="phCount"></span></span></button>
-      <button data-tab="dc"><span class="nav-code">GLOSSARY</span><span class="nav-label">用語帳 <span id="dcCount"></span></span></button>
+      <button data-tab="ph"><span class="nav-code">WORDS</span><span class="nav-label">言葉帳 <span id="phCount"></span></span></button>
       <button data-tab="hi"><span class="nav-code">HISTORY</span><span class="nav-label">履歴 <span id="hiCount"></span></span></button>
       <button data-tab="sk"><span class="nav-code">STOCK</span><span class="nav-label">ストック <span id="skCount"></span></span></button>
       <button data-tab="mn" class="t-learn"><span class="nav-code">MANNER</span><span class="nav-label">マナーガイド</span></button>
@@ -612,48 +620,34 @@
     </div>
   </div>
 
-  <!-- ============ フレーズ集 ============ -->
+  <!-- ============ 言葉帳（定番フレーズ・用語・履歴候補） ============ -->
   <div class="panel" id="panel-ph">
-    <div class="page-head"><div class="page-desc">よく使う依頼、報告、挨拶を蓄積し、必要なときにすぐコピーできます。</div></div>
+    <div class="page-head"><div class="page-desc">最低限覚えたい言い回し、接続詞、自分の用語を、意味と例文でまとめて確認できます。</div></div>
     <div class="card">
-      <textarea id="phInput" rows="2" placeholder="よく使う文を登録(定型の挨拶・依頼・報告の書き出しなど)"></textarea>
-      <div class="row" style="margin-top:8px;">
-        <input type="text" id="phLabel" placeholder="ラベル(任意)" style="width:200px;">
-        <div class="spacer"></div>
-        <span class="status" id="phStatus"></span>
-        <button class="btn sub hidden" id="phCancel">キャンセル</button>
-        <button class="btn" id="phAdd">登録</button>
+      <div class="write-modes" id="wordModes" aria-label="言葉帳の表示を選択"><button data-word-view="library" class="on">定番50</button><button data-word-view="history">履歴から</button><button data-word-view="mine">自分の登録</button></div>
+    </div>
+    <section id="wordLibraryView">
+      <div class="card">
+        <div class="toolbar"><input type="text" id="wordSearch" placeholder="フレーズ・意味・例文を検索…"><select id="wordCategory" aria-label="分類"><option value="">すべての分類</option><option>依頼</option><option>確認・共有</option><option>報告</option><option>調整・断り</option><option>感謝・謝罪</option><option>接続詞</option></select></div>
+        <div class="hint" id="wordLibraryCount"></div><div class="word-list" id="wordLibraryList"></div>
       </div>
-      <div class="hint">整える・添削・作成・翻訳の結果からも「フレーズ登録」で追加できます。コピーするたびに使用回数がカウントされます。</div>
-    </div>
-    <div class="card">
-      <div class="toolbar">
-        <input type="text" id="phSearch" placeholder="検索…">
-        <select id="phSort">
-          <option value="use">よく使う順</option>
-          <option value="new">新しい順</option>
-        </select>
-      </div>
-      <div id="phList"></div>
-    </div>
-  </div>
-
-  <!-- ============ 用語帳 ============ -->
-  <div class="panel" id="panel-dc">
-    <div class="page-head"><div class="page-desc">仕事で使う用語と意味・訳語を、自分用の小さな辞典として残せます。データはこのブラウザ内にだけ保存されます。</div></div>
-    <div class="card">
-      <div class="form-grid glossary-form">
-        <div><label for="dcTerm">用語</label><input id="dcTerm" type="text" placeholder="例）turnaround time"></div>
-        <div><label for="dcReading">読み・英訳（任意）</label><input id="dcReading" type="text" placeholder="例）ターンアラウンドタイム"></div>
-        <div class="full"><label for="dcMeaning">意味・使い方</label><textarea id="dcMeaning" rows="2" placeholder="自分が迷わないための短い説明や、よく使う訳語"></textarea></div>
-        <div class="full"><label for="dcNote">メモ（任意）</label><input id="dcNote" type="text" placeholder="例）納期の話では『対応時間』よりこちらを使う"></div>
-      </div>
-      <div class="row" style="margin-top:8px;"><span class="status" id="dcStatus"></span><div class="spacer"></div><button class="btn sub hidden" id="dcCancel">キャンセル</button><button class="btn" id="dcAdd">登録</button></div>
-    </div>
-    <div class="card">
-      <div class="toolbar"><input type="text" id="dcSearch" placeholder="用語・意味・メモを検索…"></div>
-      <div id="dcList"></div>
-    </div>
+    </section>
+    <section id="wordHistoryView" class="hidden">
+      <div class="card"><div class="hint">保存済みの校正履歴にある「実際の修正後」から短い表現を候補にします。外部AIへ再送せず、この端末内だけで抽出します。必要なものだけ登録してください。</div><div class="word-list" id="wordHistoryList"></div></div>
+    </section>
+    <section id="wordMineView" class="hidden">
+      <details class="card write-context"><summary>フレーズを追加</summary>
+        <textarea id="phInput" rows="2" placeholder="よく使う文を登録（挨拶・依頼・報告など）"></textarea>
+        <div class="row" style="margin-top:8px;"><input type="text" id="phLabel" placeholder="分類（任意）" style="width:200px;"><div class="spacer"></div><span class="status" id="phStatus"></span><button class="btn sub hidden" id="phCancel">キャンセル</button><button class="btn" id="phAdd">登録</button></div>
+        <div class="hint">文章の結果にある「フレーズ登録」からも追加できます。</div>
+      </details>
+      <div class="card"><div class="sec-title">自分のフレーズ</div><div class="toolbar"><input type="text" id="phSearch" placeholder="登録したフレーズを検索…"><select id="phSort"><option value="use">よく使う順</option><option value="new">新しい順</option></select></div><div id="phList"></div></div>
+      <details class="card write-context"><summary>用語を追加</summary>
+        <div class="form-grid glossary-form"><div><label for="dcTerm">用語</label><input id="dcTerm" type="text" placeholder="例）turnaround time"></div><div><label for="dcReading">読み・英訳（任意）</label><input id="dcReading" type="text" placeholder="例）ターンアラウンドタイム"></div><div class="full"><label for="dcMeaning">意味・使い方</label><textarea id="dcMeaning" rows="2" placeholder="自分が迷わないための短い説明や、よく使う訳語"></textarea></div><div class="full"><label for="dcNote">例文・メモ（任意）</label><input id="dcNote" type="text" placeholder="例）The turnaround time is three business days."></div></div>
+        <div class="row" style="margin-top:8px;"><span class="status" id="dcStatus"></span><div class="spacer"></div><button class="btn sub hidden" id="dcCancel">キャンセル</button><button class="btn" id="dcAdd">登録</button></div>
+      </details>
+      <div class="card"><div class="sec-title">自分の用語</div><div class="toolbar"><input type="text" id="dcSearch" placeholder="用語・意味・メモを検索…"></div><div id="dcList"></div></div>
+    </section>
   </div>
 
   <!-- ============ 履歴 ============ -->
@@ -903,7 +897,7 @@
         <input type="file" id="bkFile" accept=".json,application/json" class="hidden">
       </div>
       <div class="status" id="bkStatus" style="margin-top:6px;"></div>
-      <div class="hint">学びノート・フレーズ集・用語帳・履歴・ストック・伏せ字リスト・設定をJSONファイル1つに保存します。履歴やノート、ストックには入力した本文・実名がそのまま入るため、ファイルの置き場所には注意してください。読み込み時は既存データに統合されるため、いま貯まっているものが消えることはありません。OneDrive内に書き出しておけば、別PCから同じファイルを読み込むだけで引っ越し完了です。</div>
+      <div class="hint">学びノート・言葉帳の自分の登録・履歴・ストック・伏せ字リスト・設定をJSONファイル1つに保存します。履歴やノート、ストックには入力した本文・実名がそのまま入るため、ファイルの置き場所には注意してください。読み込み時は既存データに統合されるため、いま貯まっているものが消えることはありません。OneDrive内に書き出しておけば、別PCから同じファイルを読み込むだけで引っ越し完了です。</div>
     </div>
   </div>
 
@@ -1059,6 +1053,119 @@ const MANNERS = [
   {cat:"報告", title:"問題報告には自分の提案も添える", body:"問題だけで終わらず、考えている対応案と判断してほしい点を加えます。", example:"提出版との差異が見つかりました。旧版へ戻して本日の確認を進める案を考えています。こちらで進めてよいかご判断をお願いします。"}
 ];
 
+/* ---------- 言葉帳の定番50 ----------
+   更新で全端末へ届く読み取り専用ライブラリ。利用者が登録したフレーズ・用語とは分けて保持する。 */
+const BUSINESS_WORD_LIBRARY = [
+  {cat:"依頼",term:"ご確認ください",meaning:"内容を見てほしいときの基本表現。期限や確認点を添えると伝わりやすい。",example:"添付資料の3ページ目をご確認ください。"},
+  {cat:"依頼",term:"ご確認いただけますか",meaning:"確認をやわらかく依頼する表現。社内外のどちらでも使いやすい。",example:"数値に相違がないか、ご確認いただけますか。"},
+  {cat:"依頼",term:"ご対応をお願いします",meaning:"必要な作業を依頼する基本表現。何をするかを直前に明記する。",example:"本日中に担当者名の更新をお願いします。"},
+  {cat:"依頼",term:"ご対応いただけますと幸いです",meaning:"急かしすぎず、丁寧に対応をお願いする表現。",example:"可能な範囲で、金曜日までにご対応いただけますと幸いです。"},
+  {cat:"依頼",term:"ご教示ください",meaning:"方法・知識・判断基準を教えてほしいときに使う。物を見せてほしい場合は「ご提示」が適切。",example:"このデータの更新手順をご教示ください。"},
+  {cat:"依頼",term:"ご共有ください",meaning:"資料や情報を共有してほしいときに使う。対象と期限を添える。",example:"確定版のスケジュールをご共有ください。"},
+  {cat:"依頼",term:"ご提出をお願いします",meaning:"成果物や書類を提出してほしいときの表現。提出先も明記すると親切。",example:"確認済みの一覧表を共有フォルダへご提出ください。"},
+  {cat:"依頼",term:"お手数をおかけしますが",meaning:"相手に作業をお願いする前置き。重ねて使いすぎない。",example:"お手数をおかけしますが、内容の再確認をお願いします。"},
+  {cat:"依頼",term:"差し支えなければ",meaning:"相手の事情へ配慮しながら、任意の依頼や質問をするときに使う。",example:"差し支えなければ、判断の背景を教えていただけますか。"},
+  {cat:"依頼",term:"可能でしたら",meaning:"必須ではない依頼をやわらかく伝える。必須事項には使わない。",example:"可能でしたら、明日の午前中までにご返信ください。"},
+  {cat:"確認・共有",term:"ご承知おきください",meaning:"事前に知っておいてほしいことを伝える。目上の相手には強く響くことがあるため、重要事項の通知に限定する。",example:"明日はシステム停止のため作業できませんので、ご承知おきください。"},
+  {cat:"確認・共有",term:"念のため共有します",meaning:"既知かもしれない情報を補足として伝える。チャットで使いやすい。",example:"念のため、更新後のファイル名を共有します。"},
+  {cat:"確認・共有",term:"認識に相違がないかご確認ください",meaning:"条件や決定事項の理解をそろえるときに使う。",example:"納品日は15日という認識に相違がないかご確認ください。"},
+  {cat:"確認・共有",term:"以下の理解で相違ないでしょうか",meaning:"自分の理解を示したうえで確認する表現。往復を減らしやすい。",example:"今回は形状のみ更新し、質感は変更しないという理解で相違ないでしょうか。"},
+  {cat:"確認・共有",term:"ご参考までに",meaning:"判断材料として情報を添える。対応が必要な内容には使わない。",example:"ご参考までに、前回の確認結果を添付します。"},
+  {cat:"確認・共有",term:"取り急ぎご連絡します",meaning:"詳細より先に要点だけ伝える表現。後で補足する場合はその予定も書く。",example:"会議時間が変更になりましたので、取り急ぎご連絡します。"},
+  {cat:"確認・共有",term:"現時点では",meaning:"今後変わる可能性がある情報を、確定事項と区別する。",example:"現時点では、予定どおり金曜日に提出する見込みです。"},
+  {cat:"確認・共有",term:"詳細が分かり次第",meaning:"未確定事項について、次に連絡する条件を示す。",example:"原因の詳細が分かり次第、改めてご報告します。"},
+  {cat:"報告",term:"進捗をご報告します",meaning:"進み具合を伝える書き出し。完了・残件・次の予定を続ける。",example:"データ変換の進捗をご報告します。現在80％まで完了しています。"},
+  {cat:"報告",term:"対応が完了しました",meaning:"依頼された作業の完了を明確に伝える。確認場所も添える。",example:"ファイル名の修正が完了しました。共有フォルダでご確認いただけます。"},
+  {cat:"報告",term:"現在確認中です",meaning:"まだ結論が出ていないことと、対応中であることを示す。次の連絡時期を添える。",example:"原因は現在確認中です。本日15時までに状況をご連絡します。"},
+  {cat:"報告",term:"問題が判明しました",meaning:"問題の存在を先に伝え、影響と対応を続ける。",example:"一部の画像が旧版であることが判明しました。対象範囲を確認しています。"},
+  {cat:"報告",term:"対応方針は以下のとおりです",meaning:"複数の対応内容を整理して示す前置き。箇条書きと相性がよい。",example:"対応方針は以下のとおりです。\n・旧版を差し替える\n・差分を再確認する"},
+  {cat:"報告",term:"結論から申し上げますと",meaning:"説明が長くなる前に結論を明示する。硬めなので社外や正式な報告向け。",example:"結論から申し上げますと、予定どおりの納品が可能です。"},
+  {cat:"報告",term:"予定どおり進んでいます",meaning:"遅延がないことを端的に伝える。次の節目も添える。",example:"作業は予定どおり進んでいます。明日から最終確認へ移ります。"},
+  {cat:"報告",term:"遅れが生じています",meaning:"遅延を曖昧にせず伝える。理由・影響・新しい見込みを続ける。",example:"確認作業に遅れが生じています。完了見込みは明日午前です。"},
+  {cat:"調整・断り",term:"日程を調整させてください",meaning:"提示された日程の変更を相談する。希望候補を続ける。",example:"確認時間を確保するため、提出日程を調整させてください。"},
+  {cat:"調整・断り",term:"別日をご相談できますか",meaning:"都合が合わないとき、代案を前提に相談する表現。",example:"当日の参加が難しいため、別日をご相談できますか。"},
+  {cat:"調整・断り",term:"今回は見送らせてください",meaning:"提案などを今回は採用しないと伝える。必要なら理由や再検討条件を添える。",example:"現行仕様を優先するため、今回の変更は見送らせてください。"},
+  {cat:"調整・断り",term:"ご希望に沿えず申し訳ありません",meaning:"相手の希望へ対応できないことへの配慮を示す。代替案を続けるとよい。",example:"ご希望に沿えず申し訳ありません。代わりに来週火曜日であれば対応可能です。"},
+  {cat:"調整・断り",term:"現状では対応が難しい状況です",meaning:"即答で断定せず、現在の制約を伝える。何が変われば可能かを添える。",example:"必要なデータが未着のため、現状では本日中の対応が難しい状況です。"},
+  {cat:"調整・断り",term:"代替案として",meaning:"断りや問題報告のあとに、別の進め方を提示する接続表現。",example:"代替案として、先に確認済みの範囲だけ共有します。"},
+  {cat:"調整・断り",term:"優先順位をご相談したいです",meaning:"すべてを同時に進められないとき、判断を依頼する。",example:"期限内に品質を保つため、作業の優先順位をご相談したいです。"},
+  {cat:"調整・断り",term:"期限を延長いただけますか",meaning:"延期が必要な理由と新しい期限をセットで伝える。",example:"追加確認が必要なため、期限を金曜日まで延長いただけますか。"},
+  {cat:"感謝・謝罪",term:"ありがとうございます",meaning:"基本の感謝表現。何への感謝かを添えると具体的になる。",example:"早速ご確認いただき、ありがとうございます。"},
+  {cat:"感謝・謝罪",term:"ご対応ありがとうございます",meaning:"依頼した作業への感謝を端的に伝える。",example:"急なお願いにもかかわらず、ご対応ありがとうございます。"},
+  {cat:"感謝・謝罪",term:"ご配慮いただきありがとうございます",meaning:"日程や事情へ配慮してもらったときに使う。",example:"スケジュールをご調整いただき、ありがとうございます。"},
+  {cat:"感謝・謝罪",term:"申し訳ございません",meaning:"社外や正式な場面での謝罪。事実・影響・対応を続け、繰り返しすぎない。",example:"ご連絡が遅くなり、申し訳ございません。本日中に確認結果をお送りします。"},
+  {cat:"感謝・謝罪",term:"ご迷惑をおかけしました",meaning:"相手へ実際に影響が出たときの謝罪。対応結果も添える。",example:"一時的に閲覧できない状態となり、ご迷惑をおかけしました。現在は復旧しています。"},
+  {cat:"感謝・謝罪",term:"失礼いたしました",meaning:"言い間違い・認識違い・軽微な不手際を訂正するときに使う。",example:"先ほどの日付に誤りがありました。失礼いたしました。正しくは12日です。"},
+  {cat:"接続詞",term:"そのため",meaning:"前の内容を理由として、結果や対応を続ける。因果関係が明確なときに使う。",example:"確認に時間を要しています。そのため、回答は明日午前になります。"},
+  {cat:"接続詞",term:"したがって",meaning:"前提から論理的な結論を導く。やや硬めで、報告書や正式な説明向け。",example:"旧仕様との互換性がありません。したがって、全データの再出力が必要です。"},
+  {cat:"接続詞",term:"一方で",meaning:"別の側面や対照的な内容を示す。単なる追加には使わない。",example:"作業時間は短縮できます。一方で、確認工程を増やす必要があります。"},
+  {cat:"接続詞",term:"ただし",meaning:"条件や例外を追加する。重要な制約の前に置く。",example:"本日中に提出可能です。ただし、最終確認は明朝になります。"},
+  {cat:"接続詞",term:"なお",meaning:"本文に関連する補足を加える。話題を大きく変える場合には使わない。",example:"会議は15時開始です。なお、資料は事前に共有します。"},
+  {cat:"接続詞",term:"また",meaning:"同じ重要度の情報を追加する。連続使用すると単調になるので注意する。",example:"形状を更新しました。また、ファイル名も統一しています。"},
+  {cat:"接続詞",term:"さらに",meaning:"前の内容へ、より強い追加情報を重ねる。",example:"処理速度が向上しました。さらに、エラー表示も分かりやすくなりました。"},
+  {cat:"接続詞",term:"まず",meaning:"手順や説明の最初を示す。「次に」「最後に」と組み合わせる。",example:"まず、対象ファイルが最新版か確認します。"},
+  {cat:"接続詞",term:"次に",meaning:"手順や論点の順番を示す。文章の流れを追いやすくする。",example:"次に、差分がある箇所だけを修正します。"},
+  {cat:"接続詞",term:"具体的には",meaning:"抽象的な説明のあとに、例や実際の内容を示す。",example:"確認工程を見直します。具体的には、提出前のチェック項目を3つ追加します。"}
+];
+
+let wordView = "library";
+
+function updateWordCount(){
+  const custom = LS.phrases.length + LS.dictionary.length;
+  $("phCount").textContent = "(" + (BUSINESS_WORD_LIBRARY.length + custom) + ")";
+}
+
+function renderWordLibrary(){
+  const q = $("wordSearch").value.trim().toLowerCase();
+  const category = $("wordCategory").value;
+  const list = BUSINESS_WORD_LIBRARY.map((x,i)=>({...x,i})).filter(x=>(!category||x.cat===category)&&(!q||[x.term,x.meaning,x.example,x.cat].join("\n").toLowerCase().includes(q)));
+  $("wordLibraryCount").textContent = list.length + "件表示 / 全" + BUSINESS_WORD_LIBRARY.length + "件";
+  $("wordLibraryList").innerHTML = !list.length ? '<div class="empty-state">条件に合う言葉がありません。</div>' : list.map(x=>'<article class="word-card"><div class="word-head"><span class="word-kind">'+esc(x.cat)+'</span><b>'+esc(x.term)+'</b></div><div class="word-meaning">'+esc(x.meaning)+'</div><div class="word-example">'+esc(x.example)+'</div><div class="word-actions"><button class="btn sub tiny word-copy" data-i="'+x.i+'">例文をコピー</button></div></article>').join("");
+  document.querySelectorAll("#wordLibraryList .word-copy").forEach(b=>b.addEventListener("click",async()=>{const item=BUSINESS_WORD_LIBRARY[Number(b.dataset.i)];if(!item)return;try{await navigator.clipboard.writeText(item.example);b.textContent="コピー済み";}catch(e){b.textContent="コピー不可";}setTimeout(()=>b.textContent="例文をコピー",1500);}));
+  updateWordCount();
+}
+
+function historyWordCandidates(){
+  const rows = [...LS.history, ...LS.notes], seen = new Set(), result = [];
+  rows.forEach(row=>{
+    const learning = row && row.learning;
+    (learning && Array.isArray(learning.points) ? learning.points : []).forEach(point=>{
+      const term=String(point && point.after || "").trim(), before=String(point && point.before || "").trim();
+      if(term.length<2 || term.length>60 || !before || before===term || seen.has(term)) return;
+      seen.add(term);
+      result.push({term,meaning:String(point.reason||learning.tip||"履歴で見直した表現"),example:String(row.output||term).slice(0,240),source:String(row.type||row.source||"校正履歴")});
+    });
+  });
+  return result.slice(0,20);
+}
+
+function registerHistoryWord(index){
+  const item=historyWordCandidates()[index];
+  if(!item) return false;
+  const phrases=LS.phrases;
+  if(phrases.some(p=>p.t===item.term)) return false;
+  phrases.unshift({t:item.term,l:"履歴から",n:0,d:new Date().toISOString().slice(0,10)});
+  try{LS.phrases=phrases;renderPhrases();return true;}catch(e){showSaveWarning();return false;}
+}
+
+function renderHistoryWords(){
+  const list=historyWordCandidates();
+  $("wordHistoryList").innerHTML = !list.length ? '<div class="empty-state">候補はまだありません。校正で修正前・修正後の学びが保存されると、ここに表示されます。</div>' : list.map((x,i)=>'<article class="word-card"><div class="word-head"><span class="word-kind">'+esc(x.source)+'</span><b>'+esc(x.term)+'</b></div><div class="word-meaning">'+esc(x.meaning)+'</div><div class="word-example">'+esc(x.example)+'</div><div class="word-actions"><button class="btn sub tiny history-word-copy" data-i="'+i+'">コピー</button><button class="btn sub tiny history-word-save" data-i="'+i+'">自分の登録へ</button></div></article>').join("");
+  document.querySelectorAll("#wordHistoryList .history-word-copy").forEach(b=>b.addEventListener("click",async()=>{const item=historyWordCandidates()[Number(b.dataset.i)];if(!item)return;try{await navigator.clipboard.writeText(item.term);b.textContent="コピー済み";}catch(e){b.textContent="コピー不可";}setTimeout(()=>b.textContent="コピー",1500);}));
+  document.querySelectorAll("#wordHistoryList .history-word-save").forEach(b=>b.addEventListener("click",()=>{registerHistoryWord(Number(b.dataset.i));b.textContent="登録済み";}));
+}
+
+function updateWordView(focus=false){
+  document.querySelectorAll("#wordModes button").forEach(b=>b.classList.toggle("on",b.dataset.wordView===wordView));
+  $("wordLibraryView").classList.toggle("hidden",wordView!=="library");
+  $("wordHistoryView").classList.toggle("hidden",wordView!=="history");
+  $("wordMineView").classList.toggle("hidden",wordView!=="mine");
+  if(wordView==="library") renderWordLibrary();
+  if(wordView==="history") renderHistoryWords();
+  if(wordView==="mine"){renderPhrases();renderDictionary();}
+  if(focus) $(wordView==="library"?"wordSearch":wordView==="mine"?"phSearch":"wordHistoryList").focus();
+}
+
 /* ---------- tabs ---------- */
 const $ = id => document.getElementById(id);
 document.querySelectorAll("nav button").forEach(b=>{
@@ -1072,13 +1179,15 @@ document.querySelectorAll("nav button").forEach(b=>{
     if(b.dataset.tab==="tr") $("trInput").focus();
     if(b.dataset.tab==="cv") $("cvInput").focus();
     if(b.dataset.tab==="co") $("coInput").focus();
-    if(b.dataset.tab==="ph") $("phSearch").focus();
-    if(b.dataset.tab==="dc") $("dcSearch").focus();
+    if(b.dataset.tab==="ph") $(wordView==="library" ? "wordSearch" : wordView==="mine" ? "phSearch" : "wordHistoryList").focus();
     if(b.dataset.tab==="hi") $("hiSearch").focus();
     if(b.dataset.tab==="sk") $("skSearch").focus();
     if(b.dataset.tab==="mn") $("mnSearch").focus();
   });
 });
+document.querySelectorAll("#wordModes button").forEach(b=>b.addEventListener("click",()=>{wordView=b.dataset.wordView||"library";updateWordView(true);}));
+$("wordSearch").addEventListener("input",renderWordLibrary);
+$("wordCategory").addEventListener("change",renderWordLibrary);
 
 /* ---------- gemini call ---------- */
 const API_MAX_ATTEMPTS = 2;
@@ -1322,6 +1431,7 @@ function recordHistoryResult(config, result){
   }
   if($("hiList")) renderHistory();
   if($("coHistoryReport")) renderHistoryCoach();
+  if(wordView==="history" && $("wordHistoryList")) renderHistoryWords();
 }
 
 function showSaveWarning(){
@@ -1380,7 +1490,7 @@ function renderHistory(){
     setTimeout(()=>b.textContent="ストック", 1500);
   }));
   document.querySelectorAll("#hiList .hi-del").forEach(b=>b.addEventListener("click", ()=>{
-    LS.history = LS.history.filter(h=>h.id !== b.dataset.id); renderHistory(); renderHistoryCoach();
+    LS.history = LS.history.filter(h=>h.id !== b.dataset.id); renderHistory(); renderHistoryCoach(); if(wordView==="history") renderHistoryWords();
   }));
 }
 
@@ -1441,7 +1551,7 @@ function renderStock(){
 
 function renderDictionary(){
   const entries = LS.dictionary;
-  $("dcCount").textContent = entries.length ? "(" + entries.length + ")" : "";
+  updateWordCount();
   const q = $("dcSearch").value.trim().toLowerCase();
   const list = entries.map((e,i)=>({...e,i})).filter(e=>!q || (e.term+"\n"+e.reading+"\n"+e.meaning+"\n"+e.note).toLowerCase().includes(q));
   $("dcList").innerHTML = !entries.length
@@ -2855,7 +2965,7 @@ let phEditIndex = -1;
 
 function renderPhrases(){
   const phrases = LS.phrases;
-  $("phCount").textContent = phrases.length ? "(" + phrases.length + ")" : "";
+  updateWordCount();
   const q = $("phSearch").value.trim().toLowerCase();
   let list = phrases.map((p,i)=>({ ...p, i }))
     .filter(p=>!q || p.t.toLowerCase().includes(q) || (p.l||"").toLowerCase().includes(q));
@@ -3287,8 +3397,8 @@ $("bkFile").addEventListener("change", ()=>{
       if(data.tone && TONES[data.tone]) LS.tone = data.tone;
       if(data.apikey) LS.k = String(data.apikey);
 
-      loadSettings(); renderNotes(); renderPhrases(); renderDictionary(); renderHistory(); renderStock(); renderCoach(); updateMaskHints();
-      setStatus("bkStatus", "読み込みました ✓ 学びノート +" + addN + "件 / フレーズ +" + addP + "件 / 用語帳 +" + addD + "件 / 履歴 +" + addH + "件 / ストック +" + addS + "件 / コーチ記録 +" + addC + "件 / 伏せ字 +" + addM + "件(重複は自動で除外)", false, false);
+      loadSettings(); renderNotes(); renderPhrases(); renderDictionary(); renderHistory(); renderStock(); renderCoach(); updateMaskHints(); updateWordView(false);
+      setStatus("bkStatus", "読み込みました ✓ 学びノート +" + addN + "件 / 言葉帳（フレーズ +" + addP + " / 用語 +" + addD + "件）/ 履歴 +" + addH + "件 / ストック +" + addS + "件 / コーチ記録 +" + addC + "件 / 伏せ字 +" + addM + "件(重複は自動で除外)", false, false);
     }catch(e){
       setStatus("bkStatus", e.message || "読み込みに失敗しました。", true, false);
     }
@@ -3315,6 +3425,7 @@ applyDiscreet(LS.discreet);
 renderNotes();
 renderPhrases();
 renderDictionary();
+updateWordView(false);
 renderHistory();
 renderStock();
 renderManners();
