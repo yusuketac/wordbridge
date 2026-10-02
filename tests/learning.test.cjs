@@ -142,30 +142,30 @@ function seed(h){h.sandbox.p=p;h.sandbox.fixture={type:"整える",input:p.befor
   });
   await test("review and compose share one simple writing screen",async()=>{
     const h=harness();
-    assert.doesNotMatch(html,/data-tab="cm"/);assert.doesNotMatch(html,/id="panel-cm"/);assert.match(html,/id="writeModes"/);assert.match(html,/<details class="write-context" id="writeContext">/);
+    assert.doesNotMatch(html,/data-tab="cm"/);assert.doesNotMatch(html,/id="panel-cm"/);assert.doesNotMatch(html,/id="cmSubject"/);assert.match(html,/id="writeModes"/);assert.match(html,/id="kjTargetBlock"[\s\S]*id="kjTitle"[\s\S]*<\/div>\s*<div class="hint hidden" id="kjStructureHint"/);assert.match(html,/<details class="write-context" id="writeContext">/);
     h.run("writeMode='compose';updateWriteMode(false)");
     assert.equal(h.get("reviewModeFields").classList.contains("hidden"),true);assert.equal(h.get("composeModeFields").classList.contains("hidden"),false);
     h.run("writeMode='review';updateWriteMode(false)");
     assert.equal(h.get("reviewModeFields").classList.contains("hidden"),false);assert.equal(h.get("composeModeFields").classList.contains("hidden"),true);
   });
-  await test("review and compose send work title and knowledge, then clear them",async()=>{
+  await test("review and compose share title, work title and knowledge, then clear them",async()=>{
     const review=harness();seed(review);review.run("LS.k='dummy';requests=[]");
-    review.get("kjWorkTitle").value="月次品質確認";review.get("kjKnowledge").value="LODは形状の詳細度を示す";review.get("kjContext").value="社内資料";review.get("kjInput").value=p.before;
+    review.get("kjTitle").value="品質確認のお願い";review.get("kjWorkTitle").value="月次品質確認";review.get("kjKnowledge").value="LODは形状の詳細度を示す";review.get("kjContext").value="社内資料";review.get("kjInput").value=p.before;
     review.sandbox.payload={revised:p.after,tip:"用語を統一する",tips:[],points:[p]};
     review.run("fetchWithTimeout=async(url,opts)=>{requests.push(JSON.parse(opts.body));return {ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(payload)}]}}]})}}");
     await review.get("kjBtn").fire("click");
     const reviewSys=review.sandbox.requests[0].system_instruction.parts[0].text;
-    assert.match(reviewSys,/【業務タイトル】月次品質確認/);assert.match(reviewSys,/【参照ナレッジ】LODは形状の詳細度を示す/);assert.match(review.run("LS.history[0].context"),/業務タイトル: 月次品質確認/);
-    await review.get("kjClear").fire("click");assert.equal(review.get("kjWorkTitle").value,"");assert.equal(review.get("kjKnowledge").value,"");
+    assert.match(reviewSys,/【タイトル・件名】品質確認のお願い/);assert.match(reviewSys,/【業務タイトル】月次品質確認/);assert.match(reviewSys,/【参照ナレッジ】LODは形状の詳細度を示す/);assert.match(review.run("LS.history[0].context"),/タイトル・件名: 品質確認のお願い/);
+    await review.get("kjClear").fire("click");assert.equal(review.get("kjTitle").value,"");assert.equal(review.get("kjWorkTitle").value,"");assert.equal(review.get("kjKnowledge").value,"");
 
     const compose=harness();seed(compose);compose.run("LS.k='dummy';requests=[];writeMode='compose';updateWriteMode(false)");
-    compose.get("kjWorkTitle").value="外注データ受領";compose.get("cmSubject").value="受領連絡";compose.get("kjKnowledge").value="納品物はFBXとする";compose.get("kjContext").value="Teamsチャット";compose.get("cmInput").value="受領したことを伝える";
+    compose.get("kjTitle").value="受領連絡";compose.get("kjWorkTitle").value="外注データ受領";compose.get("kjKnowledge").value="納品物はFBXとする";compose.get("kjContext").value="Teamsチャット";compose.get("cmInput").value="受領したことを伝える";
     compose.sandbox.payload={draft:"データを受領しました。",structure:"結論を先にした",tip:"結論を先に",tipTag:"結論先行",points:[]};
     compose.run("fetchWithTimeout=async(url,opts)=>{requests.push(JSON.parse(opts.body));return {ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(payload)}]}}]})}}");
     await compose.get("cmBtn").fire("click");
     const composeSys=compose.sandbox.requests[0].system_instruction.parts[0].text;
-    assert.match(composeSys,/【業務タイトル】外注データ受領/);assert.match(composeSys,/【参照ナレッジ】納品物はFBXとする/);assert.match(compose.run("LS.history[0].context"),/ナレッジ: 納品物はFBXとする/);
-    await compose.get("cmClear").fire("click");assert.equal(compose.get("kjWorkTitle").value,"");assert.equal(compose.get("kjKnowledge").value,"");
+    assert.match(composeSys,/【タイトル・件名】受領連絡/);assert.match(composeSys,/【業務タイトル】外注データ受領/);assert.match(composeSys,/【参照ナレッジ】納品物はFBXとする/);assert.match(compose.run("LS.history[0].context"),/タイトル・件名: 受領連絡/);
+    await compose.get("cmClear").fire("click");assert.equal(compose.get("kjTitle").value,"");assert.equal(compose.get("kjWorkTitle").value,"");assert.equal(compose.get("kjKnowledge").value,"");
   });
   await test("failed API request leaves history and notes unchanged",async()=>{
     const h=harness();h.run("LS.k='dummy';fetchWithTimeout=async()=>({ok:false,status:403,json:async()=>({error:{message:'denied'}})})");

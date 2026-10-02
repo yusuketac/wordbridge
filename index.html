@@ -294,6 +294,7 @@
   .btn.sub{background:var(--surface-3); border:1px solid var(--line); color:var(--ink);}
   .btn.tiny{min-height:30px; padding:4px 10px;}
   .pick-row{display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:9px;}
+  .title-row input{flex:1; min-width:220px;}
   .pick-label{flex:none; font-size:11px; font-weight:500; color:#66748a;}
   .tones{flex-wrap:wrap; gap:6px;}
   .tones button,.intent-row button{
@@ -454,6 +455,7 @@
           <div class="intent-row" id="kjIntents">
             <button data-intent="依頼" class="on">依頼</button><button data-intent="報告">報告</button><button data-intent="確認">確認</button><button data-intent="催促">催促</button><button data-intent="お詫び">お詫び</button><button data-intent="お礼">お礼</button><button data-intent="相談">相談</button><button data-intent="日程調整">日程調整</button>
           </div></div>
+          <div class="pick-row title-row"><label class="pick-label" for="kjTitle">タイトル</label><input type="text" id="kjTitle" aria-label="タイトル・件名（任意）" placeholder="Teams投稿・メール件名・ナレッジ見出し（任意）"></div>
           </div>
           <div class="hint hidden" id="kjStructureHint">ChatGPTなどAIへの質問・指示文や、自分用メモに。宛名や敬語を足さず、文章の流れ・情報の順番・表現を整えます。</div>
           <details class="write-context" id="writeContext">
@@ -476,8 +478,7 @@
             <div class="row" style="margin-top:10px;"><div class="hint"><kbd>Enter</kbd> 整える / <kbd>Ctrl+Enter</kbd> 詳しく添削 / <kbd>Shift+Enter</kbd> 改行</div><label class="prep-opt" id="prepOption"><input type="checkbox" id="prepToggle" checked> PREP分析</label><div class="spacer"></div><span class="row-actions"><span class="status" id="kjStatus"></span><button class="btn sub" id="kjClear" title="入力・業務情報・結果を消します（Esc）">クリア</button><button class="btn sub" id="prBtn" title="直した理由まで詳しく見る（Ctrl+Enter）">詳しく添削</button><button class="btn" id="kjBtn">整える</button></span></div>
           </div>
           <div id="composeModeFields" class="hidden">
-            <label for="cmSubject" class="field-label">件名・話題（任意）</label><input type="text" id="cmSubject" placeholder="例：提出データ確認のお願い">
-            <label for="cmInput" class="field-label" style="margin-top:12px;">伝えたい要点</label><textarea id="cmInput" rows="7" placeholder="箇条書きで大丈夫です。&#10;・最新データを共有した&#10;・今日17時までに確認してほしい"></textarea>
+            <label for="cmInput" class="field-label">伝えたい要点</label><textarea id="cmInput" rows="7" placeholder="箇条書きで大丈夫です。&#10;・最新データを共有した&#10;・今日17時までに確認してほしい"></textarea>
             <div class="mask-hint hidden" id="cmMaskHint"></div>
             <div class="row" style="margin-top:10px;"><div class="hint"><kbd>Enter</kbd> 作成 / <kbd>Shift+Enter</kbd> 改行</div><div class="spacer"></div><span class="row-actions"><span class="status" id="cmStatus"></span><button class="btn sub" id="cmClear" title="入力・業務情報・結果を消します（Esc）">クリア</button><button class="btn" id="cmBtn">作成</button></span></div>
           </div>
@@ -1673,6 +1674,7 @@ async function runKeigo(){
   const tone = TONES[LS.tone] || TONES.boss;
   const structure = isStructureReview();
   const workTitle = $("kjWorkTitle").value.trim();
+  const title = $("kjTitle").value.trim();
   const knowledge = $("kjKnowledge").value.trim();
   const context = $("kjContext").value.trim();
   $("prResultCard").classList.add("hidden");
@@ -1687,6 +1689,7 @@ ${writingProfile()}
 【校正モード】${tone.label}: ${tone.desc}
 ${structure ? "【文章の用途】AIへの入力文または自分用メモ（対人向けではない文章）" : "【用件】"+kjIntent}
 【業務タイトル】${workTitle || "指定なし"}
+【タイトル・件名】${title || "指定なし"}
 【参照ナレッジ】${knowledge || "指定なし"}
 【今回の前提条件】${context || "指定なし"}
 
@@ -1694,6 +1697,7 @@ ${structure ? "【文章の用途】AIへの入力文または自分用メモ（
 - 原文の意味、事実、固有名詞、期限を変えず、${structure ? "目的・結論・情報の順番が分かる、簡潔で正確な日本語へ整える。" : "相手と用件に合う自然なビジネス日本語へ整える。"}
 - ${structure ? "あいさつ、宛名、敬語、依頼や約束を勝手に足さない。箇条書きや見出しなどの形式は、読みやすさを高める場合だけ整える。" : "敬語を重ねすぎず、簡潔で、相手が次に何をすればよいか分かる文章にする。"}
 - 原文にない約束、謝罪、期限、事情を追加しない。
+- タイトル・件名は文章の目的を判断するために使い、本文へ勝手に挿入しない。
 - 参照ナレッジは用語・背景・判断基準の確認に使い、関係のない内容を本文へ写したり、ナレッジにない事実を作ったりしない。
 - 前提条件は相手・状況・目的の判断にだけ使い、本文にない事実として書き足さない。
 - 変更の学びになる短いポイントを1件だけ示す。
@@ -1702,7 +1706,7 @@ ${structure ? "【文章の用途】AIへの入力文または自分用メモ（
   try{
     const r = await callGemini(sys, text, msg=>setStatus("kjStatus", msg, false, true), {
       maxOutputTokens: outputTokenLimit(text.length, 850, 1800),
-      history: { type:"整える", input:text, output:r=>r.revised, learn:true, context:tone.label+(structure ? "" : " / "+kjIntent)+"\n業務タイトル: "+workTitle+"\nナレッジ: "+knowledge+"\n前提条件: "+context }
+      history: { type:"整える", input:text, output:r=>r.revised, learn:true, context:tone.label+(structure ? "" : " / "+kjIntent)+"\nタイトル・件名: "+title+"\n業務タイトル: "+workTitle+"\nナレッジ: "+knowledge+"\n前提条件: "+context }
     });
     $("kjResultCard").classList.remove("hidden");
     $("kjResultText").textContent = r.revised || "";
@@ -1725,7 +1729,7 @@ async function runCompose(){
   const structure = isStructureReview();
   const purpose = kjIntent;
   const workTitle = $("kjWorkTitle").value.trim();
-  const subject = $("cmSubject").value.trim();
+  const title = $("kjTitle").value.trim();
   const knowledge = $("kjKnowledge").value.trim();
   const context = $("kjContext").value.trim();
   $("cmBtn").disabled = true;
@@ -1737,7 +1741,7 @@ ${writingProfile()}
 
 ${structure ? "【文章の用途】AIへの入力文または自分用メモ（対人向けではない文章）" : "【相手】"+tone.label+": "+tone.desc+"\n【用途】"+purpose}
 【業務タイトル】${workTitle || "指定なし"}
-【件名・話題】${subject || "指定なし"}
+【タイトル・件名】${title || "指定なし"}
 【参照ナレッジ】${knowledge || "指定なし"}
 【今回の前提条件】${context || "指定なし"}
 
@@ -1753,7 +1757,7 @@ ${structure ? "【文章の用途】AIへの入力文または自分用メモ（
   try{
     const r = await callGemini(sys, points, msg=>setStatus("cmStatus", msg, false, true), {
       maxOutputTokens: outputTokenLimit(points.length, 950, 2200),
-      history: { type:"文書作成", input:points, output:r=>r.draft, learn:true, context:tone.label+(structure ? "" : " / "+purpose)+"\n業務タイトル: "+workTitle+"\n件名・話題: "+subject+"\nナレッジ: "+knowledge+"\n前提条件: "+context }
+      history: { type:"文書作成", input:points, output:r=>r.draft, learn:true, context:tone.label+(structure ? "" : " / "+purpose)+"\nタイトル・件名: "+title+"\n業務タイトル: "+workTitle+"\nナレッジ: "+knowledge+"\n前提条件: "+context }
     });
     $("cmResultCard").classList.remove("hidden");
     $("cmResultText").textContent = r.draft || "";
@@ -1945,6 +1949,7 @@ async function runProof(){
   const structure = isStructureReview();
   const usePrep = !structure && $("prepToggle").checked;
   const workTitle = $("kjWorkTitle").value.trim();
+  const title = $("kjTitle").value.trim();
   const knowledge = $("kjKnowledge").value.trim();
   const context = $("kjContext").value.trim();
   $("kjResultCard").classList.add("hidden");
@@ -1959,6 +1964,7 @@ ${writingProfile()}
 【校正モード】${tone.label}: ${tone.desc}
 ${structure ? "【文章の用途】AIへの入力文または自分用メモ（対人向けではない文章）" : "【用件】"+kjIntent}
 【業務タイトル】${workTitle || "指定なし"}
+【タイトル・件名】${title || "指定なし"}
 【参照ナレッジ】${knowledge || "指定なし"}
 【今回の前提条件】${context || "指定なし"}
 
@@ -1967,6 +1973,7 @@ ${structure ? "【文章の用途】AIへの入力文または自分用メモ（
 - ${structure ? "宛名、あいさつ、結び、敬語、依頼や約束を追加せず、宛先がないこと自体を問題として扱わない。" : "敬語と配慮を過不足なく整える。"}
 - 変更した箇所ごとに「なぜそうしたか」を、依頼者が次から自分で書けるようになる形で説明する(最大5件、重要な順)。
 - 問題のない箇所は褒めてよい。否定的・威圧的な言い方はしない。
+- タイトル・件名は文章の目的を判断するために使い、本文へ勝手に挿入しない。
 - 参照ナレッジは用語・背景・判断基準の確認に使い、関係のない内容を本文へ写したり、ナレッジにない事実を作ったりしない。
 - 前提条件は相手・状況・目的の判断にだけ使い、原文にない事実として書き足さない。
 ${usePrep ? `- PREP法(Point結論→Reason理由→Example具体例→Point再結論)の観点で構造を分析する。報告・説明系の文章でない場合(挨拶や短い連絡など)は adapted=false とし、コメントで「この文章はPREP適用外」と伝える。` : ""}
@@ -1983,7 +1990,7 @@ ${usePrep ? `"prep":{"adapted":true,"P":true,"R":false,"E":false,"P2":true,"comm
   try{
     const r = await callGemini(sys, text, msg=>setStatus("kjStatus", msg, false, true), {
       maxOutputTokens: outputTokenLimit(text.length, 1200, 2600),
-      history: { type:"添削", input:text, output:r=>r.revised, learn:true, context:tone.label+(structure ? "" : " / "+kjIntent)+"\n業務タイトル: "+workTitle+"\nナレッジ: "+knowledge+"\n前提条件: "+context }
+      history: { type:"添削", input:text, output:r=>r.revised, learn:true, context:tone.label+(structure ? "" : " / "+kjIntent)+"\nタイトル・件名: "+title+"\n業務タイトル: "+workTitle+"\nナレッジ: "+knowledge+"\n前提条件: "+context }
     });
     $("prResultCard").classList.remove("hidden");
     $("prToneLabel").textContent = tone.label;
@@ -2044,7 +2051,7 @@ function bindEnterRun(ids, action, ctrlAction){
 
 function runWritePrimary(){ return writeMode === "compose" ? runCompose() : runKeigo(); }
 function runWriteDetail(){ return writeMode === "compose" ? runCompose() : runProof(); }
-bindEnterRun(["kjWorkTitle", "kjContext", "kjInput", "cmSubject", "cmInput"], runWritePrimary, runWriteDetail);
+bindEnterRun(["kjTitle", "kjWorkTitle", "kjContext", "kjInput", "cmInput"], runWritePrimary, runWriteDetail);
 bindEnterRun(["trContext", "trInput"], runTranslate);
 
 /* ---------- クリア（続けて次の文章を書くため） ---------- */
@@ -2066,8 +2073,8 @@ function bindClear(btnId, inputId, cardIds, statusId, extraIds, after){
     }
   });
 }
-bindClear("kjClear", "kjInput", ["kjResultCard", "prResultCard"], "kjStatus", ["kjWorkTitle", "kjKnowledge", "kjContext"], resetTargets);
-bindClear("cmClear", "cmInput", "cmResultCard", "cmStatus", ["cmSubject", "kjWorkTitle", "kjKnowledge", "kjContext"], resetTargets);
+bindClear("kjClear", "kjInput", ["kjResultCard", "prResultCard"], "kjStatus", ["kjTitle", "kjWorkTitle", "kjKnowledge", "kjContext"], resetTargets);
+bindClear("cmClear", "cmInput", "cmResultCard", "cmStatus", ["kjTitle", "kjWorkTitle", "kjKnowledge", "kjContext"], resetTargets);
 bindClear("trClear", "trInput", "trResultCard", "trStatus", ["trContext"], clearTranslationImage);
 
 /* ---------- 変換（大文字・小文字・命名規則） ----------
@@ -2294,8 +2301,8 @@ $("mkOn").addEventListener("change", ()=>{
 
 /* いまの入力に効く伏せ字を、実行前に見えるようにする */
 const MASK_HINTS = [
-  { hint:"kjMaskHint", src:["kjInput", "kjWorkTitle", "kjKnowledge", "kjContext"] },
-  { hint:"cmMaskHint", src:["cmInput", "cmSubject", "kjWorkTitle", "kjKnowledge", "kjContext"] },
+  { hint:"kjMaskHint", src:["kjInput", "kjTitle", "kjWorkTitle", "kjKnowledge", "kjContext"] },
+  { hint:"cmMaskHint", src:["cmInput", "kjTitle", "kjWorkTitle", "kjKnowledge", "kjContext"] },
   { hint:"trMaskHint", src:["trInput", "trContext"] }
 ];
 
@@ -2318,9 +2325,9 @@ MASK_HINTS.forEach(h=>h.src.forEach(id=>{
 
 /* ---------- 修正案へのやりとり ---------- */
 const FOLLOW_TARGETS = {
-  kj: { box:"kjResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"業務タイトル: "+$("kjWorkTitle").value.trim()+"\nナレッジ: "+$("kjKnowledge").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
-  pr: { box:"prResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"業務タイトル: "+$("kjWorkTitle").value.trim()+"\nナレッジ: "+$("kjKnowledge").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
-  cm: { box:"cmResult", status:"cmStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"業務タイトル: "+$("kjWorkTitle").value.trim()+"\n件名・話題: "+$("cmSubject").value.trim()+"\nナレッジ: "+$("kjKnowledge").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
+  kj: { box:"kjResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"タイトル・件名: "+$("kjTitle").value.trim()+"\n業務タイトル: "+$("kjWorkTitle").value.trim()+"\nナレッジ: "+$("kjKnowledge").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
+  pr: { box:"prResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"タイトル・件名: "+$("kjTitle").value.trim()+"\n業務タイトル: "+$("kjWorkTitle").value.trim()+"\nナレッジ: "+$("kjKnowledge").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
+  cm: { box:"cmResult", status:"cmStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"タイトル・件名: "+$("kjTitle").value.trim()+"\n業務タイトル: "+$("kjWorkTitle").value.trim()+"\nナレッジ: "+$("kjKnowledge").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
   tr: { box:"trResult", status:"trStatus", context:()=>$("trContext").value.trim(), source:()=>$("trInput").value.trim(), translation:true }
 };
 const followHistory = { kj: [], pr: [], cm: [], tr: [] };
