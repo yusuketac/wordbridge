@@ -417,7 +417,7 @@
 
   <!-- ============ 文章を整える / 添削 ============ -->
   <div class="panel show" id="panel-kj">
-    <div class="page-head"><div class="page-desc">相手に送る文は宛先に合わせ、ChatGPTへの質問・ナレッジ・資料文は「構成・表現」で整えます。</div></div>
+    <div class="page-head"><div class="page-desc">相手に送る文は宛先に合わせ、AIへの入力文や自分用メモは「AI・メモ」で流れと表現を整えます。</div></div>
     <div class="quick-grid">
       <div>
         <div class="card">
@@ -428,16 +428,19 @@
             <button data-tone="casual" class="on">同僚・チャット</button>
             <button data-tone="boss">上司・社内</button>
             <button data-tone="external">社外・取引先</button>
-            <button data-tone="structure" title="宛先を想定しない文章。構成・明瞭さ・言葉の正確さを優先して整えます">構成・表現</button>
+            <button data-tone="structure" title="AIへの入力文や自分用メモ。文章の流れ・明瞭さ・表現を優先して整えます">AI・メモ</button>
           </div></div>
           <div class="pick-row" id="kjIntentRow"><span class="pick-label">用件</span>
           <div class="intent-row" id="kjIntents">
             <button data-intent="依頼" class="on">依頼</button><button data-intent="報告">報告</button><button data-intent="確認">確認</button><button data-intent="催促">催促</button><button data-intent="お詫び">お詫び</button><button data-intent="お礼">お礼</button>
           </div></div>
           </div>
-          <div class="hint hidden" id="kjStructureHint">ChatGPTへの質問、ナレッジ、資料文などに。宛先への敬語ではなく、結論・情報の順番・表現を見直します。</div>
-          <label for="kjContext" class="field-label">前提条件（任意）</label>
-          <input type="text" id="kjContext" placeholder="例：データアップについて、外注先へ送るTeamsメッセージ">
+          <div class="hint hidden" id="kjStructureHint">ChatGPTなどAIへの質問・指示文や、自分用メモに。宛名や敬語を足さず、文章の流れ・情報の順番・表現を整えます。</div>
+          <div class="form-grid" style="margin-top:12px;">
+            <div><label for="kjWorkTitle">業務タイトル（任意）</label><input type="text" id="kjWorkTitle" placeholder="例：デジタルツイン用データ確認"></div>
+            <div><label for="kjContext">前提条件（任意）</label><input type="text" id="kjContext" placeholder="例：外注先へ送るTeamsメッセージ"></div>
+            <div class="full"><label for="kjKnowledge">ナレッジ（任意）</label><textarea id="kjKnowledge" rows="3" placeholder="用語・背景・判断基準など。箇条書きで入力できます"></textarea></div>
+          </div>
           <button type="button" class="draft-toggle" id="kjDraftToggle" style="margin-top:14px;"><span class="ts-caret" id="kjDraftCaret">▸</span>下書き<span class="draft-badge" id="kjDraftBadge"></span></button>
           <div class="draft-box hidden" id="kjDraftBox">
             <textarea id="kjDraft" rows="6" placeholder="ここで文章を組み立てます。Enterは改行です。&#10;書けたら「本文へ送る」を押してください。"></textarea>
@@ -455,7 +458,7 @@
             <div class="hint"><kbd>Enter</kbd> 整える / <kbd>Ctrl+Enter</kbd> 添削 / <kbd>Shift+Enter</kbd> 改行</div>
             <label class="prep-opt" id="prepOption"><input type="checkbox" id="prepToggle" checked> 添削でPREP分析</label>
             <div class="spacer"></div>
-            <span class="row-actions"><span class="status" id="kjStatus"></span><button class="btn sub" id="kjClear" title="本文・前提条件・結果を消し、相手と用件を初期値（同僚・チャット／依頼）に戻します（Esc）">クリア</button><button class="btn sub" id="prBtn" title="直した理由・PREP構造まで見る（Ctrl+Enter）">添削</button><button class="btn" id="kjBtn">整える</button></span>
+            <span class="row-actions"><span class="status" id="kjStatus"></span><button class="btn sub" id="kjClear" title="本文・業務タイトル・ナレッジ・前提条件・結果を消し、相手と用件を初期値（同僚・チャット／依頼）に戻します（Esc）">クリア</button><button class="btn sub" id="prBtn" title="直した理由・PREP構造まで見る（Ctrl+Enter）">添削</button><button class="btn" id="kjBtn">整える</button></span>
           </div>
         </div>
         <div class="card hidden" id="kjResultCard">
@@ -504,6 +507,14 @@
           <div class="learning-item"><b>謝罪を重ねすぎない</b><span>お詫びは一度明確に伝え、その後は対応と再発防止へ進みます。</span></div>
         </div>
       </aside>
+      <aside class="card hidden" id="kjStructureBasics">
+        <div class="sec-title">AI・メモの基本</div>
+        <div class="learning-list">
+          <div class="learning-item"><b>目的を最初に</b><span>AIへ何をしてほしいか、自分が後で何を確認したいかを冒頭に置きます。</span></div>
+          <div class="learning-item"><b>条件を分ける</b><span>前提・制約・欲しい結果を分けると、読み返しても情報を追いやすくなります。</span></div>
+          <div class="learning-item"><b>曖昧語を減らす</b><span>「これ」「いい感じ」ではなく、対象と期待する状態を具体的に書きます。</span></div>
+        </div>
+      </aside>
     </div>
   </div>
 
@@ -517,12 +528,14 @@
         <div><label for="cmTone">相手</label><select id="cmTone"><option value="casual" selected>同僚・チャット</option><option value="boss">上司・社内</option><option value="external">社外・取引先</option></select></div>
         <div><label for="cmPurpose">用途</label><select id="cmPurpose"><option>依頼</option><option>報告</option><option>確認</option><option>催促</option><option>お詫び</option><option>お礼</option><option>相談</option><option>日程調整</option></select></div>
         </div>
-        <div class="full"><label for="cmSubject">件名・話題（任意）</label><input type="text" id="cmSubject" placeholder="例: 提出データ確認のお願い"></div>
-        <div class="full"><label for="cmContext">前提条件（任意）</label><input type="text" id="cmContext" placeholder="例：データアップについて、外注先へ送るTeamsメッセージ"></div>
+        <div><label for="cmWorkTitle">業務タイトル（任意）</label><input type="text" id="cmWorkTitle" placeholder="例：デジタルツイン用データ確認"></div>
+        <div><label for="cmSubject">件名・話題（任意）</label><input type="text" id="cmSubject" placeholder="例: 提出データ確認のお願い"></div>
+        <div class="full"><label for="cmKnowledge">ナレッジ（任意）</label><textarea id="cmKnowledge" rows="3" placeholder="用語・背景・判断基準など。箇条書きで入力できます"></textarea></div>
+        <div class="full"><label for="cmContext">前提条件（任意）</label><input type="text" id="cmContext" placeholder="例：外注先へ送るTeamsメッセージ"></div>
         <div class="full" id="cmMaskHintWrap"><div class="mask-hint hidden" id="cmMaskHint"></div></div>
         <div class="full"><label for="cmInput">伝えたい要点</label><textarea id="cmInput" rows="7" placeholder="箇条書きで大丈夫です。&#10;・最新データをアップした&#10;・今日17時までに形状を確認してほしい&#10;・問題があればTeamsで連絡してほしい"></textarea></div>
       </div>
-      <div class="row"><div class="hint"><kbd>Enter</kbd> 作成 / <kbd>Shift+Enter</kbd> 改行</div><div class="spacer"></div><span class="row-actions"><span class="status" id="cmStatus"></span><button class="btn sub" id="cmClear" title="本文・件名・前提条件・結果を消します。相手と用途は残ります（Esc）">クリア</button><button class="btn" id="cmBtn">作成</button></span></div>
+      <div class="row"><div class="hint"><kbd>Enter</kbd> 作成 / <kbd>Shift+Enter</kbd> 改行</div><div class="spacer"></div><span class="row-actions"><span class="status" id="cmStatus"></span><button class="btn sub" id="cmClear" title="本文・業務タイトル・件名・ナレッジ・前提条件・結果を消します。相手と用途は残ります（Esc）">クリア</button><button class="btn" id="cmBtn">作成</button></span></div>
     </div>
     <div class="card hidden" id="cmResultCard">
       <div class="sec-title">作成した文書</div>
@@ -1023,7 +1036,7 @@ const TONES = {
   casual:   { label:"同僚・チャット", desc:"同僚へのやわらかい社内チャット。短いですます調を基本に「ありがとう！」「確認してもらえると助かります」「お願いします！」など自然な親しみを出す。『恐れ入りますが』『いただけますでしょうか』『何卒』などメール調の硬い敬語を避ける。感嘆符は必要なとき1つまで。絵文字・馴れ馴れしい命令・過剰な謝罪は使わない。原文の事実と期限は変えない。" },
   boss:     { label:"上司・社内", desc:"上司や社内の目上の人への報告・依頼・相談。失礼がなく、かつ過剰にへりくだらない簡潔なビジネス文体。結論から書く。" },
   external: { label:"社外", desc:"社外のクライアントや協力会社へのメール。丁寧なビジネス敬語。ただし冗長な定型句の重複は避ける。" },
-  structure:{ label:"構成・表現", desc:"ChatGPTへの質問、ナレッジ、資料文など、宛先を想定しない文章。敬語やあいさつを足さず、目的・結論・情報の順番、文の明瞭さ、用語と表記の統一を優先する。" }
+  structure:{ label:"AI・メモ", desc:"ChatGPTなどAIへの質問・指示文や、自分用メモなど、対人向けではない文章。宛名・あいさつ・敬語を足さず、目的・結論・情報の順番、文の明瞭さ、表現、用語と表記の統一を優先する。" }
 };
 
 /* 保存件数の上限。localStorageは1サイト約5MBで、学びノート1件は約200バイト。
@@ -1506,16 +1519,18 @@ function updateReviewMode(){
   const structure = isStructureReview();
   $("kjIntentRow").classList.toggle("hidden", structure);
   $("kjStructureHint").classList.toggle("hidden", !structure);
+  $("kjBasics").classList.toggle("hidden", structure);
+  $("kjStructureBasics").classList.toggle("hidden", !structure);
   $("prepOption").classList.toggle("hidden", structure);
   $("kjContext").placeholder = structure
-    ? "例：ChatGPTへの質問として、必要な条件が伝わるようにしたい"
+    ? "例：AIへの質問として条件を整理 / 後で見返す自分用メモ"
     : "例：データアップについて、外注先へ送るTeamsメッセージ";
   $("kjInput").placeholder = structure
-    ? "例: この内容をChatGPTに相談したいのですが、何から確認すればよいですか\nEnterで構成を整える / Ctrl+Enterで詳しく添削 / Shift+Enterで改行"
+    ? "例: ChatGPTへの質問文や、後で見返す自分用メモ\nEnterで流れを整える / Ctrl+Enterで詳しく添削 / Shift+Enterで改行"
     : "例: 今日中にデータを確認して返事してください\nEnterで整える / Ctrl+Enterで添削 / Shift+Enterで改行";
-  $("kjBtn").textContent = structure ? "構成を整える" : "整える";
+  $("kjBtn").textContent = structure ? "文章を整える" : "整える";
   $("prBtn").textContent = structure ? "詳しく添削" : "添削";
-  $("prBtn").title = structure ? "構成・表現の理由まで見る（Ctrl+Enter）" : "直した理由・PREP構造まで見る（Ctrl+Enter）";
+  $("prBtn").title = structure ? "文章の流れ・表現を直した理由まで見る（Ctrl+Enter）" : "直した理由・PREP構造まで見る（Ctrl+Enter）";
 }
 
 document.querySelectorAll("#kjTones button").forEach(b=>b.addEventListener("click", ()=>selectTone(b.dataset.tone)));
@@ -1538,6 +1553,8 @@ async function runKeigo(){
   if(!LS.k){ needKeyGuide("kjStatus"); return; }
   const tone = TONES[LS.tone] || TONES.boss;
   const structure = isStructureReview();
+  const workTitle = $("kjWorkTitle").value.trim();
+  const knowledge = $("kjKnowledge").value.trim();
   const context = $("kjContext").value.trim();
   $("prResultCard").classList.add("hidden");
   $("kjBtn").disabled = true;
@@ -1549,13 +1566,16 @@ async function runKeigo(){
 ${writingProfile()}
 
 【校正モード】${tone.label}: ${tone.desc}
-${structure ? "【文章の用途】宛先を想定しない文章" : "【用件】"+kjIntent}
+${structure ? "【文章の用途】AIへの入力文または自分用メモ（対人向けではない文章）" : "【用件】"+kjIntent}
+【業務タイトル】${workTitle || "指定なし"}
+【参照ナレッジ】${knowledge || "指定なし"}
 【今回の前提条件】${context || "指定なし"}
 
 【指示】
 - 原文の意味、事実、固有名詞、期限を変えず、${structure ? "目的・結論・情報の順番が分かる、簡潔で正確な日本語へ整える。" : "相手と用件に合う自然なビジネス日本語へ整える。"}
 - ${structure ? "あいさつ、宛名、敬語、依頼や約束を勝手に足さない。箇条書きや見出しなどの形式は、読みやすさを高める場合だけ整える。" : "敬語を重ねすぎず、簡潔で、相手が次に何をすればよいか分かる文章にする。"}
 - 原文にない約束、謝罪、期限、事情を追加しない。
+- 参照ナレッジは用語・背景・判断基準の確認に使い、関係のない内容を本文へ写したり、ナレッジにない事実を作ったりしない。
 - 前提条件は相手・状況・目的の判断にだけ使い、本文にない事実として書き足さない。
 - 変更の学びになる短いポイントを1件だけ示す。
 - 必ず次のJSONのみで回答する:
@@ -1563,7 +1583,7 @@ ${structure ? "【文章の用途】宛先を想定しない文章" : "【用件
   try{
     const r = await callGemini(sys, text, msg=>setStatus("kjStatus", msg, false, true), {
       maxOutputTokens: outputTokenLimit(text.length, 850, 1800),
-      history: { type:"整える", input:text, output:r=>r.revised, learn:true, context:tone.label+(structure ? "" : " / "+kjIntent)+"\n"+context }
+      history: { type:"整える", input:text, output:r=>r.revised, learn:true, context:tone.label+(structure ? "" : " / "+kjIntent)+"\n業務タイトル: "+workTitle+"\nナレッジ: "+knowledge+"\n前提条件: "+context }
     });
     $("kjResultCard").classList.remove("hidden");
     $("kjResultText").textContent = r.revised || "";
@@ -1584,7 +1604,9 @@ async function runCompose(){
   if(!LS.k){ needKeyGuide("cmStatus"); return; }
   const tone = TONES[$("cmTone").value] || TONES.boss;
   const purpose = $("cmPurpose").value;
+  const workTitle = $("cmWorkTitle").value.trim();
   const subject = $("cmSubject").value.trim();
+  const knowledge = $("cmKnowledge").value.trim();
   const context = $("cmContext").value.trim();
   $("cmBtn").disabled = true;
   setStatus("cmStatus", "作成中…", false, true);
@@ -1595,13 +1617,16 @@ ${writingProfile()}
 
 【相手】${tone.label}: ${tone.desc}
 【用途】${purpose}
+【業務タイトル】${workTitle || "指定なし"}
 【件名・話題】${subject || "指定なし"}
+【参照ナレッジ】${knowledge || "指定なし"}
 【今回の前提条件】${context || "指定なし"}
 
 【指示】
 - 入力された要点だけを使い、メールまたはチャットとしてそのまま送れる自然な下書きを作る。
 - 結論または用件を先にし、必要に応じて理由、期限、相手にしてほしいことを明確にする。
 - 入力にない事実、期限、相手の名前、約束を作らない。不足は曖昧なまま勝手に補完しない。
+- 参照ナレッジは用語・背景・判断基準の確認に使い、関係のない内容を本文へ写したり、ナレッジにない事実を作ったりしない。
 - 前提条件は相手・状況・目的の判断にだけ使い、本文にない事実として書き足さない。
 - 社内チャットなら短く、社外なら必要な挨拶と結びを含める。
 - 必ず次のJSONのみで回答する:
@@ -1609,7 +1634,7 @@ ${writingProfile()}
   try{
     const r = await callGemini(sys, points, msg=>setStatus("cmStatus", msg, false, true), {
       maxOutputTokens: outputTokenLimit(points.length, 950, 2200),
-      history: { type:"文書作成", input:points, output:r=>r.draft, learn:true, context:tone.label+" / "+purpose+" / "+subject+"\n"+context }
+      history: { type:"文書作成", input:points, output:r=>r.draft, learn:true, context:tone.label+" / "+purpose+"\n業務タイトル: "+workTitle+"\n件名・話題: "+subject+"\nナレッジ: "+knowledge+"\n前提条件: "+context }
     });
     $("cmResultCard").classList.remove("hidden");
     $("cmResultText").textContent = r.draft || "";
@@ -1800,6 +1825,8 @@ async function runProof(){
   const tone = TONES[LS.tone] || TONES.boss;
   const structure = isStructureReview();
   const usePrep = !structure && $("prepToggle").checked;
+  const workTitle = $("kjWorkTitle").value.trim();
+  const knowledge = $("kjKnowledge").value.trim();
   const context = $("kjContext").value.trim();
   $("kjResultCard").classList.add("hidden");
   $("prBtn").disabled = true;
@@ -1811,7 +1838,9 @@ async function runProof(){
 ${writingProfile()}
 
 【校正モード】${tone.label}: ${tone.desc}
-${structure ? "【文章の用途】宛先を想定しない文章" : "【用件】"+kjIntent}
+${structure ? "【文章の用途】AIへの入力文または自分用メモ（対人向けではない文章）" : "【用件】"+kjIntent}
+【業務タイトル】${workTitle || "指定なし"}
+【参照ナレッジ】${knowledge || "指定なし"}
 【今回の前提条件】${context || "指定なし"}
 
 【指示】
@@ -1819,6 +1848,7 @@ ${structure ? "【文章の用途】宛先を想定しない文章" : "【用件
 - ${structure ? "宛名、あいさつ、結び、敬語、依頼や約束を追加せず、宛先がないこと自体を問題として扱わない。" : "敬語と配慮を過不足なく整える。"}
 - 変更した箇所ごとに「なぜそうしたか」を、依頼者が次から自分で書けるようになる形で説明する(最大5件、重要な順)。
 - 問題のない箇所は褒めてよい。否定的・威圧的な言い方はしない。
+- 参照ナレッジは用語・背景・判断基準の確認に使い、関係のない内容を本文へ写したり、ナレッジにない事実を作ったりしない。
 - 前提条件は相手・状況・目的の判断にだけ使い、原文にない事実として書き足さない。
 ${usePrep ? `- PREP法(Point結論→Reason理由→Example具体例→Point再結論)の観点で構造を分析する。報告・説明系の文章でない場合(挨拶や短い連絡など)は adapted=false とし、コメントで「この文章はPREP適用外」と伝える。` : ""}
 - 「今日の学び」として、この添削から得られる汎用的な教訓を1文で書く。
@@ -1834,7 +1864,7 @@ ${usePrep ? `"prep":{"adapted":true,"P":true,"R":false,"E":false,"P2":true,"comm
   try{
     const r = await callGemini(sys, text, msg=>setStatus("kjStatus", msg, false, true), {
       maxOutputTokens: outputTokenLimit(text.length, 1200, 2600),
-      history: { type:"添削", input:text, output:r=>r.revised, learn:true, context:tone.label+(structure ? "" : " / "+kjIntent)+"\n"+context }
+      history: { type:"添削", input:text, output:r=>r.revised, learn:true, context:tone.label+(structure ? "" : " / "+kjIntent)+"\n業務タイトル: "+workTitle+"\nナレッジ: "+knowledge+"\n前提条件: "+context }
     });
     $("prResultCard").classList.remove("hidden");
     $("prToneLabel").textContent = tone.label;
@@ -1893,8 +1923,8 @@ function bindEnterRun(ids, action, ctrlAction){
   }));
 }
 
-bindEnterRun(["kjContext", "kjInput"], runKeigo, runProof);
-bindEnterRun(["cmSubject", "cmContext", "cmInput"], runCompose);
+bindEnterRun(["kjWorkTitle", "kjContext", "kjInput"], runKeigo, runProof);
+bindEnterRun(["cmWorkTitle", "cmSubject", "cmContext", "cmInput"], runCompose);
 bindEnterRun(["trContext", "trInput"], runTranslate);
 
 /* ---------- クリア（続けて次の文章を書くため） ---------- */
@@ -1916,8 +1946,8 @@ function bindClear(btnId, inputId, cardIds, statusId, extraIds, after){
     }
   });
 }
-bindClear("kjClear", "kjInput", ["kjResultCard", "prResultCard"], "kjStatus", ["kjContext"], resetTargets);
-bindClear("cmClear", "cmInput", "cmResultCard", "cmStatus", ["cmSubject", "cmContext"]);
+bindClear("kjClear", "kjInput", ["kjResultCard", "prResultCard"], "kjStatus", ["kjWorkTitle", "kjKnowledge", "kjContext"], resetTargets);
+bindClear("cmClear", "cmInput", "cmResultCard", "cmStatus", ["cmWorkTitle", "cmSubject", "cmKnowledge", "cmContext"]);
 bindClear("trClear", "trInput", "trResultCard", "trStatus", ["trContext"], clearTranslationImage);
 
 /* ---------- 変換（大文字・小文字・命名規則） ----------
@@ -2144,8 +2174,8 @@ $("mkOn").addEventListener("change", ()=>{
 
 /* いまの入力に効く伏せ字を、実行前に見えるようにする */
 const MASK_HINTS = [
-  { hint:"kjMaskHint", src:["kjInput", "kjContext"] },
-  { hint:"cmMaskHint", src:["cmInput", "cmContext", "cmSubject"] },
+  { hint:"kjMaskHint", src:["kjInput", "kjWorkTitle", "kjKnowledge", "kjContext"] },
+  { hint:"cmMaskHint", src:["cmInput", "cmWorkTitle", "cmSubject", "cmKnowledge", "cmContext"] },
   { hint:"trMaskHint", src:["trInput", "trContext"] }
 ];
 
@@ -2168,9 +2198,9 @@ MASK_HINTS.forEach(h=>h.src.forEach(id=>{
 
 /* ---------- 修正案へのやりとり ---------- */
 const FOLLOW_TARGETS = {
-  kj: { box:"kjResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>$("kjContext").value.trim(), purpose:()=>kjIntent },
-  pr: { box:"prResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>$("kjContext").value.trim(), purpose:()=>kjIntent },
-  cm: { box:"cmResult", status:"cmStatus", tone:()=>TONES[$("cmTone").value] || TONES.boss, context:()=>$("cmContext").value.trim(), purpose:()=>$("cmPurpose").value },
+  kj: { box:"kjResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"業務タイトル: "+$("kjWorkTitle").value.trim()+"\nナレッジ: "+$("kjKnowledge").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
+  pr: { box:"prResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"業務タイトル: "+$("kjWorkTitle").value.trim()+"\nナレッジ: "+$("kjKnowledge").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
+  cm: { box:"cmResult", status:"cmStatus", tone:()=>TONES[$("cmTone").value] || TONES.boss, context:()=>"業務タイトル: "+$("cmWorkTitle").value.trim()+"\n件名・話題: "+$("cmSubject").value.trim()+"\nナレッジ: "+$("cmKnowledge").value.trim()+"\n前提条件: "+$("cmContext").value.trim(), purpose:()=>$("cmPurpose").value },
   tr: { box:"trResult", status:"trStatus", context:()=>$("trContext").value.trim(), source:()=>$("trInput").value.trim(), translation:true }
 };
 const followHistory = { kj: [], pr: [], cm: [], tr: [] };
@@ -2448,7 +2478,7 @@ $("coPracticeGo").addEventListener("click", ()=>{
 });
 
 /* ---------- 控えめ表示 ---------- */
-const TONE_SHORT = { casual:"同僚", boss:"上司", external:"社外", structure:"構成・表現" };
+const TONE_SHORT = { casual:"同僚", boss:"上司", external:"社外", structure:"AI・メモ" };
 const REAL_TITLE = document.title;
 const ICON_LINK = document.querySelector('link[rel="icon"]');
 const REAL_ICON = ICON_LINK.getAttribute("href");
