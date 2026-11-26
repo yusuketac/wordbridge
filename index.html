@@ -453,7 +453,7 @@
           </div></div>
           <div class="pick-row" id="kjIntentRow"><span class="pick-label">用件</span>
           <div class="intent-row" id="kjIntents">
-            <button data-intent="依頼" class="on">依頼</button><button data-intent="報告">報告</button><button data-intent="確認">確認</button><button data-intent="催促">催促</button><button data-intent="お詫び">お詫び</button><button data-intent="お礼">お礼</button><button data-intent="相談">相談</button><button data-intent="日程調整">日程調整</button>
+            <button data-intent="通常" class="on">通常</button><button data-intent="依頼">依頼</button><button data-intent="報告">報告</button><button data-intent="確認">確認</button><button data-intent="催促">催促</button><button data-intent="お詫び">お詫び</button><button data-intent="お礼">お礼</button><button data-intent="相談">相談</button><button data-intent="日程調整">日程調整</button><button data-intent="ナレッジ">ナレッジ</button>
           </div></div>
           <div class="pick-row title-row"><label class="pick-label" for="kjTitle">タイトル</label><input type="text" id="kjTitle" aria-label="タイトル・件名（任意）" placeholder="Teams投稿・メール件名・ナレッジ見出し（任意）"></div>
           </div>
@@ -462,8 +462,7 @@
             <summary>業務情報（任意）</summary>
             <div class="form-grid">
               <div><label for="kjWorkTitle">業務タイトル</label><input type="text" id="kjWorkTitle" placeholder="例：月次報告"></div>
-              <div><label for="kjContext">前提条件</label><input type="text" id="kjContext" placeholder="例：社内チャットで共有"></div>
-              <div class="full"><label for="kjKnowledge">ナレッジ</label><textarea id="kjKnowledge" rows="3" placeholder="用語・背景・判断基準など"></textarea></div>
+              <div class="full"><label for="kjContext">前提条件</label><textarea id="kjContext" rows="4" placeholder="例：社内チャットで共有。相手はこの案件を初めて見るため、専門用語を避ける。判断に必要な背景と期限を明確にする。"></textarea></div>
             </div>
           </details>
           <div id="reviewModeFields">
@@ -508,6 +507,9 @@
 
           <div class="sec-title">添削ポイント</div>
           <div id="prPoints"></div>
+
+          <div class="sec-title">過去の履歴から見える傾向</div>
+          <div id="prHistoryTrend" class="tipbox"></div>
 
           <div id="prPrepWrap">
             <div class="sec-title">PREP構造チェック</div>
@@ -653,29 +655,35 @@
 
   <!-- ============ 履歴 ============ -->
   <div class="panel" id="panel-hi">
-    <div class="page-head"><div class="page-desc">整える・添削・作成・翻訳の入力と結果をあとから確認できます。履歴はこのブラウザ内にのみ保存され、設定のバックアップに含まれます。</div></div>
+    <div class="page-head"><div class="page-desc">成功したAI操作の入力と結果を資産として保存し、検索・分析・書き出しに使います。画像そのものと通信失敗は保存しません。</div></div>
     <div class="card">
-      <div class="toolbar"><input type="text" id="hiSearch" placeholder="入力・結果を検索…"><button class="btn sub" id="hiClearAll">履歴をすべて削除</button></div>
+      <div class="sec-title">履歴資産サマリー</div>
+      <div id="hiAssetSummary" class="learning-detail"></div>
+    </div>
+    <div class="card">
+      <div class="toolbar"><input type="text" id="hiSearch" placeholder="入力・結果・前提条件を検索…"><button class="btn sub" id="hiCsv">CSV書き出し</button><button class="btn sub" id="hiMarkdown">Markdown書き出し</button><button class="btn sub" id="hiClearAll">履歴をすべて削除</button></div>
+      <div class="hint">書き出しには入力文・結果・前提条件がそのまま含まれます。業務情報を含む場合は保管先に注意してください。</div>
+      <div class="status" id="hiStatus" style="margin:7px 0;"></div>
       <div id="hiList"></div>
     </div>
   </div>
 
   <!-- ============ ストック ============ -->
   <div class="panel" id="panel-sk">
-    <div class="page-head"><div class="page-desc">自分や参考になる文章を、あとで使う・比べるために残します。ストックした本文はAIへ自動送信されません。</div></div>
+    <div class="page-head"><div class="page-desc">自分や参考になる文章、返信を練習したい相手のメッセージを残します。ストックした本文はAIへ自動送信されません。</div></div>
     <div class="card">
       <div class="form-grid">
         <div><label for="skTitle">見出し（任意）</label><input id="skTitle" type="text" placeholder="例）日程変更のお願い"></div>
-        <div><label for="skOwner">文章の種類</label><select id="skOwner"><option>自分</option><option>参考</option></select></div>
-        <div><label for="skCategory">分類</label><select id="skCategory"><option>言い回し</option><option>構成</option><option>依頼</option><option>報告</option><option>説明</option><option>その他</option></select></div>
+        <div><label for="skOwner">文章の種類</label><select id="skOwner"><option>自分</option><option>参考</option><option>相手から</option></select></div>
+        <div><label for="skCategory">分類</label><select id="skCategory"><option>言い回し</option><option>構成</option><option>依頼</option><option>質問・確認</option><option>報告</option><option>説明</option><option>その他</option></select></div>
         <div><label for="skTags">タグ（任意・カンマ区切り）</label><input id="skTags" type="text" placeholder="例）社外, 日程調整"></div>
-        <div class="full"><label for="skText">文章</label><textarea id="skText" rows="7" placeholder="残したい文章を貼り付けます。個人情報や機密情報は残さないでください。"></textarea></div>
+        <div class="full"><label for="skText" id="skTextLabel">文章</label><textarea id="skText" rows="7" placeholder="残したい文章を貼り付けます。個人情報や機密情報は残さないでください。"></textarea></div>
         <div class="full"><label for="skNote">なぜ残すか・使う場面（任意）</label><input id="skNote" type="text" placeholder="例）結論と代案の順が分かりやすい"></div>
       </div>
       <div class="row" style="margin-top:8px;"><span class="status" id="skStatus"></span><div class="spacer"></div><button class="btn sub hidden" id="skCancel">キャンセル</button><button class="btn" id="skAdd">ストックする</button></div>
     </div>
     <div class="card">
-      <div class="toolbar"><input type="text" id="skSearch" placeholder="見出し・文章・タグ・メモを検索…"><select id="skOwnerFilter" aria-label="文章の種類"><option value="">すべて</option><option>自分</option><option>参考</option></select><select id="skCategoryFilter" aria-label="分類"><option value="">すべての分類</option><option>言い回し</option><option>構成</option><option>依頼</option><option>報告</option><option>説明</option><option>その他</option></select><select id="skFavoriteOnly" aria-label="表示"><option value="">すべて表示</option><option value="favorite">お気に入りだけ</option></select><select id="skSort" aria-label="並び順"><option value="new">新しい順</option><option value="use">よく使う順</option></select></div>
+      <div class="toolbar"><input type="text" id="skSearch" placeholder="見出し・文章・タグ・メモを検索…"><select id="skOwnerFilter" aria-label="文章の種類"><option value="">すべて</option><option>自分</option><option>参考</option><option>相手から</option></select><select id="skCategoryFilter" aria-label="分類"><option value="">すべての分類</option><option>言い回し</option><option>構成</option><option>依頼</option><option>質問・確認</option><option>報告</option><option>説明</option><option>その他</option></select><select id="skFavoriteOnly" aria-label="表示"><option value="">すべて表示</option><option value="favorite">お気に入りだけ</option></select><select id="skSort" aria-label="並び順"><option value="new">新しい順</option><option value="use">よく使う順</option></select></div>
       <div class="hint" id="skStats"></div>
       <div id="skList"></div>
     </div>
@@ -747,12 +755,13 @@
 
     <div class="card" style="margin-top:14px;">
       <div class="sec-title">トレーニング</div>
-      <div class="hint" style="margin-bottom:10px;">お題に沿って自分で書いてから、模範解答と見比べます。<span class="train-count" id="trainCount"></span></div>
+      <div class="hint" style="margin-bottom:10px;">お題や保存した相手のメッセージへ自分で返信し、模範解答と見比べます。保存メッセージは問題表示だけなら端末内で処理し、採点時に問題と回答をGeminiへ送ります。<span class="train-count" id="trainCount"></span></div>
       <div class="row">
         <span class="pick-label">出題</span>
         <select id="trainSource" style="width:200px; flex:none;">
           <option value="weak">要チェックの傾向から</option>
           <option value="intent">用件を指定して</option>
+          <option value="stock">保存メッセージから</option>
         </select>
         <select id="trainIntent" class="hidden" style="width:130px; flex:none;">
           <option>依頼</option><option>報告</option><option>確認</option><option>催促</option><option>お詫び</option><option>お礼</option><option>相談</option><option>日程調整</option>
@@ -898,7 +907,7 @@
         <input type="file" id="bkFile" accept=".json,application/json" class="hidden">
       </div>
       <div class="status" id="bkStatus" style="margin-top:6px;"></div>
-      <div class="hint">学びノート・言葉帳の自分の登録・履歴・ストック・伏せ字リスト・設定をJSONファイル1つに保存します。履歴やノート、ストックには入力した本文・実名がそのまま入るため、ファイルの置き場所には注意してください。読み込み時は既存データに統合されるため、いま貯まっているものが消えることはありません。OneDrive内に書き出しておけば、別PCから同じファイルを読み込むだけで引っ越し完了です。</div>
+      <div class="hint">学びノート・言葉帳の自分の登録・履歴・ストック（返信練習カードを含む）・伏せ字リスト・設定をJSONファイル1つに保存します。履歴やノート、ストックには入力した本文・実名がそのまま入るため、ファイルの置き場所には注意してください。読み込み時は既存データに統合されるため、いま貯まっているものが消えることはありません。OneDrive内に書き出しておけば、別PCから同じファイルを読み込むだけで引っ越し完了です。</div>
     </div>
   </div>
 
@@ -955,7 +964,8 @@ function migrateLegacyStorage(){
 
 const DEFAULT_MODEL = "gemini-3.5-flash-lite";
 const DICTIONARY_LIMIT = 500;
-const HISTORY_LIMIT = 150;
+const HISTORY_LIMIT = 1000;
+const HISTORY_RENDER_LIMIT = 300;
 const STOCK_LIMIT = 500;
 const STOCK_RENDER_LIMIT = 200;
 
@@ -1416,7 +1426,8 @@ function recordHistoryResult(config, result){
   const output = typeof config.output === "function" ? config.output(result) : "";
   if(!String(output || "").trim()) return;
   const history = LS.history;
-  const entry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), type: String(config.type || "やり取り"), input: String(config.input), output: String(output), d: new Date().toISOString(), context:String(config.context||"") };
+  const context = typeof config.context === "function" ? config.context(result) : config.context;
+  const entry = { id: Date.now().toString(36) + Math.random().toString(36).slice(2,6), type: String(config.type || "やり取り"), input: String(config.input), output: String(output), d: new Date().toISOString(), context:String(context||"") };
   if(config.learn) entry.learning = cleanLearning(result, entry.input, entry.output, entry.type);
   history.unshift(entry);
   try{ LS.history = history.slice(0, HISTORY_LIMIT); }
@@ -1443,7 +1454,7 @@ function showSaveWarning(){
 /* 引用は実際の原文・結果に存在するものだけ採用する。AI作成文を利用者のミス扱いしない。 */
 function cleanLearning(raw, input, output, source){
   raw = raw && typeof raw==="object" ? raw : {};
-  const points = (Array.isArray(raw.points) ? raw.points : []).slice(0,5).filter(p=>
+  const points = (Array.isArray(raw.points) ? raw.points : []).slice(0,8).filter(p=>
     p && typeof p.before==="string" && p.before.trim() && input.includes(p.before) &&
     typeof p.after==="string" && p.after.trim() && output.includes(p.after) &&
     p.before!==p.after && typeof p.reason==="string" && p.reason.trim()
@@ -1471,7 +1482,7 @@ function learningHTML(n){
 }
 
 const LEARNING_PROMPT = "\n【実例で学ぶための記録】\n"+
-  "- pointsを最大2件（添削は最大5件）付ける。beforeは入力から、afterは完成文から一字一句同じ短い箇所を引用し、reasonで読み手にどう伝わりやすくなるかを説明。対応箇所がない場合は空配列。引用やミスを捏造しない。\n"+
+  "- pointsを最大2件（詳しい添削は最大8件）付ける。beforeは入力から、afterは完成文から一字一句同じ短い箇所を引用し、reasonで問題点・読み手への影響・次からの直し方を具体的に説明。対応箇所がない場合は空配列。引用やミスを捏造しない。\n"+
   "- 各pointのkeyは "+COACH_CATEGORY_PROMPT+" のキーから選ぶ。好みの変更や文書作成の箇条書きからの展開ならkeyは空文字。箇条書きは材料であり、未完成・敬語不足・構成不足をミスと扱わない。\n"+
   "- goodは入力に確認できる良い点を短く1文。なければ空文字。nextは次の文章で自分で試せる具体的な行動を1つ。\n"+
   '- 既定のJSONに "points":[{"before":"","after":"","reason":"","key":""}],"good":"","next":"","tipTag":"結論先行/構成/簡潔さ/敬語・配慮/語彙・言い回し/表記/その他から1つ" を含める。';
@@ -1480,11 +1491,13 @@ function renderHistory(){
   const history = LS.history;
   $("hiCount").textContent = history.length ? "(" + history.length + ")" : "";
   const q = $("hiSearch").value.trim().toLowerCase();
-  const list = history.filter(h=>!q || (h.type + "\n" + h.input + "\n" + h.output).toLowerCase().includes(q));
+  const filtered = history.filter(h=>!q || (h.type + "\n" + h.input + "\n" + h.output + "\n" + (h.context||"")).toLowerCase().includes(q));
+  const hidden = Math.max(0,filtered.length-HISTORY_RENDER_LIMIT), list=filtered.slice(0,HISTORY_RENDER_LIMIT);
+  renderHistoryAsset();
   $("hiList").innerHTML = !history.length
-    ? '<div class="empty-state">まだ履歴はありません。整える・添削・作成・翻訳を実行すると、ここで見返せます。</div>'
+    ? '<div class="empty-state">まだ履歴はありません。AI機能を実行すると、成功した入力と結果をここで見返せます。</div>'
     : !list.length ? '<div class="empty-state">条件に合う履歴がありません。</div>'
-    : list.map(h=>'<article class="history-item"><div class="history-meta"><b>'+esc(h.type)+'</b><span>'+esc(String(h.d || "").replace("T"," ").slice(0,16))+'</span><button class="btn sub tiny hi-stock" data-id="'+esc(h.id)+'">ストック</button><button class="btn sub tiny hi-del" data-id="'+esc(h.id)+'">削除</button></div><div class="history-label">入力</div><div class="history-text">'+esc(h.input)+'</div><div class="history-label">結果</div><div class="history-text">'+esc(h.output)+'</div></article>').join("");
+    : (hidden ? '<p class="hint">'+filtered.length+'件中、新しい順の'+HISTORY_RENDER_LIMIT+'件を表示しています。検索で絞り込めます。</p>' : '')+list.map(h=>'<article class="history-item"><div class="history-meta"><b>'+esc(h.type)+'</b><span>'+esc(String(h.d || "").replace("T"," ").slice(0,16))+'</span><button class="btn sub tiny hi-stock" data-id="'+esc(h.id)+'">ストック</button><button class="btn sub tiny hi-del" data-id="'+esc(h.id)+'">削除</button></div>'+(h.context?'<div class="hint">'+esc(h.context)+'</div>':'')+'<div class="history-label">入力</div><div class="history-text">'+esc(h.input)+'</div><div class="history-label">結果</div><div class="history-text">'+esc(h.output)+'</div></article>').join("");
   document.querySelectorAll("#hiList .hi-stock").forEach(b=>b.addEventListener("click", ()=>{
     const result = stockFromHistory(b.dataset.id);
     b.textContent = result.ok ? "ストック済み" : result.duplicate ? "登録済み" : "保存できません";
@@ -1495,15 +1508,55 @@ function renderHistory(){
   }));
 }
 
-const STOCK_OWNERS = ["自分","参考"];
-const STOCK_CATEGORIES = ["言い回し","構成","依頼","報告","説明","その他"];
+function historyAssetData(history=LS.history){
+  const types=new Map(), dates=[];
+  history.forEach(h=>{
+    const type=String(h&&h.type||"その他");types.set(type,(types.get(type)||0)+1);
+    const time=Date.parse(h&&h.d);if(Number.isFinite(time))dates.push(time);
+  });
+  const coaching=historyCoachData(history,"all");
+  return {total:history.length,types:[...types.entries()].sort((a,b)=>b[1]-a[1]),first:dates.length?new Date(Math.min(...dates)).toISOString().slice(0,10):"",last:dates.length?new Date(Math.max(...dates)).toISOString().slice(0,10):"",groups:coaching.groups};
+}
+function renderHistoryAsset(){
+  const data=historyAssetData();
+  if(!data.total){$("hiAssetSummary").innerHTML='<p class="hint">履歴が貯まると、利用機能と改善傾向をここで確認できます。</p>';return;}
+  const types=data.types.map(([type,count])=>'<span class="note-tag">'+esc(type)+' '+count+'件</span>').join(" ");
+  const trends=data.groups.slice(0,3).map(g=>'<div class="learning-item"><b>'+esc(COACH_ISSUE_TYPES[g.key].title)+' <span class="note-tag">'+g.count+'件 / '+g.days+'日</span></b><span>'+esc(g.days>=2?'繰り返し確認できた傾向です。':'まだ観察中です。')+' '+esc(COACH_ISSUE_TYPES[g.key].advice)+'</span></div>').join("");
+  $("hiAssetSummary").innerHTML='<p><b>'+data.total+'件</b>を保存（'+esc(data.first)+' 〜 '+esc(data.last)+'）</p><p>'+types+'</p>'+(trends?'<div class="history-label">多い改善傾向と次の行動</div>'+trends:'<p class="hint">根拠付きで分類できる改善傾向はまだありません。詳しい添削を使うと分析材料が増えます。</p>');
+}
+function historyLearningText(h){
+  if(!h.learning) return "";
+  const l=cleanLearning(h.learning,String(h.input||""),String(h.output||""),String(h.type||""));
+  return [l.tip,l.next,...l.points.map(p=>p.before+" → "+p.after+"（"+p.reason+"）")].filter(Boolean).join(" / ");
+}
+function downloadHistoryFile(name,text,type){
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function exportHistoryCsv(){
+  const history=LS.history;
+  if(!history.length){setStatus("hiStatus","書き出す履歴がありません。",true,false);return;}
+  const rows=[["日時","機能","前提・文脈","入力","結果","学び・改善点"],...history.map(h=>[h.d,h.type,h.context||"",h.input,h.output,historyLearningText(h)])];
+  const csv="\uFEFF"+rows.map(row=>row.map(csvCell).join(",")).join("\r\n");
+  downloadHistoryFile("WordBridge_履歴_"+new Date().toISOString().slice(0,10)+".csv",csv,"text/csv;charset=utf-8");setStatus("hiStatus","CSVを書き出しました ✓",false,false);
+}
+function markdownQuote(value){return String(value||"").split("\n").map(line=>"> "+line).join("\n");}
+function exportHistoryMarkdown(){
+  const history=LS.history;
+  if(!history.length){setStatus("hiStatus","書き出す履歴がありません。",true,false);return;}
+  const sections=history.map((h,i)=>"## "+(i+1)+". "+String(h.type||"履歴")+" / "+String(h.d||"").replace("T"," ").slice(0,16)+"\n\n"+(h.context?"**前提・文脈**\n\n"+markdownQuote(h.context)+"\n\n":"")+"**入力**\n\n"+markdownQuote(h.input)+"\n\n**結果**\n\n"+markdownQuote(h.output)+(h.learning?"\n\n**学び・改善点**\n\n"+markdownQuote(historyLearningText(h)):""));
+  const md="# WordBridge 履歴\n\n書き出し日: "+new Date().toISOString().slice(0,10)+"\n保存件数: "+history.length+"件\n\n"+sections.join("\n\n---\n\n")+"\n";
+  downloadHistoryFile("WordBridge_履歴_"+new Date().toISOString().slice(0,10)+".md",md,"text/markdown;charset=utf-8");setStatus("hiStatus","Markdownを書き出しました ✓",false,false);
+}
+
+const STOCK_OWNERS = ["自分","参考","相手から"];
+const STOCK_CATEGORIES = ["言い回し","構成","依頼","質問・確認","報告","説明","その他"];
 let skEditId = "";
 function cleanStock(raw){
   if(!raw || typeof raw!=="object") return null;
   const text = String(raw.text||"").trim();
   if(!text || text.length>10000) return null;
   const tags = [...new Set((Array.isArray(raw.tags) ? raw.tags : String(raw.tags||"").split(/[、,]/)).map(x=>String(x).trim()).filter(Boolean).slice(0,8).map(x=>x.slice(0,24)))];
-  return {id:String(raw.id||""), title:String(raw.title||"").trim().slice(0,100), text, owner:STOCK_OWNERS.includes(raw.owner)?raw.owner:"自分", category:STOCK_CATEGORIES.includes(raw.category)?raw.category:"その他", tags, note:String(raw.note||"").trim().slice(0,240), d:String(raw.d||new Date().toISOString()).slice(0,24), n:Math.max(0,Number(raw.n)||0), favorite:!!raw.favorite, sourceHistoryId:String(raw.sourceHistoryId||"")};
+  return {id:String(raw.id||""), title:String(raw.title||"").trim().slice(0,100), text, owner:STOCK_OWNERS.includes(raw.owner)?raw.owner:"自分", category:STOCK_CATEGORIES.includes(raw.category)?raw.category:"その他", tags, note:String(raw.note||"").trim().slice(0,240), d:String(raw.d||new Date().toISOString()).slice(0,24), n:Math.max(0,Number(raw.n)||0), favorite:!!raw.favorite, sourceHistoryId:String(raw.sourceHistoryId||""), practiceCount:Math.max(0,Number(raw.practiceCount)||0), lastPractice:String(raw.lastPractice||"").slice(0,24)};
 }
 function stockIdentity(item){ return JSON.stringify([item.owner,item.text]); }
 function saveStock(raw, replaceId=""){
@@ -1513,7 +1566,7 @@ function saveStock(raw, replaceId=""){
   const existing = replaceId ? entries.find(x=>x.id===replaceId) : null;
   if(!existing && item.sourceHistoryId && entries.some(x=>x.sourceHistoryId===item.sourceHistoryId)) return {ok:false, duplicate:true, message:"この履歴はストック済みです。"};
   if(!existing && entries.some(x=>stockIdentity(x)===stockIdentity(item))) return {ok:false, duplicate:true, message:"同じ文章が登録済みです。"};
-  if(existing){ item.id=existing.id; item.d=existing.d; item.n=existing.n; item.favorite=existing.favorite; entries[entries.indexOf(existing)]=item; }
+  if(existing){ item.id=existing.id; item.d=existing.d; item.n=existing.n; item.favorite=existing.favorite; item.practiceCount=existing.practiceCount; item.lastPractice=existing.lastPractice; entries[entries.indexOf(existing)]=item; }
   else { item.id=Date.now().toString(36)+Math.random().toString(36).slice(2,7); entries.unshift(item); }
   try{ LS.stock = entries.slice(0,STOCK_LIMIT); }
   catch(e){ showSaveWarning(); return {ok:false, message:"保存できませんでした。"}; }
@@ -1527,13 +1580,20 @@ function stockFromHistory(id){
   if(result.ok) renderStock();
   return result;
 }
+function updateStockFormMode(){
+  const incoming = $("skOwner").value === "相手から";
+  $("skTextLabel").textContent = incoming ? "相手からのメッセージ" : "文章";
+  $("skText").placeholder = incoming
+    ? "返信を練習したい相手のメッセージを貼り付けます。個人情報や機密情報は残さないでください。"
+    : "残したい文章を貼り付けます。個人情報や機密情報は残さないでください。";
+}
 function resetStockForm(){
-  skEditId=""; ["skTitle","skTags","skText","skNote"].forEach(id=>$(id).value=""); $("skOwner").value="自分"; $("skCategory").value="言い回し"; $("skCancel").classList.add("hidden"); $("skAdd").textContent="ストックする";
+  skEditId=""; ["skTitle","skTags","skText","skNote"].forEach(id=>$(id).value=""); $("skOwner").value="自分"; $("skCategory").value="言い回し"; $("skCancel").classList.add("hidden"); $("skAdd").textContent="ストックする"; updateStockFormMode();
 }
 function stockStats(entries){
-  const own=entries.filter(x=>x.owner==="自分").length, ref=entries.length-own, fav=entries.filter(x=>x.favorite).length;
+  const own=entries.filter(x=>x.owner==="自分").length, ref=entries.filter(x=>x.owner==="参考").length, incoming=entries.filter(x=>x.owner==="相手から").length, fav=entries.filter(x=>x.favorite).length;
   const top=[...new Set(entries.map(x=>x.category))].map(category=>({category,count:entries.filter(x=>x.category===category).length})).sort((a,b)=>b.count-a.count)[0];
-  return "保存 "+entries.length+"件（自分 "+own+" / 参考 "+ref+" / お気に入り "+fav+"）"+(top ? " ・ 多い分類: "+top.category+" "+top.count+"件" : "")+"。分析はこの端末内の分類・利用回数だけで行います。";
+  return "保存 "+entries.length+"件（自分 "+own+" / 参考 "+ref+" / 相手から "+incoming+" / お気に入り "+fav+"）"+(top ? " ・ 多い分類: "+top.category+" "+top.count+"件" : "")+"。分類と出題順の整理はこの端末内で行います。";
 }
 function renderStock(){
   const entries=LS.stock.map(cleanStock).filter(Boolean);
@@ -1543,10 +1603,11 @@ function renderStock(){
   let list=entries.filter(x=>(!owner||x.owner===owner)&&(!category||x.category===category)&&(!favoriteOnly||x.favorite)&&(!q||[x.title,x.text,x.owner,x.category,x.tags.join(" "),x.note].join("\n").toLowerCase().includes(q)));
   list.sort($("skSort").value==="use" ? (a,b)=>(b.n-a.n)||String(b.d).localeCompare(String(a.d)) : (a,b)=>String(b.d).localeCompare(String(a.d)));
   const hidden=Math.max(0,list.length-STOCK_RENDER_LIMIT); list=list.slice(0,STOCK_RENDER_LIMIT);
-  $("skList").innerHTML=!entries.length ? '<div class="empty-state">まだストックはありません。参考になる文章を残すか、履歴の完成文から「ストック」を選んでください。</div>' : !list.length ? '<div class="empty-state">条件に合う文章がありません。</div>' : (hidden ? '<p class="hint">'+(hidden+STOCK_RENDER_LIMIT)+'件中、新しい順の'+STOCK_RENDER_LIMIT+'件を表示しています。</p>' : '')+list.map(x=>'<article class="stock-item"><div class="stock-meta"><b>'+esc(x.owner)+' / '+esc(x.category)+'</b><span>'+esc(String(x.d).replace("T"," ").slice(0,10))+'</span><span>使用 '+x.n+'回</span></div><div class="stock-text">'+(x.title?'<b>'+esc(x.title)+'</b>\n':'')+esc(x.text)+'</div>'+ (x.tags.length?'<div class="stock-tags">'+x.tags.map(tag=>'<span>'+esc(tag)+'</span>').join("")+'</div>':'')+(x.note?'<div class="hint" style="margin-top:7px;">'+esc(x.note)+'</div>':'')+'<div class="row" style="margin-top:9px;"><button class="btn sub tiny sk-copy" data-id="'+esc(x.id)+'">コピー</button><button class="btn sub tiny sk-fav" data-id="'+esc(x.id)+'">'+(x.favorite?'★ お気に入り':'☆ お気に入り')+'</button><button class="btn sub tiny sk-edit" data-id="'+esc(x.id)+'">編集</button><button class="btn sub tiny sk-del" data-id="'+esc(x.id)+'">削除</button></div></article>').join("");
+  $("skList").innerHTML=!entries.length ? '<div class="empty-state">まだストックはありません。参考になる文章、返信を練習したいメッセージ、履歴の完成文を残せます。</div>' : !list.length ? '<div class="empty-state">条件に合う文章がありません。</div>' : (hidden ? '<p class="hint">'+(hidden+STOCK_RENDER_LIMIT)+'件中、新しい順の'+STOCK_RENDER_LIMIT+'件を表示しています。</p>' : '')+list.map(x=>'<article class="stock-item"><div class="stock-meta"><b>'+esc(x.owner)+' / '+esc(x.category)+'</b><span>'+esc(String(x.d).replace("T"," ").slice(0,10))+'</span><span>'+(x.owner==="相手から"?'練習 '+x.practiceCount:'使用 '+x.n)+'回</span></div><div class="stock-text">'+(x.title?'<b>'+esc(x.title)+'</b>\n':'')+esc(x.text)+'</div>'+ (x.tags.length?'<div class="stock-tags">'+x.tags.map(tag=>'<span>'+esc(tag)+'</span>').join("")+'</div>':'')+(x.note?'<div class="hint" style="margin-top:7px;">'+esc(x.note)+'</div>':'')+'<div class="row" style="margin-top:9px;">'+(x.owner==="相手から"?'<button class="btn tiny sk-practice" data-id="'+esc(x.id)+'">返信練習</button>':'')+'<button class="btn sub tiny sk-copy" data-id="'+esc(x.id)+'">コピー</button><button class="btn sub tiny sk-fav" data-id="'+esc(x.id)+'">'+(x.favorite?'★ お気に入り':'☆ お気に入り')+'</button><button class="btn sub tiny sk-edit" data-id="'+esc(x.id)+'">編集</button><button class="btn sub tiny sk-del" data-id="'+esc(x.id)+'">削除</button></div></article>').join("");
+  document.querySelectorAll("#skList .sk-practice").forEach(b=>b.addEventListener("click",()=>openReplyTraining(b.dataset.id)));
   document.querySelectorAll("#skList .sk-copy").forEach(b=>b.addEventListener("click",async()=>{const item=LS.stock.map(cleanStock).find(x=>x&&x.id===b.dataset.id);if(!item)return;try{await navigator.clipboard.writeText(item.text);item.n++;LS.stock=LS.stock.map(x=>x.id===item.id?item:x);b.textContent="コピー済み";}catch(e){b.textContent="コピー不可";}setTimeout(()=>b.textContent="コピー",1500);}));
   document.querySelectorAll("#skList .sk-fav").forEach(b=>b.addEventListener("click",()=>{const items=LS.stock.map(cleanStock).filter(Boolean);const item=items.find(x=>x.id===b.dataset.id);if(!item)return;item.favorite=!item.favorite;try{LS.stock=items;renderStock();}catch(e){showSaveWarning();}}));
-  document.querySelectorAll("#skList .sk-edit").forEach(b=>b.addEventListener("click",()=>{const item=LS.stock.map(cleanStock).find(x=>x&&x.id===b.dataset.id);if(!item)return;skEditId=item.id;$("skTitle").value=item.title;$("skOwner").value=item.owner;$("skCategory").value=item.category;$("skTags").value=item.tags.join(", ");$("skText").value=item.text;$("skNote").value=item.note;$("skCancel").classList.remove("hidden");$("skAdd").textContent="更新";$("skTitle").focus();}));
+  document.querySelectorAll("#skList .sk-edit").forEach(b=>b.addEventListener("click",()=>{const item=LS.stock.map(cleanStock).find(x=>x&&x.id===b.dataset.id);if(!item)return;skEditId=item.id;$("skTitle").value=item.title;$("skOwner").value=item.owner;$("skCategory").value=item.category;$("skTags").value=item.tags.join(", ");$("skText").value=item.text;$("skNote").value=item.note;updateStockFormMode();$("skCancel").classList.remove("hidden");$("skAdd").textContent="更新";$("skTitle").focus();}));
   document.querySelectorAll("#skList .sk-del").forEach(b=>b.addEventListener("click",()=>{try{LS.stock=LS.stock.filter(x=>x&&x.id!==b.dataset.id);renderStock();}catch(e){showSaveWarning();}}));
 }
 
@@ -1600,7 +1661,7 @@ function needKeyGuide(statusId){
 /* ---------- 敬語変換 ---------- */
 /* 文書校正の相手・用件の初期値。起動時とクリア時にここへ戻す */
 const DEFAULT_TONE = "casual";
-const DEFAULT_INTENT = "依頼";
+const DEFAULT_INTENT = "通常";
 let kjIntent = DEFAULT_INTENT;
 let writeMode = "review";
 
@@ -1660,6 +1721,12 @@ function selectIntent(intent){
   if(typeof updateTargetSummary === "function") updateTargetSummary();
 }
 
+function intentInstruction(intent){
+  if(intent === "通常") return "特定の用件を付け足さず、入力内容の意味を保ったまま、不自然な語順・重複・曖昧さ・表記だけを整える。";
+  if(intent === "ナレッジ") return "社内ナレッジとして読み返しやすい文章にする。結論、前提、手順、注意点の順を意識し、宛名・あいさつ・依頼表現を勝手に足さない。";
+  return "選択された用件（"+intent+"）が自然に伝わる文章にする。";
+}
+
 function resetTargets(){
   selectTone(DEFAULT_TONE);
   selectIntent(DEFAULT_INTENT);
@@ -1675,7 +1742,6 @@ async function runKeigo(){
   const structure = isStructureReview();
   const workTitle = $("kjWorkTitle").value.trim();
   const title = $("kjTitle").value.trim();
-  const knowledge = $("kjKnowledge").value.trim();
   const context = $("kjContext").value.trim();
   $("prResultCard").classList.add("hidden");
   $("kjBtn").disabled = true;
@@ -1690,15 +1756,14 @@ ${writingProfile()}
 ${structure ? "【文章の用途】AIへの入力文または自分用メモ（対人向けではない文章）" : "【用件】"+kjIntent}
 【業務タイトル】${workTitle || "指定なし"}
 【タイトル・件名】${title || "指定なし"}
-【参照ナレッジ】${knowledge || "指定なし"}
 【今回の前提条件】${context || "指定なし"}
 
 【指示】
 - 原文の意味、事実、固有名詞、期限を変えず、${structure ? "目的・結論・情報の順番が分かる、簡潔で正確な日本語へ整える。" : "相手と用件に合う自然なビジネス日本語へ整える。"}
+- ${structure ? "文章の用途に合わせて自然に整える。" : intentInstruction(kjIntent)}
 - ${structure ? "あいさつ、宛名、敬語、依頼や約束を勝手に足さない。箇条書きや見出しなどの形式は、読みやすさを高める場合だけ整える。" : "敬語を重ねすぎず、簡潔で、相手が次に何をすればよいか分かる文章にする。"}
 - 原文にない約束、謝罪、期限、事情を追加しない。
 - タイトル・件名は文章の目的を判断するために使い、本文へ勝手に挿入しない。
-- 参照ナレッジは用語・背景・判断基準の確認に使い、関係のない内容を本文へ写したり、ナレッジにない事実を作ったりしない。
 - 前提条件は相手・状況・目的の判断にだけ使い、本文にない事実として書き足さない。
 - 変更の学びになる短いポイントを1件だけ示す。
 - 必ず次のJSONのみで回答する:
@@ -1706,7 +1771,7 @@ ${structure ? "【文章の用途】AIへの入力文または自分用メモ（
   try{
     const r = await callGemini(sys, text, msg=>setStatus("kjStatus", msg, false, true), {
       maxOutputTokens: outputTokenLimit(text.length, 850, 1800),
-      history: { type:"整える", input:text, output:r=>r.revised, learn:true, context:tone.label+(structure ? "" : " / "+kjIntent)+"\nタイトル・件名: "+title+"\n業務タイトル: "+workTitle+"\nナレッジ: "+knowledge+"\n前提条件: "+context }
+      history: { type:"整える", input:text, output:r=>r.revised, learn:true, context:tone.label+(structure ? "" : " / "+kjIntent)+"\nタイトル・件名: "+title+"\n業務タイトル: "+workTitle+"\n前提条件: "+context }
     });
     $("kjResultCard").classList.remove("hidden");
     $("kjResultText").textContent = r.revised || "";
@@ -1730,7 +1795,6 @@ async function runCompose(){
   const purpose = kjIntent;
   const workTitle = $("kjWorkTitle").value.trim();
   const title = $("kjTitle").value.trim();
-  const knowledge = $("kjKnowledge").value.trim();
   const context = $("kjContext").value.trim();
   $("cmBtn").disabled = true;
   setStatus("cmStatus", "作成中…", false, true);
@@ -1742,14 +1806,13 @@ ${writingProfile()}
 ${structure ? "【文章の用途】AIへの入力文または自分用メモ（対人向けではない文章）" : "【相手】"+tone.label+": "+tone.desc+"\n【用途】"+purpose}
 【業務タイトル】${workTitle || "指定なし"}
 【タイトル・件名】${title || "指定なし"}
-【参照ナレッジ】${knowledge || "指定なし"}
 【今回の前提条件】${context || "指定なし"}
 
 【指示】
 - 入力された要点だけを使い、${structure ? "目的と条件が分かる、簡潔で読みやすい文章を作る。" : "メールまたはチャットとしてそのまま送れる自然な下書きを作る。"}
+- ${structure ? "文章の用途に合わせて自然に構成する。" : intentInstruction(purpose)}
 - 結論または用件を先にし、必要に応じて理由、期限、相手にしてほしいことを明確にする。
 - 入力にない事実、期限、相手の名前、約束を作らない。不足は曖昧なまま勝手に補完しない。
-- 参照ナレッジは用語・背景・判断基準の確認に使い、関係のない内容を本文へ写したり、ナレッジにない事実を作ったりしない。
 - 前提条件は相手・状況・目的の判断にだけ使い、本文にない事実として書き足さない。
 - ${structure ? "宛名、あいさつ、結び、敬語、依頼や約束を勝手に足さない。" : "社内チャットなら短く、社外なら必要な挨拶と結びを含める。"}
 - 必ず次のJSONのみで回答する:
@@ -1757,7 +1820,7 @@ ${structure ? "【文章の用途】AIへの入力文または自分用メモ（
   try{
     const r = await callGemini(sys, points, msg=>setStatus("cmStatus", msg, false, true), {
       maxOutputTokens: outputTokenLimit(points.length, 950, 2200),
-      history: { type:"文書作成", input:points, output:r=>r.draft, learn:true, context:tone.label+(structure ? "" : " / "+purpose)+"\nタイトル・件名: "+title+"\n業務タイトル: "+workTitle+"\nナレッジ: "+knowledge+"\n前提条件: "+context }
+      history: { type:"文書作成", input:points, output:r=>r.draft, learn:true, context:tone.label+(structure ? "" : " / "+purpose)+"\nタイトル・件名: "+title+"\n業務タイトル: "+workTitle+"\n前提条件: "+context }
     });
     $("cmResultCard").classList.remove("hidden");
     $("cmResultText").textContent = r.draft || "";
@@ -1873,6 +1936,7 @@ async function runImageOcr(){
     const r = await callGemini(sys, "この画像内の文字を読み取ってください。", msg=>setStatus("trStatus", msg, false, true), {
       maxOutputTokens: 2400,
       noCache:true,
+      history:{type:"画像文字読み取り",input:"画像: "+trImage.name,output:r=>r.text,context:"画像本体は保存せず、抽出した文字だけを保存"},
       userParts: [
         { text:"この画像内の文字を読み取ってください。" },
         { inlineData:{ mimeType:trImage.mimeType, data:trImage.data } }
@@ -1916,7 +1980,7 @@ ${LS.persona}
   try{
     const r = await callGemini(sys, text, msg=>setStatus("trStatus", msg, false, true), {
       maxOutputTokens: outputTokenLimit(text.length, 420, 1400),
-      history: { type:"翻訳", input:text, output:r=>r.translation }
+      history: { type:"翻訳", input:text, output:r=>String(r.translation||"")+(Array.isArray(r.notes)&&r.notes.length?"\n\n訳語メモ:\n"+r.notes.map(n=>String(n.term||"")+": "+String(n.note||"")).join("\n"):""), context:"前提条件: "+context }
     });
     $("trResultCard").classList.remove("hidden");
     $("trDirection").textContent = "翻訳結果(" + (r.direction||"") + ")";
@@ -1941,6 +2005,17 @@ $("trBtn").addEventListener("click", runTranslate);
 
 /* ---------- 添削（深く見る） ---------- */
 
+function proofHistoryTrendHTML(currentInput){
+  const past = LS.history.filter(h=>h && String(h.input||"").trim() !== String(currentInput||"").trim());
+  const data = historyCoachData(past,"all");
+  if(!data.total) return '<p class="hint">比較できる過去の校正履歴はまだありません。今後の添削から傾向が貯まります。</p>';
+  if(!data.groups.length) return '<p class="hint">過去'+data.total+'件を確認しましたが、根拠付きで分類できる繰り返し傾向はまだありません。</p>';
+  return '<p class="hint">保存済みの過去'+data.total+'件を端末内だけで集計しました。今回の本文は集計から除いています。</p>'+data.groups.slice(0,3).map(g=>
+    '<div class="learning-item"><b>'+esc(COACH_ISSUE_TYPES[g.key].title)+' <span class="note-tag">'+g.count+'件 / '+g.days+'日</span></b><span>'+
+    esc(g.days>=2 ? "複数日に見られた傾向です。" : "1日分の記録なので、まだ観察中です。")+' '+esc(COACH_ISSUE_TYPES[g.key].advice)+'</span></div>'
+  ).join("");
+}
+
 async function runProof(){
   const text = $("kjInput").value.trim();
   if(!text) return;
@@ -1950,7 +2025,6 @@ async function runProof(){
   const usePrep = !structure && $("prepToggle").checked;
   const workTitle = $("kjWorkTitle").value.trim();
   const title = $("kjTitle").value.trim();
-  const knowledge = $("kjKnowledge").value.trim();
   const context = $("kjContext").value.trim();
   $("kjResultCard").classList.add("hidden");
   $("prBtn").disabled = true;
@@ -1965,16 +2039,17 @@ ${writingProfile()}
 ${structure ? "【文章の用途】AIへの入力文または自分用メモ（対人向けではない文章）" : "【用件】"+kjIntent}
 【業務タイトル】${workTitle || "指定なし"}
 【タイトル・件名】${title || "指定なし"}
-【参照ナレッジ】${knowledge || "指定なし"}
 【今回の前提条件】${context || "指定なし"}
 
 【指示】
 - 原文の意図を保ったまま、${structure ? "目的・結論・情報の順番、主語と動作の明瞭さ、用語と表記の統一を優先して書き直す。" : "宛先・場面に合った文章に書き直す。"}
+- ${structure ? "文章の用途に合わせて自然に整える。" : intentInstruction(kjIntent)}
 - ${structure ? "宛名、あいさつ、結び、敬語、依頼や約束を追加せず、宛先がないこと自体を問題として扱わない。" : "敬語と配慮を過不足なく整える。"}
-- 変更した箇所ごとに「なぜそうしたか」を、依頼者が次から自分で書けるようになる形で説明する(最大5件、重要な順)。
+- 語順、助詞、主語と述語、重複、曖昧さ、接続、敬語、語彙、句読点、表記ゆれを一つずつ確認する。
+- 変更した箇所は、別の問題を一項目へまとめず、短い単位に分けて最大8件まで重要な順に示す。小さくても読みやすさへ影響する変更は省略しない。
+- 各reasonは「何が分かりにくかったか」「読み手にどう影響するか」「次からどう直すか」が分かる具体的な説明にする。
 - 問題のない箇所は褒めてよい。否定的・威圧的な言い方はしない。
 - タイトル・件名は文章の目的を判断するために使い、本文へ勝手に挿入しない。
-- 参照ナレッジは用語・背景・判断基準の確認に使い、関係のない内容を本文へ写したり、ナレッジにない事実を作ったりしない。
 - 前提条件は相手・状況・目的の判断にだけ使い、原文にない事実として書き足さない。
 ${usePrep ? `- PREP法(Point結論→Reason理由→Example具体例→Point再結論)の観点で構造を分析する。報告・説明系の文章でない場合(挨拶や短い連絡など)は adapted=false とし、コメントで「この文章はPREP適用外」と伝える。` : ""}
 - 「今日の学び」として、この添削から得られる汎用的な教訓を1文で書く。
@@ -1989,8 +2064,8 @@ ${usePrep ? `"prep":{"adapted":true,"P":true,"R":false,"E":false,"P2":true,"comm
 "tip":"今日の学び(1文)","tipTag":"タグ","coachIssues":[{"key":"分類キー","title":"改善傾向の名前","observation":"今回見られた傾向","advice":"次回の具体的な行動"}]}`;
   try{
     const r = await callGemini(sys, text, msg=>setStatus("kjStatus", msg, false, true), {
-      maxOutputTokens: outputTokenLimit(text.length, 1200, 2600),
-      history: { type:"添削", input:text, output:r=>r.revised, learn:true, context:tone.label+(structure ? "" : " / "+kjIntent)+"\nタイトル・件名: "+title+"\n業務タイトル: "+workTitle+"\nナレッジ: "+knowledge+"\n前提条件: "+context }
+      maxOutputTokens: outputTokenLimit(text.length, 1500, 3200),
+      history: { type:"添削", input:text, output:r=>r.revised, learn:true, context:tone.label+(structure ? "" : " / "+kjIntent)+"\nタイトル・件名: "+title+"\n業務タイトル: "+workTitle+"\n前提条件: "+context }
     });
     $("prResultCard").classList.remove("hidden");
     $("prToneLabel").textContent = tone.label;
@@ -2002,6 +2077,7 @@ ${usePrep ? `"prep":{"adapted":true,"P":true,"R":false,"E":false,"P2":true,"comm
     $("prPoints").innerHTML = pts.length
       ? pts.map(p=>'<div class="point"><div class="ba"><span class="before">'+esc(p.before)+'</span> → <span class="after">'+esc(p.after)+'</span></div><div class="why">'+esc(p.reason)+'</div></div>').join("")
       : '<div class="hint">原文と結果の両方で引用を確認できる箇所別の理由はありません。全文と学びを見比べてください。</div>';
+    $("prHistoryTrend").innerHTML = proofHistoryTrendHTML(text);
 
     if(usePrep && r.prep){
       $("prPrepWrap").classList.remove("hidden");
@@ -2073,8 +2149,8 @@ function bindClear(btnId, inputId, cardIds, statusId, extraIds, after){
     }
   });
 }
-bindClear("kjClear", "kjInput", ["kjResultCard", "prResultCard"], "kjStatus", ["kjTitle", "kjWorkTitle", "kjKnowledge", "kjContext"], resetTargets);
-bindClear("cmClear", "cmInput", "cmResultCard", "cmStatus", ["kjTitle", "kjWorkTitle", "kjKnowledge", "kjContext"], resetTargets);
+bindClear("kjClear", "kjInput", ["kjResultCard", "prResultCard"], "kjStatus", ["kjTitle", "kjWorkTitle", "kjContext"], resetTargets);
+bindClear("cmClear", "cmInput", "cmResultCard", "cmStatus", ["kjTitle", "kjWorkTitle", "kjContext"], resetTargets);
 bindClear("trClear", "trInput", "trResultCard", "trStatus", ["trContext"], clearTranslationImage);
 
 /* ---------- 変換（大文字・小文字・命名規則） ----------
@@ -2301,8 +2377,8 @@ $("mkOn").addEventListener("change", ()=>{
 
 /* いまの入力に効く伏せ字を、実行前に見えるようにする */
 const MASK_HINTS = [
-  { hint:"kjMaskHint", src:["kjInput", "kjTitle", "kjWorkTitle", "kjKnowledge", "kjContext"] },
-  { hint:"cmMaskHint", src:["cmInput", "kjTitle", "kjWorkTitle", "kjKnowledge", "kjContext"] },
+  { hint:"kjMaskHint", src:["kjInput", "kjTitle", "kjWorkTitle", "kjContext"] },
+  { hint:"cmMaskHint", src:["cmInput", "kjTitle", "kjWorkTitle", "kjContext"] },
   { hint:"trMaskHint", src:["trInput", "trContext"] }
 ];
 
@@ -2325,9 +2401,9 @@ MASK_HINTS.forEach(h=>h.src.forEach(id=>{
 
 /* ---------- 修正案へのやりとり ---------- */
 const FOLLOW_TARGETS = {
-  kj: { box:"kjResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"タイトル・件名: "+$("kjTitle").value.trim()+"\n業務タイトル: "+$("kjWorkTitle").value.trim()+"\nナレッジ: "+$("kjKnowledge").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
-  pr: { box:"prResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"タイトル・件名: "+$("kjTitle").value.trim()+"\n業務タイトル: "+$("kjWorkTitle").value.trim()+"\nナレッジ: "+$("kjKnowledge").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
-  cm: { box:"cmResult", status:"cmStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"タイトル・件名: "+$("kjTitle").value.trim()+"\n業務タイトル: "+$("kjWorkTitle").value.trim()+"\nナレッジ: "+$("kjKnowledge").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
+  kj: { box:"kjResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"タイトル・件名: "+$("kjTitle").value.trim()+"\n業務タイトル: "+$("kjWorkTitle").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
+  pr: { box:"prResult", status:"kjStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"タイトル・件名: "+$("kjTitle").value.trim()+"\n業務タイトル: "+$("kjWorkTitle").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
+  cm: { box:"cmResult", status:"cmStatus", tone:()=>TONES[LS.tone] || TONES.boss, context:()=>"タイトル・件名: "+$("kjTitle").value.trim()+"\n業務タイトル: "+$("kjWorkTitle").value.trim()+"\n前提条件: "+$("kjContext").value.trim(), purpose:()=>kjIntent },
   tr: { box:"trResult", status:"trStatus", context:()=>$("trContext").value.trim(), source:()=>$("trInput").value.trim(), translation:true }
 };
 const followHistory = { kj: [], pr: [], cm: [], tr: [] };
@@ -2473,7 +2549,7 @@ $("trainSource").addEventListener("change", ()=>{
 function renderTrainQuestion(q){
   const tone = TONES[q.tone] || TONES.boss;
   $("trainQuestion").innerHTML =
-    "<b>" + esc(tone.label) + "へ / " + esc(q.intent || "") + "</b>" +
+    "<b>" + (q.source === "stock" ? "相手からのメッセージ"+(q.title ? " / "+esc(q.title) : "") : esc(tone.label) + "へ / " + esc(q.intent || "")) + "</b>" +
     esc(q.situation || "") +
     (Array.isArray(q.conditions) && q.conditions.length
       ? '<div class="train-cond">' + q.conditions.map(c=>"<span>" + esc(c) + "</span>").join("") + "</div>"
@@ -2481,9 +2557,57 @@ function renderTrainQuestion(q){
     (q.hint ? '<div class="hint" style="margin-top:9px;">ヒント: ' + esc(q.hint) + "</div>" : "");
 }
 
+function replyTrainingStocks(){
+  return LS.stock.map(cleanStock).filter(x=>x && x.owner === "相手から");
+}
+function replyTone(item){
+  const words=[item.category,...item.tags,item.note].join(" ");
+  if(/社外|取引先|顧客/.test(words)) return "external";
+  if(/上司|部長|社内/.test(words)) return "boss";
+  return "casual";
+}
+function nextReplyStock(excludeId=""){
+  const all=replyTrainingStocks();
+  const list=all.length>1 ? all.filter(x=>x.id!==excludeId) : all;
+  return list.sort((a,b)=>(a.practiceCount-b.practiceCount)||String(a.lastPractice).localeCompare(String(b.lastPractice))||String(a.d).localeCompare(String(b.d)))[0] || null;
+}
+function showReplyTraining(item){
+  trainQuestion={source:"stock",stockId:item.id,title:item.title,situation:item.text,tone:replyTone(item),intent:item.category||"返信",conditions:[item.note,...item.tags].filter(Boolean).slice(0,3),hint:"相手の要点に答え、必要なら次の行動を明確にします。"};
+  renderTrainQuestion(trainQuestion);
+  $("trainQuestionWrap").classList.remove("hidden");
+  $("trainResultWrap").classList.add("hidden");
+  $("trainAnswer").value="";
+  $("trainAnswer").focus();
+  setStatus("trainStatus","保存したメッセージから出題しました。",false,false);
+}
+function openReplyTraining(id){
+  const item=replyTrainingStocks().find(x=>x.id===id);
+  if(!item) return false;
+  $("trainSource").value="stock";
+  $("trainIntent").classList.add("hidden");
+  document.querySelector('nav button[data-tab="co"]').click();
+  showReplyTraining(item);
+  $("trainQuestionWrap").scrollIntoView({block:"center",behavior:"smooth"});
+  return true;
+}
+function markReplyPractice(id){
+  const items=LS.stock.map(cleanStock).filter(Boolean), item=items.find(x=>x.id===id);
+  if(!item) return;
+  item.practiceCount++;
+  item.lastPractice=new Date().toISOString();
+  try{LS.stock=items;renderStock();}catch(e){showSaveWarning();}
+}
+
 async function runTrainingNew(seed){
-  if(!LS.k){ needKeyGuide("trainStatus"); return; }
   const source = $("trainSource").value;
+  if(!seed && source === "stock"){
+    const previous=trainQuestion && trainQuestion.source==="stock" ? trainQuestion.stockId : "";
+    const item=nextReplyStock(previous);
+    if(!item){setStatus("trainStatus","「ストック」で文章の種類を「相手から」にして、メッセージを保存してください。",true,false);return;}
+    showReplyTraining(item);
+    return;
+  }
+  if(!LS.k){ needKeyGuide("trainStatus"); return; }
   const intent = $("trainIntent").value;
   $("trainNew").disabled = true;
   setStatus("trainStatus", "お題を作成中…", false, true);
@@ -2509,7 +2633,10 @@ ${coachFocusContext()}
 - 必ず次のJSONのみで回答する:
 {"situation":"場面の説明","tone":"casual|boss|external のいずれか","intent":"依頼/報告/確認/催促/お詫び/お礼などの用件","conditions":["守る条件1","守る条件2"],"hint":"書き出しのヒントを1文"}`;
   try{
-    const r = await callGemini(sys, theme, msg=>setStatus("trainStatus", msg, false, true), { maxOutputTokens: 700 });
+    const r = await callGemini(sys, theme, msg=>setStatus("trainStatus", msg, false, true), {
+      maxOutputTokens:700,
+      history:{type:"トレーニング出題",input:theme,output:r=>[r.situation,(Array.isArray(r.conditions)?r.conditions.join(" / "):""),r.hint].filter(Boolean).join("\n"),context:"コーチの練習問題"}
+    });
     trainQuestion = r;
     renderTrainQuestion(r);
     $("trainQuestionWrap").classList.remove("hidden");
@@ -2541,6 +2668,7 @@ async function runTrainingGrade(skipped){
 ${writingProfile()}
 
 【お題】${q.situation || ""}
+【問題の種類】${q.source === "stock" ? "保存した相手のメッセージへの返信" : "AIが作成した練習問題"}
 【相手】${tone.label}: ${tone.desc}
 【用件】${q.intent || "指定なし"}
 【守る条件】${(Array.isArray(q.conditions) ? q.conditions : []).join(" / ") || "指定なし"}
@@ -2550,6 +2678,7 @@ ${skipped
   ? "- 依頼者は解答を書いていない。good は空配列、improve も空配列にし、模範解答と学びだけを示す。"
   : "- できている点を必ず1つ以上挙げる。無理に褒めず、条件を満たせている箇所を具体的に指摘する。\n- 直すとよい点は最大3件。なぜそうするのかを、次から自分で書けるようになる形で説明する。\n- 否定的・威圧的な言い方をしない。"}
 - 模範解答は、お題の条件をすべて満たした文章にする。実在しそうな固有名詞は作らない。
+- 保存メッセージへの返信では、メッセージや依頼者の解答にない回答内容・期限・約束を創作しない。不明な事実は「確認して回答します」などの保留表現か、【回答内容】のような置換欄にする。
 - 「今日の学び」として、この練習から得られる汎用的な教訓を1文で書く。
 - 「今日の学び」に、内容を最もよく表すタグを1つ付ける。次から選ぶ: 結論先行 / 構成 / 簡潔さ / 敬語・配慮 / 語彙・言い回し / 表記 / その他
 - 必ず次のJSONのみで回答する:
@@ -2559,7 +2688,8 @@ ${skipped
     : answer;
   try{
     const r = await callGemini(sys, userText, msg=>setStatus("trainStatus", msg, false, true), {
-      maxOutputTokens: outputTokenLimit(answer.length, 900, 2000)
+      maxOutputTokens:outputTokenLimit(answer.length,900,2000),
+      history:{type:skipped?"模範解答":"トレーニング採点",input:userText,output:r=>r.model,context:r=>"お題: "+String(q.situation||"")+"\n改善点: "+(Array.isArray(r.improve)?r.improve.map(x=>String(x.point||"")+" - "+String(x.advice||"")).join(" / "):"")}
     });
     const good = Array.isArray(r.good) ? r.good : [];
     $("trainGood").innerHTML = good.length
@@ -2576,6 +2706,7 @@ ${skipped
       learning:{tip:r.tip,good:good.map(String).join(" / "),next:improve.map(x=>String(x.advice||"")).join(" / ")||String(r.tip),
         points:!skipped && answer && r.model && improve.length ? [{before:answer,after:String(r.model),reason:improve.map(x=>String(x.point||"")+": "+String(x.advice||"")).join("\n"),key:""}] : []}});
     $("trainResultWrap").classList.remove("hidden");
+    if(q.source === "stock") markReplyPractice(q.stockId);
     countTraining();
     showCompletionTime("trainStatus", r);
   }catch(e){
@@ -2855,7 +2986,10 @@ ${coachFocusContext()}
 - 必ず次のJSONのみで回答する:
 {"answer":"回答本文","examples":[{"title":"場面","before":"避けたい例","after":"おすすめの例"}],"practice":"次の文章で試す短い練習"}`;
   try{
-    const r = await callGemini(sys, question, msg=>setStatus("coStatus", msg, false, true), { maxOutputTokens: 1100 });
+    const r = await callGemini(sys, question, msg=>setStatus("coStatus", msg, false, true), {
+      maxOutputTokens:1100,
+      history:{type:"コーチ相談",input:question,output:r=>[r.answer,...(Array.isArray(r.examples)?r.examples.map(x=>(x.title?x.title+": ":"")+String(x.after||"")):[]),r.practice?"次の練習: "+r.practice:""].filter(Boolean).join("\n"),context:"保存済みの改善傾向を必要な範囲で参照"}
+    });
     $("coResultCard").classList.remove("hidden");
     $("coResultText").textContent = r.answer || "";
     const examples = Array.isArray(r.examples) ? r.examples.slice(0,2) : [];
@@ -3096,8 +3230,11 @@ $("skAdd").addEventListener("click", ()=>{
   resetStockForm(); renderStock(); setStatus("skStatus","ストックしました ✓",false,false); setTimeout(()=>setStatus("skStatus","",false,false),2000);
 });
 $("skCancel").addEventListener("click", resetStockForm);
+$("skOwner").addEventListener("change", updateStockFormMode);
 ["skSearch","skOwnerFilter","skCategoryFilter","skFavoriteOnly","skSort"].forEach(id=>$(id).addEventListener(id==="skSearch"?"input":"change",renderStock));
 $("hiSearch").addEventListener("input", renderHistory);
+$("hiCsv").addEventListener("click",exportHistoryCsv);
+$("hiMarkdown").addEventListener("click",exportHistoryMarkdown);
 $("hiClearAll").addEventListener("click", ()=>{
   if(!LS.history.length) return;
   if(!confirm("保存されている履歴をすべて削除します。元に戻せません。よろしいですか？")) return;
@@ -3283,7 +3420,7 @@ function mergeImportedCoachIssues(imported){
 $("bkExport").addEventListener("click", ()=>{
   const withKey = $("bkKey").checked;
   const data = {
-    app: "wordbridge", ver: 7, exported: new Date().toISOString().slice(0,10),
+    app: "wordbridge", ver: 8, exported: new Date().toISOString().slice(0,10),
     model: LS.model, persona: LS.persona, tone: LS.tone,
     notes: LS.notes, phrases: LS.phrases, coach: LS.coach, masks: LS.masks,
     dictionary: LS.dictionary, history: LS.history, mannerFavorites: validMannerFavorites(LS.mannerFavorites), stock: LS.stock.map(cleanStock).filter(Boolean)
@@ -3388,7 +3525,9 @@ $("bkFile").addEventListener("change", ()=>{
       let addS = 0;
       (Array.isArray(data.stock) ? data.stock : []).forEach(raw=>{
         const item=cleanStock(raw);
-        if(!item || stock.some(x=>stockIdentity(x)===stockIdentity(item))) return;
+        if(!item) return;
+        const existing=stock.find(x=>stockIdentity(x)===stockIdentity(item));
+        if(existing){existing.practiceCount=Math.max(existing.practiceCount,item.practiceCount);existing.lastPractice=String(existing.lastPractice)>String(item.lastPractice)?existing.lastPractice:item.lastPractice;return;}
         item.id=item.id && !stock.some(x=>x.id===item.id) ? item.id : Date.now().toString(36)+Math.random().toString(36).slice(2,7);
         stock.push(item); addS++;
       });
@@ -3434,6 +3573,7 @@ renderPhrases();
 renderDictionary();
 updateWordView(false);
 renderHistory();
+updateStockFormMode();
 renderStock();
 renderManners();
 renderCoach();

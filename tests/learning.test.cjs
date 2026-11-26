@@ -39,7 +39,7 @@ async function test(name,fn){await fn();passed++;console.log("PASS "+name);}
 const p={before:"ご確認していただけますか",after:"ご確認いただけますか",reason:"敬語を簡潔にする",key:"keigo"};
 function seed(h){h.sandbox.p=p;h.sandbox.fixture={type:"整える",input:p.before,output:p.after,d:"2026-09-14T10:00:00Z",learning:{points:[p],tip:"敬語を簡潔に",next:"敬語を一つにする"}};}
 (async()=>{
-  await test("full script initialization, 40 manners, and 50 business words",()=>{const h=harness();assert.match(h.get("coHistoryReport").innerHTML,/対象の履歴がありません/);assert.equal(h.run("MANNER_LIBRARY.length"),40);assert.equal(h.run("BUSINESS_WORD_LIBRARY.length"),50);assert.equal(h.run("STOCK_LIMIT"),500);assert.doesNotMatch(html,/data-tab="dc"/);assert.doesNotMatch(html,/id="panel-dc"/);assert.match(html,/data-tab="ph"[^>]*>[\s\S]*?言葉帳/);});
+  await test("full script initialization, 40 manners, and 50 business words",()=>{const h=harness();assert.match(h.get("coHistoryReport").innerHTML,/対象の履歴がありません/);assert.equal(h.run("MANNER_LIBRARY.length"),40);assert.equal(h.run("BUSINESS_WORD_LIBRARY.length"),50);assert.equal(h.run("STOCK_LIMIT"),500);assert.doesNotMatch(html,/data-tab="dc"/);assert.doesNotMatch(html,/id="panel-dc"/);assert.match(html,/data-tab="ph"[^>]*>[\s\S]*?言葉帳/);assert.match(html,/<option>相手から<\/option>/);assert.match(html,/<option value="stock">保存メッセージから<\/option>/);});
   await test("existing conversions and empty lines",()=>{const h=harness();for(const [mode,input,expected] of [["snake","a b\n\nC_D","a_b\n\nc_d"],["title","wHEEL_front","Wheel_Front"],["upper","aB","AB"],["lower","aB","ab"]]){h.sandbox.caseInput=input;h.sandbox.mode=mode;assert.equal(h.run("convertCase(caseInput,mode)"),expected);}});
   await test("quote validation rejects fabricated and unchanged examples",()=>{const h=harness();seed(h);assert.equal(h.run("cleanLearning({points:[p]},p.before,p.after,'添削').points.length"),1);assert.equal(h.run("cleanLearning({points:[p]},'存在しない','存在しない','添削').points.length"),0);assert.equal(h.run("cleanLearning({points:[{...p,after:p.before}]},p.before,p.before,'添削').points.length"),0);});
   await test("compose teaches without mistake attribution",()=>{const h=harness();seed(h);assert.equal(h.run("cleanLearning({points:[p]},p.before,p.after,'文書作成').points[0].key"),"");assert.equal(h.run("historyCoachData([{...fixture,type:'文書作成'}],'all').total"),0);});
@@ -59,12 +59,20 @@ function seed(h){h.sandbox.p=p;h.sandbox.fixture={type:"整える",input:p.befor
     const h=harness();seed(h);h.run("LS.history=[fixture];LS.notes=[{...fixture,source:'添削'}]");assert.equal(h.run("historyWordCandidates().length"),1);assert.equal(h.run("historyWordCandidates()[0].term"),p.after);h.run("renderHistoryWords()");assert.match(h.get("wordHistoryList").innerHTML,/ご確認いただけますか/);assert.equal(h.run("registerHistoryWord(0)"),true);assert.equal(h.run("LS.phrases[0].l"),"履歴から");assert.equal(h.run("registerHistoryWord(0)"),false);
   });
   await test("stock stays local, supports filtering, copying, and history save",async()=>{const h=harness();seed(h);assert.equal(h.run("saveStock({title:'参考',text:'結論を先に共有します。',owner:'参考',category:'構成',tags:'共有, 社内',note:'順番が分かりやすい'}).ok"),true);assert.equal(h.run("LS.stock.length"),1);assert.equal(h.run("LS.stock[0].tags.length"),2);h.get("skSearch").value="分かりやすい";h.run("renderStock()");assert.match(h.get("skList").innerHTML,/結論を先に/);const b=h.element();b.dataset.id=h.run("LS.stock[0].id");h.scoped.set("#skList .sk-copy",[b]);h.run("renderStock()");await b.fire("click");assert.equal(h.copied[0],"結論を先に共有します。");assert.equal(h.run("LS.stock[0].n"),1);h.run("LS.history=[{...fixture,id:'history-a'}]");assert.equal(h.run("stockFromHistory('history-a').ok"),true);assert.equal(h.run("LS.stock.length"),2);assert.equal(h.run("stockFromHistory('history-a').duplicate"),true);assert.equal(h.run("saveStock({text:'x'.repeat(10001)}).ok"),false);});
+  await test("incoming messages become local reply cards and are graded only on request",async()=>{
+    const h=harness();h.run("saveStock({title:'日程確認',text:'明日のレビューは15時開始で大丈夫ですか？',owner:'相手から',category:'質問・確認',tags:'上司, 日程',note:'可否と次の行動を返す'})");
+    assert.equal(h.run("replyTrainingStocks().length"),1);h.run("renderStock()");assert.match(h.get("skList").innerHTML,/返信練習/);
+    h.get("trainSource").value="stock";await h.run("runTrainingNew()");assert.equal(h.run("trainQuestion.source"),"stock");assert.match(h.get("trainQuestion").innerHTML,/明日のレビューは15時開始/);
+    h.run("LS.k='dummy';requests=[]");h.get("trainAnswer").value="はい、15時で問題ありません。資料を準備して参加します。";h.sandbox.payload={good:["可否が明確"],improve:[{point:"簡潔さ",advice:"一文を短くする"}],model:"はい、15時で問題ありません。資料を準備して参加します。",tip:"可否と次の行動を続けて伝える",tipTag:"構成"};
+    h.run("fetchWithTimeout=async(url,opts)=>{requests.push(JSON.parse(opts.body));return {ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(payload)}]}}]})}}");
+    await h.run("runTrainingGrade(false)");const body=JSON.stringify(h.sandbox.requests[0]);assert.match(body,/保存した相手のメッセージへの返信/);assert.match(body,/明日のレビューは15時開始/);assert.equal(h.run("LS.stock[0].practiceCount"),1);assert.match(h.get("trainModelText").textContent,/15時で問題ありません/);assert.equal(h.run("LS.history[0].type"),"トレーニング採点");
+  });
   await test("CSV and text exports preserve examples and neutralize formula input",async()=>{const h=harness();seed(h);h.run("LS.notes=[{d:'2026-09-14',tip:'=1+1',input:fixture.input,output:fixture.output,learning:fixture.learning}]");await h.get("ntCsv").fire("click");const csv=await h.sandbox.lastBlob.text();assert.match(csv,/"'=1\+1"/);assert.match(csv,/ご確認していただ/);assert.match(csv,/敬語を簡潔にする/);await h.get("ntCopyAll").fire("click");assert.match(h.copied[0],/原文:/);});
   await test("backup round-trip, deduplication and legacy import",async()=>{
     const h=harness();seed(h);h.run("LS.notes=[{d:'2026-09-14',tip:'敬語を簡潔に',source:'整える',input:fixture.input,output:fixture.output,learning:fixture.learning}];LS.history=[{...fixture,id:'a'}]");
-    h.run("LS.mannerFavorites=['manner-1'];LS.stock=[{id:'stock-a',title:'参考',text:'保存した文章',owner:'参考',category:'言い回し',tags:['表現'],d:'2026-09-15'}]");await h.get("bkExport").fire("click");const json=await h.sandbox.lastBlob.text();assert.equal(JSON.parse(json).ver,7);assert.equal(JSON.stringify(JSON.parse(json).mannerFavorites),'["manner-1"]');assert.equal(JSON.parse(json).stock[0].text,'保存した文章');
+    h.run("LS.mannerFavorites=['manner-1'];LS.stock=[{id:'stock-a',title:'返信練習',text:'確認をお願いします。',owner:'相手から',category:'質問・確認',tags:['上司'],d:'2026-09-15',practiceCount:2,lastPractice:'2026-09-16T10:00:00Z'}]");await h.get("bkExport").fire("click");const json=await h.sandbox.lastBlob.text();assert.equal(JSON.parse(json).ver,8);assert.equal(JSON.stringify(JSON.parse(json).mannerFavorites),'["manner-1"]');assert.equal(JSON.parse(json).stock[0].text,'確認をお願いします。');assert.equal(JSON.parse(json).stock[0].practiceCount,2);
     const r=harness();for(let i=0;i<2;i++){r.get("bkFile").files=[{text:json}];await r.get("bkFile").fire("change");}
-    assert.equal(r.run("LS.notes[0].learning.points[0].reason"),p.reason);assert.equal(r.run("LS.history[0].learning.points[0].before"),p.before);assert.equal(r.run("LS.notes.length"),1);assert.equal(r.run("LS.history.length"),1);assert.equal(r.run("JSON.stringify(LS.mannerFavorites)"),'["manner-1"]');assert.equal(r.run("LS.stock[0].text"),'保存した文章');
+    assert.equal(r.run("LS.notes[0].learning.points[0].reason"),p.reason);assert.equal(r.run("LS.history[0].learning.points[0].before"),p.before);assert.equal(r.run("LS.notes.length"),1);assert.equal(r.run("LS.history.length"),1);assert.equal(r.run("JSON.stringify(LS.mannerFavorites)"),'["manner-1"]');assert.equal(r.run("LS.stock[0].text"),'確認をお願いします。');assert.equal(r.run("LS.stock[0].practiceCount"),2);
     r.get("bkFile").files=[{text:JSON.stringify({app:"kotoba-desk",ver:1,notes:[{d:"2025-01-01",tip:"旧ノート"}]})}];await r.get("bkFile").fire("change");assert.equal(r.run("LS.notes.length"),2);
   });
   await test("quota error preserves stored data and does not fail result handling",()=>{const h=harness();seed(h);h.run("LS.history=[{...fixture,id:'existing'}]");h.sandbox.localStorage.setItem=()=>{throw Error("quota");};assert.doesNotThrow(()=>h.run("recordHistoryResult({type:'整える',input:'別入力',output:r=>r.revised,learn:true},{revised:'結果',tip:'学び'})"));assert.equal(h.run("LS.history[0].id"),"existing");assert.match(h.get("saveWarning").textContent,/保存できません/);});
@@ -82,7 +90,7 @@ function seed(h){h.sandbox.p=p;h.sandbox.fixture={type:"整える",input:p.befor
     await h.get("trOcrBtn").fire("click");
     const parts=h.sandbox.requests[0].contents[0].parts;
     assert.equal(parts[1].inlineData.mimeType,"image/png");assert.equal(parts[1].inlineData.data,"aW1hZ2U=");
-    assert.equal(h.get("trInput").value,"Image text");assert.equal(h.run("RESPONSE_CACHE.size"),0);assert.equal(h.run("LS.history.length"),0);
+    assert.equal(h.get("trInput").value,"Image text");assert.equal(h.run("RESPONSE_CACHE.size"),0);assert.equal(h.run("LS.history.length"),1);assert.equal(h.run("LS.history[0].type"),"画像文字読み取り");assert.equal(h.run("LS.history[0].output"),"Image text");assert.ok(!h.run("JSON.stringify(LS.history)").includes("aW1hZ2U="));
   });
   await test("translation image accepts drop and Snapmark-style paste without changing text paste",async()=>{
     const h=harness(),file={name:"snap.png",type:"image/png",size:8,dataUrl:"data:image/png;base64,aW1hZ2U="};
@@ -92,6 +100,11 @@ function seed(h){h.sandbox.p=p;h.sandbox.fixture={type:"整える",input:p.befor
     assert.equal(paste.defaultPrevented,true);assert.equal(h.run("trImage.mimeType"),"image/png");assert.match(h.get("trImageDropZone").textContent,/貼り付けしました/);
     h.get("trInput").value="keep text";const textPaste=await h.get("trInput").fire("paste",{clipboardData:{items:[],files:[]}});
     assert.equal(textPaste.defaultPrevented,undefined);assert.equal(h.get("trInput").value,"keep text");
+  });
+  await test("generated training and coach consultation are saved as history assets",async()=>{
+    const h=harness();h.run("LS.k='dummy';requests=[]");h.sandbox.payload={situation:"進捗を上司へ報告する",tone:"boss",intent:"報告",conditions:["結論を先に"],hint:"完了状況から書く"};
+    h.run("fetchWithTimeout=async(url,opts)=>{requests.push(JSON.parse(opts.body));return {ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(payload)}]}}]})}}");await h.get("trainNew").fire("click");assert.equal(h.run("LS.history[0].type"),"トレーニング出題");assert.match(h.run("LS.history[0].output"),/進捗を上司へ報告/);
+    h.get("coInput").value="報告を短くするコツは？";h.sandbox.payload={answer:"結論を先に置きます。",examples:[{title:"進捗報告",before:"背景から説明",after:"完了状況から説明"}],practice:"一文目に完了状況を書く"};await h.get("coBtn").fire("click");assert.equal(h.run("LS.history[0].type"),"コーチ相談");assert.match(h.run("LS.history[0].output"),/次の練習/);assert.equal(h.run("LS.history.length"),2);
   });
   await test("translation follow-up uses source and added premise, then restores result and notes",async()=>{
     const h=harness();h.run("LS.k='dummy';requests=[]");h.get("trInput").value="Please send the draft today.";h.get("trContext").value="社内向け";
@@ -148,24 +161,32 @@ function seed(h){h.sandbox.p=p;h.sandbox.fixture={type:"整える",input:p.befor
     h.run("writeMode='review';updateWriteMode(false)");
     assert.equal(h.get("reviewModeFields").classList.contains("hidden"),false);assert.equal(h.get("composeModeFields").classList.contains("hidden"),true);
   });
-  await test("review and compose share title, work title and knowledge, then clear them",async()=>{
+  await test("normal and knowledge intents replace the separate knowledge field",async()=>{
+    assert.doesNotMatch(html,/id="kjKnowledge"/);assert.match(html,/data-intent="通常"/);assert.match(html,/data-intent="ナレッジ"/);assert.match(html,/id="kjContext" rows="4"/);
     const review=harness();seed(review);review.run("LS.k='dummy';requests=[]");
-    review.get("kjTitle").value="品質確認のお願い";review.get("kjWorkTitle").value="月次品質確認";review.get("kjKnowledge").value="LODは形状の詳細度を示す";review.get("kjContext").value="社内資料";review.get("kjInput").value=p.before;
+    review.get("kjTitle").value="品質確認のお願い";review.get("kjWorkTitle").value="月次品質確認";review.get("kjContext").value="社内資料。初めて読む人にも分かるようにする。";review.get("kjInput").value=p.before;
     review.sandbox.payload={revised:p.after,tip:"用語を統一する",tips:[],points:[p]};
     review.run("fetchWithTimeout=async(url,opts)=>{requests.push(JSON.parse(opts.body));return {ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(payload)}]}}]})}}");
     await review.get("kjBtn").fire("click");
     const reviewSys=review.sandbox.requests[0].system_instruction.parts[0].text;
-    assert.match(reviewSys,/【タイトル・件名】品質確認のお願い/);assert.match(reviewSys,/【業務タイトル】月次品質確認/);assert.match(reviewSys,/【参照ナレッジ】LODは形状の詳細度を示す/);assert.match(review.run("LS.history[0].context"),/タイトル・件名: 品質確認のお願い/);
-    await review.get("kjClear").fire("click");assert.equal(review.get("kjTitle").value,"");assert.equal(review.get("kjWorkTitle").value,"");assert.equal(review.get("kjKnowledge").value,"");
+    assert.match(reviewSys,/【用件】通常/);assert.match(reviewSys,/特定の用件を付け足さず/);assert.match(reviewSys,/【今回の前提条件】社内資料。初めて読む人にも分かるようにする。/);assert.match(review.run("LS.history[0].context"),/タイトル・件名: 品質確認のお願い/);
+    await review.get("kjClear").fire("click");assert.equal(review.get("kjTitle").value,"");assert.equal(review.get("kjWorkTitle").value,"");assert.equal(review.get("kjContext").value,"");assert.equal(review.run("kjIntent"),"通常");
 
-    const compose=harness();seed(compose);compose.run("LS.k='dummy';requests=[];writeMode='compose';updateWriteMode(false)");
-    compose.get("kjTitle").value="受領連絡";compose.get("kjWorkTitle").value="外注データ受領";compose.get("kjKnowledge").value="納品物はFBXとする";compose.get("kjContext").value="Teamsチャット";compose.get("cmInput").value="受領したことを伝える";
-    compose.sandbox.payload={draft:"データを受領しました。",structure:"結論を先にした",tip:"結論を先に",tipTag:"結論先行",points:[]};
+    const compose=harness();seed(compose);compose.run("LS.k='dummy';requests=[];writeMode='compose';updateWriteMode(false);selectIntent('ナレッジ')");
+    compose.get("kjTitle").value="FBX納品ルール";compose.get("kjWorkTitle").value="外注データ受領";compose.get("kjContext").value="新人も参照する手順書";compose.get("cmInput").value="納品物はFBX。命名規則を確認する";
+    compose.sandbox.payload={draft:"納品物はFBX形式です。命名規則を確認してください。",structure:"前提から手順へ並べた",tip:"手順を順番に示す",tipTag:"構成",points:[]};
     compose.run("fetchWithTimeout=async(url,opts)=>{requests.push(JSON.parse(opts.body));return {ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(payload)}]}}]})}}");
     await compose.get("cmBtn").fire("click");
     const composeSys=compose.sandbox.requests[0].system_instruction.parts[0].text;
-    assert.match(composeSys,/【タイトル・件名】受領連絡/);assert.match(composeSys,/【業務タイトル】外注データ受領/);assert.match(composeSys,/【参照ナレッジ】納品物はFBXとする/);assert.match(compose.run("LS.history[0].context"),/タイトル・件名: 受領連絡/);
-    await compose.get("cmClear").fire("click");assert.equal(compose.get("kjTitle").value,"");assert.equal(compose.get("kjWorkTitle").value,"");assert.equal(compose.get("kjKnowledge").value,"");
+    assert.match(composeSys,/【用途】ナレッジ/);assert.match(composeSys,/社内ナレッジとして読み返しやすい文章/);assert.doesNotMatch(composeSys,/【参照ナレッジ】/);assert.match(compose.run("LS.history[0].context"),/ナレッジ/);
+    await compose.get("cmClear").fire("click");assert.equal(compose.get("kjTitle").value,"");assert.equal(compose.get("kjWorkTitle").value,"");assert.equal(compose.get("kjContext").value,"");
+  });
+  await test("detailed proof allows eight points and shows local past trends",async()=>{
+    const h=harness();seed(h);h.run("LS.k='dummy';requests=[];LS.history=[fixture,{...fixture,id:'old-b',d:'2026-09-15T10:00:00Z',input:'ご確認していただきたいです',output:'ご確認いただきたいです',learning:{...fixture.learning,points:[{before:'ご確認していただき',after:'ご確認いただき',reason:'敬語を簡潔にする',key:'keigo'}]}}]");
+    assert.equal(h.run("cleanLearning({points:Array.from({length:8},()=>p)},p.before,p.after,'添削').points.length"),8);
+    h.get("kjInput").value="ご確認していただけますでしょうか";h.sandbox.payload={revised:"ご確認いただけますか",tip:"敬語を簡潔に",tipTag:"敬語・配慮",next:"敬語を一つにする",points:[{before:"ご確認していただけますでしょうか",after:"ご確認いただけますか",reason:"敬語が重なり、読み手に回りくどく伝わるため、一つの依頼表現にする。",key:"keigo"}]};
+    h.run("fetchWithTimeout=async(url,opts)=>{requests.push(JSON.parse(opts.body));return {ok:true,json:async()=>({candidates:[{content:{parts:[{text:JSON.stringify(payload)}]}}]})}}");await h.get("prBtn").fire("click");
+    const sys=h.sandbox.requests[0].system_instruction.parts[0].text;assert.match(sys,/語順、助詞、主語と述語/);assert.match(sys,/最大8件/);assert.match(h.get("prHistoryTrend").innerHTML,/保存済みの過去2件/);assert.match(h.get("prHistoryTrend").innerHTML,/2件 \/ 2日/);assert.match(h.get("prHistoryTrend").innerHTML,/端末内だけ/);
   });
   await test("failed API request leaves history and notes unchanged",async()=>{
     const h=harness();h.run("LS.k='dummy';fetchWithTimeout=async()=>({ok:false,status:403,json:async()=>({error:{message:'denied'}})})");
@@ -176,6 +197,11 @@ function seed(h){h.sandbox.p=p;h.sandbox.fixture={type:"整える",input:p.befor
     const h=harness();seed(h);h.run("LS.history=[fixture]");h.get("coHistoryPeriod").value="all";
     await h.get("coHistoryRefresh").fire("click");const report=h.get("coHistoryReport").innerHTML;
     assert.match(report,/敬語を簡潔にする/);assert.match(report,/最新の実際の修正例/);assert.match(report,/実際の修正前/);assert.match(report,/ご確認していただけますか/);assert.match(report,/実際の修正後/);assert.match(report,/ご確認いただけますか/);
+  });
+  await test("history asset summary and CSV or Markdown exports include saved context",async()=>{
+    const h=harness();seed(h);h.run("LS.history=[fixture,{id:'coach-a',type:'コーチ相談',input:'質問',output:'回答',context:'改善傾向を参照',d:'2026-09-16T12:00:00Z'}];renderHistory()");assert.equal(h.run("HISTORY_LIMIT"),1000);assert.match(h.get("hiAssetSummary").innerHTML,/2件/);assert.match(h.get("hiAssetSummary").innerHTML,/コーチ相談 1件/);
+    await h.get("hiCsv").fire("click");const csv=await h.sandbox.lastBlob.text();assert.match(csv,/"日時","機能"/);assert.match(csv,/改善傾向を参照/);assert.match(csv,/敬語を簡潔にする/);
+    await h.get("hiMarkdown").fire("click");const md=await h.sandbox.lastBlob.text();assert.match(md,/# WordBridge 履歴/);assert.match(md,/\*\*前提・文脈\*\*/);assert.match(md,/保存件数: 2件/);
   });
   await test("filtered example copy uses correct library entry and reports clipboard failure",async()=>{
     const h=harness();const chosen=h.run("filteredManners('','断り・調整','同僚・チャット')[0]");
